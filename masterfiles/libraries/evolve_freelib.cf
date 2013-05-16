@@ -32,11 +32,13 @@
 # 
 # Cfengine Core 3.4.x or higher
 # cfengine_stdlib.cf
+# ( https://raw.github.com/cfengine/core/master/masterfiles/libraries/cfengine_stdlib.cf )
 
 #
 # Known issues
 #
 # Parameter data files cannot contain variables at this time due to Cfengine bug 2333.
+# (https://cfengine.com/dev/issues/2333)
 
 bundle agent efl_skeleton ( ref )
 {
@@ -139,10 +141,10 @@ bundle agent efl_main( ref )
    methods:
       "methods loop wrapper"
          comment    => "Call wrapper bundle to workaround naked variable bug.",
-         handle     => "efl_main_methods_efl_bug1277",
+         handle     => "efl_main_methods_efl_bug2638",
          ifvarclass => "${meth[${i}][0]}",
          action     => if_elapsed( "${meth[${i}][3]}" ),
-         usebundle  => efl_bug1277(
+         usebundle  => efl_bug2638(
             "${meth[${i}][1]}_${i}",
             "${meth[${i}][5]}",
             "${meth[${i}][2]}",
@@ -150,16 +152,16 @@ bundle agent efl_main( ref )
          );
 }
 
-bundle agent efl_bug1277(promiser_name, promisee_name, bundle_name, parameter)
+bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
 {
    meta:
-      "meta_purpose" string => "Workaround for naked variable bug, mantis 1277.";
-      "bug"          string => "https://cfengine.com/bugtracker/view.php?id=1277";
+      "meta_purpose" string => "Workaround for naked variable bug 2638.";
+      "bug"          string => "https://cfengine.com/dev/issues/2638";
 
    methods:
       "${promiser_name}" -> { "${promisee_name}" }
          comment    => "Methods promises described in methods.txt",
-         handle     => "efl_bug1277_methods_loop",
+         handle     => "efl_bug2638_methods_loop",
          usebundle  => ${bundle_name}( "${parameter}" );
 }
 
