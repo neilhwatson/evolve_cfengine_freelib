@@ -1,0 +1,4 @@
+any             ;; /tmp/dest1 ;; /tmp/orig
+cf1_example_com ;; /tmp/dest2 ;; /tmp/orig
+example_com     ;; /tmp/dest3 ;; /tmp/orig
+undefined_class ;; /tmp/dest4 ;; /tmp/orig
