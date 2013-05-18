@@ -2,11 +2,13 @@ Requirements
 
 Cfengine Core 3.4.x or higher
 
-Download in this (examples) directory cfengine_stdlib.cf ( https://raw.github.com/cfengine/core/master/masterfiles/libraries/cfengine_stdlib.cf )
+Create a libraries directory 
+
+Download in libraries directory cfengine_stdlib.cf ( https://raw.github.com/cfengine/core/master/masterfiles/libraries/cfengine_stdlib.cf )
 
 Copy or link modules/return_index.pl in ~/.cfagent/modules (user) or /var/cfengine/modules (root)
 
-Copy or link masterfiles/libraries/evolve_freelib.cf in this directory
+Copy or link masterfiles/libraries/evolve_freelib.cf in the libraries directory
 
 Action: cf-agent -K -f ./promises.cf
 
