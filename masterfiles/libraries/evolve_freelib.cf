@@ -752,7 +752,7 @@ bundle agent efl_packages( ref )
       "field_1" string => "Package policy";
       "field_2" string => "Package name regex";
       "field_3" string => "version string";
-      "field_4" string => "arch regex";
+      "field_4" string => "arch, '*' seems to work to imply any arch";
       "field_5" string => "promisee";
       "ReadMe"  string => "Specify a version of '0' when version does not matter.";
 
