@@ -901,6 +901,11 @@ bundle agent efl_service ( ref )
          comment    => "Cache the source file source file",
          handle     => "efl_service_files_cache",
          ifvarclass => "${svc[${s}][0]}",
+         perms      => mog(
+            "${svc[${s}][5]}",
+            "${svc[${s}][6]}",
+            "${svc[${s}][7]}"   
+            ),
          copy_from  => remote_dcp( "${svc[${s}][3]}", "@{efl_c.policy_servers}" );
 
       "${svc[${s}][2]}" -> { "${svc[${s}][9]}" }
@@ -1221,6 +1226,7 @@ bundle agent efl_edit_template ( ref )
          handle     => "efl_edit_template_cache_template",
          ifvarclass => "${files[${f}][0]}",
          create     => "true",
+         perms      => mog( "${files[${f}][3]}", "${files[${f}][4]}", "${files[${f}][5]}" ),
          copy_from  => remote_dcp( "${files[${f}][2]}", "@{efl_c.policy_servers}" );
 
       "${files[${f}][1]}" -> { "${files[${f}][6]}" }
