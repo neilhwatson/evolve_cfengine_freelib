@@ -129,15 +129,15 @@ bundle agent efl_main( ref )
             "${efl_c.max_num}",
             "${efl_c.max_bytes}"
             );
-      "i" 
-         comment => "Convert module list to local list for bug work-around",
-         slist   => { @{return_index_pl.i} };
 
-   classes:
-      "use_ordered_index"
-         comment    => "Created ordered index for method calls",
-         expression => usemodule( "return_index.pl", "${dim_methods}" );
+		"raw_i"
+			comment => "Get indices",
+			slist => getindices( "meth" );
 
+		"i"
+			comment => "Sort indices",
+			slist => sort( "raw_i", "lex" );
+				
    methods:
       "methods loop wrapper"
          comment    => "Call wrapper bundle to workaround naked variable bug.",
