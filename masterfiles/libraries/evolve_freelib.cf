@@ -287,15 +287,15 @@ bundle edit_line el_efl_sysctl_conf_file( ref )
    vars:
       "x"
          comment => "Get index array loaded above.",
-         handle  => "efl_el_sysctl_conf_file_vars_x",
+         handle  => "el_efl_sysctl_conf_file_vars_x",
          slist   => getindices( "${ref}" );
 
    insert_lines:
       "${${ref}[${x}][1]} = ${${ref}[${x}][2]}" -> { "${${ref}[${x}][3]}" }
-         handle     => "efl_el_sysctl_conf_file_insert_lines",
+         handle     => "el_efl_sysctl_conf_file_insert_lines",
 # TODO classes and actions do not seem to work in this bundle type.
-			classes    => efl_rkn( "${${ref}[${x}][1]} = ${${ref}[${x}][2]}", "efl_el_sysctl_conf_file_insert_lines" ),
-			action     => efl_ulog( "efl_el_sysctl_conf_file_insert_lines", "${${ref}[${x}][1]} = ${${ref}[${x}][2]}", "${${ref}[${x}][3]}", "1" ),
+			classes    => efl_rkn( "${${ref}[${x}][1]} = ${${ref}[${x}][2]}", "el_efl_sysctl_conf_file_insert_lines" ),
+			action     => efl_ulog( "el_efl_sysctl_conf_file_insert_lines", "${${ref}[${x}][1]} = ${${ref}[${x}][2]}", "${${ref}[${x}][3]}", "1" ),
          ifvarclass => "${${ref}[${x}][0]}";
 }
 
@@ -940,6 +940,7 @@ bundle agent efl_service ( ref )
 			classes    => efl_rkn( "${efl_c.cache}/${svc[${s}][2]}", "efl_service_svc_cache" ),
 			action     => efl_ulog( "efl_service_svc_cache", "${efl_c.cache}/${svc[${s}][2]}", "${svc[${s}][9]}", "1" ),
          ifvarclass => "${svc[${s}][0]}",
+         create     => "true",
          perms      => mog(
             "${svc[${s}][5]}",
             "${svc[${s}][6]}",
@@ -953,6 +954,7 @@ bundle agent efl_service ( ref )
 			classes    => efl_rkn( "${svc[${s}][2]}", "efl_service_files_config" ),
 			action     => efl_ulog( "efl_service_files_config", "${svc[${s}][2]}", "${svc[${s}][9]}", "1" ),
          ifvarclass => canonify( "${svc[${s}][3]}_is_not_a_template" ),
+         create     => "true",
          copy_from  => local_dcp( "${efl_c.cache}/${svc[${s}][2]}" );
 
       "${svc[${s}][2]}" -> { "${svc[${s}][9]}" }
@@ -996,7 +998,8 @@ bundle agent efl_service ( ref )
          contain    => in_shell_and_silent,
          ifvarclass => or (
 				canonify( "efl_service_command_${svc[${s}][8]}" ),
-				canonify( "${svc[${s}][2]}_repaired" )
+				canonify( "${svc[${s}][2]}_handle_efl_service_files_config_repaired" ),
+				canonify( "${svc[${s}][2]}_handle_efl_service_files_config_template_repaired" )
 				);
 }
 
