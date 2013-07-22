@@ -4,7 +4,7 @@ body common control
                           efl_main("bundle.txt"), 
                         };
      inputs          => { 
-                          "libraries/evolve_freelib.cf", 
+                          "lib/evolve_freelib.cf", 
                           "libraries/cfengine_stdlib.cf",
                         };
 }

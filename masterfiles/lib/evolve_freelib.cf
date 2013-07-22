@@ -235,10 +235,11 @@ bundle agent efl_sysctl_live( ref )
          contain    => in_shell_and_silent;
 
    reports:
-		"${efl_c.udate} ;; efl_sysctl_live_classes_ok ;; ${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]} ;; ${sysctl_promiser[${x}][3]}" -> { "${sysctl_promiser[${x}][3]}" }
-			handle         => "efl_sysctl_live_reports_log_promises",
-			ifvarclass     => canonify( "${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]}_handle_efl_sysctl_live_classes_ok_kept" ),
-			report_to_file => "${sys.workdir}/unicorn/log/promises";
+      ulog::
+         "${efl_c.udate} ;; efl_sysctl_live_classes_ok ;; ${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]} ;; ${sysctl_promiser[${x}][3]}" -> { "${sysctl_promiser[${x}][3]}" }
+            handle         => "efl_sysctl_live_reports_log_promises",
+            ifvarclass     => canonify( "${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]}_handle_efl_sysctl_live_classes_ok_kept" ),
+            report_to_file => "${sys.workdir}/unicorn/log/promises";
 }
 
 bundle agent efl_sysctl_conf_file( ref )
@@ -775,8 +776,8 @@ body copy_from efl_cpf(from, server, encrypt)
 {
    servers     => { "${server}" };
    source      => "${from}";
-   compare     => "digest";
    encrypt     => "${encrypt}";
+   compare     => "digest";
 }
 
 bundle agent efl_packages( ref )
@@ -898,11 +899,12 @@ bundle agent efl_service ( ref )
       "field_2" string => "Configuration file promiser";
       "field_3" string => "Configuration file source";
       "field_4" string => "Template file yes/no";
-      "field_5" string => "Configuration file mode";
-      "field_6" string => "Configuration file owner";
-      "field_7" string => "Configuration file group";
-      "field_8" string => "Restart command";
-      "field_9" string => "Promisee";
+      "field_5" string => "Encrypted copy yes/now";
+      "field_6" string => "Configuration file mode";
+      "field_7" string => "Configuration file owner";
+      "field_8" string => "Configuration file group";
+      "field_9" string => "Restart command";
+      "field_10" string => "Promisee";
 
    vars:
       "dim_svc"
@@ -934,70 +936,70 @@ bundle agent efl_service ( ref )
          expression => strcmp( "${svc[${s}][4]}", "yes" );
 
    files:
-      "${efl_c.cache}/${svc[${s}][2]}" -> { "${svc[${s}][9]}" }
+      "${efl_c.cache}/${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
          comment    => "Cache the source file source file",
          handle     => "efl_service_files_cache",
 			classes    => efl_rkn( "${efl_c.cache}/${svc[${s}][2]}", "efl_service_svc_cache" ),
-			action     => efl_ulog( "efl_service_svc_cache", "${efl_c.cache}/${svc[${s}][2]}", "${svc[${s}][9]}", "1" ),
+			action     => efl_ulog( "efl_service_svc_cache", "${efl_c.cache}/${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
          ifvarclass => "${svc[${s}][0]}",
          create     => "true",
          perms      => mog(
-            "${svc[${s}][5]}",
             "${svc[${s}][6]}",
-            "${svc[${s}][7]}"   
+            "${svc[${s}][7]}",
+            "${svc[${s}][8]}"   
             ),
-         copy_from  => remote_dcp( "${svc[${s}][3]}", "@{efl_c.policy_servers}" );
+         copy_from  => efl_cpf( "${svc[${s}][3]}", "@{efl_c.policy_servers}", "${svc[${s}][5]}" );
 
-      "${svc[${s}][2]}" -> { "${svc[${s}][9]}" }
+      "${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
          comment    => "Promise contents of configuration file",
          handle     => "efl_service_files_config",
 			classes    => efl_rkn( "${svc[${s}][2]}", "efl_service_files_config" ),
-			action     => efl_ulog( "efl_service_files_config", "${svc[${s}][2]}", "${svc[${s}][9]}", "1" ),
+			action     => efl_ulog( "efl_service_files_config", "${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
          ifvarclass => canonify( "${svc[${s}][3]}_is_not_a_template" ),
          create     => "true",
-         copy_from  => local_dcp( "${efl_c.cache}/${svc[${s}][2]}" );
+         copy_from  => efl_cpf( "${efl_c.cache}/${svc[${s}][2]}", "localhost", "${svc[${s}][5]}" );
 
-      "${svc[${s}][2]}" -> { "${svc[${s}][9]}" }
+      "${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
          comment       => "Promise contents of configurationn file from template",
          handle        => "efl_service_files_config_template",
 			classes       => efl_rkn( "${svc[${s}][2]}", "efl_service_files_config_template" ),
-			action        => efl_ulog( "efl_service_files_config_template", "${svc[${s}][2]}", "${svc[${s}][9]}", "1" ),
+			action        => efl_ulog( "efl_service_files_config_template", "${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
          create        => "true",
          edit_defaults => empty,
          ifvarclass    => canonify( "${svc[${s}][3]}_is_a_template" ),
          edit_template => "${efl_c.cache}/${svc[${s}][2]}";
 
-      "${svc[${s}][2]}" -> { "${svc[${s}][9]}" }
+      "${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
          comment    => "Promise permissions of configuration file",
          handle     => "efl_service_files_config_template_permissions",
 			classes    => efl_rkn( "${svc[${s}][2]}", "efl_service_files_config_template_permissions" ),
-			action     => efl_ulog( "efl_service_files_config_template_permissions", "${svc[${s}][2]}", "${svc[${s}][9]}", "1" ),
+			action     => efl_ulog( "efl_service_files_config_template_permissions", "${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
          ifvarclass => "${svc[${s}][0]}",
          perms      => mog(
-            "${svc[${s}][5]}",
             "${svc[${s}][6]}",
-            "${svc[${s}][7]}"   
+            "${svc[${s}][7]}",
+            "${svc[${s}][8]}"   
             );
 
    processes:
-      "${svc[${s}][1]}" -> { "${svc[${s}][9]}" }
+      "${svc[${s}][1]}" -> { "${svc[${s}][10]}" }
          comment        => "Promise process is running",
          handle         => "efl_service_processes_proc",
 			classes        => efl_rkn( "${svc[${s}][1]}", "efl_service_processes_proc" ),
-			action         => efl_ulog( "efl_service_processes_proc", "${svc[${s}][1]}", "${svc[${s}][9]}", "1" ),
+			action         => efl_ulog( "efl_service_processes_proc", "${svc[${s}][1]}", "${svc[${s}][10]}", "1" ),
 			process_select => by_command( "${svc[${s}][1]}" ),
          ifvarclass     => "${svc[${s}][0]}",
-         restart_class  => canonify( "efl_service_command_${svc[${s}][8]}" );
+         restart_class  => canonify( "efl_service_command_${svc[${s}][9]}" );
 
    commands:
-      "${svc[${s}][8]}" -> { "${svc[${s}][9]}" }
+      "${svc[${s}][9]}" -> { "${svc[${s}][10]}" }
          comment    => "Restart service is required.",
          handle     => "efl_service_commands_restart",
-			classes    => efl_rkn( "${svc[${s}][8]}", "efl_service_commands_restart" ),
-			action     => efl_ulog( "efl_service_commands_restart", "${svc[${s}][8]}", "${svc[${s}][9]}", "1" ),
+			classes    => efl_rkn( "${svc[${s}][9]}", "efl_service_commands_restart" ),
+			action     => efl_ulog( "efl_service_commands_restart", "${svc[${s}][9]}", "${svc[${s}][10]}", "1" ),
          contain    => in_shell_and_silent,
          ifvarclass => or (
-				canonify( "efl_service_command_${svc[${s}][8]}" ),
+				canonify( "efl_service_command_${svc[${s}][9]}" ),
 				canonify( "${svc[${s}][2]}_handle_efl_service_files_config_repaired" ),
 				canonify( "${svc[${s}][2]}_handle_efl_service_files_config_template_repaired" )
 				);
@@ -1394,10 +1396,12 @@ bundle agent efl_mon_cfengine
 
 body action efl_ulog ( handle, promiser, promisee, if_elapsed )
 {
+   ifelapsed => "${if_elapsed}";
+
    upassive::
       action_policy => 'warn';
+
    ulog::
-		ifelapsed    => "${if_elapsed}";
       log_kept     => "${efl_c.promise_log}";
       log_repaired => "${efl_c.promise_log}";
       log_failed   => "${efl_c.promise_log}";
@@ -1413,4 +1417,3 @@ body classes efl_rkn( promiser, handle )
       repair_denied     => { "${promiser}_handle_${handle}_notkept" };
       repair_timeout    => { "${promiser}_handle_${handle}_notkept" };
 }
-
