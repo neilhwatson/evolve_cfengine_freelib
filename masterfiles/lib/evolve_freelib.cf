@@ -1410,7 +1410,6 @@ body action efl_ulog ( handle, promiser, promisee, if_elapsed )
 
 body classes efl_rkn( promiser, handle )
 {
-   ulog::
       promise_kept      => { "${promiser}_handle_${handle}_kept" };
       promise_repaired  => { "${promiser}_handle_${handle}_repaired" };
       repair_failed     => { "${promiser}_handle_${handle}_notkept" };
