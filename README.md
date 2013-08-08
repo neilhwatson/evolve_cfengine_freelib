@@ -27,8 +27,8 @@ A skeleton bundle is provided for those that wish to create new bundles.
 
 Requirements
 
-Cfengine Core 3.4.x or higher
-cfengine_stdlib.cf ( https://raw.github.com/cfengine/core/master/masterfiles/libraries/cfengine_stdlib.cf )
+Cfengine Core 3.5.x or higher. There is an older 3.4 branch too.
+The Cfengine standard library. 
 
 Known issues
 
