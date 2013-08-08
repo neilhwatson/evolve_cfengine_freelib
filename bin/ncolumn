@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+open FH, "< $ARGV[0]";
+
+foreach $line(<FH>) {
+   if (! ($line =~ /^#/)) {
+      $line =~ s/ *;; */;;/g;
+      @columns = split(";;", $line);
+      my $columnnum;
+      foreach $column (@columns) {
+         if (length($column) > $columnlength[$columnnum]) { $columnlength[$columnnum] = length($column); }
+         $columnnum++;
+      }
+   }
+}
+
+close FH;
+
+open FH, "<$ARGV[0]";
+
+foreach $line(<FH>) {
+   if (! ($line =~ /^#/)) {
+      chomp $line;
+      $line =~ s/ *;; */;;/g;
+      @columns = split(";;", $line);
+      my $columnnum;
+      foreach $column (@columns) {
+         if ($columnnum > 0) { print " ;; "; }
+         print $column;
+         if (length($column) < $columnlength[$columnnum]) { print " " x ($columnlength[$columnnum] - length($column)); }
+         $columnnum ++;
+      }
+      print "\n";
+   } else {
+      print $line;
+   }
+}
