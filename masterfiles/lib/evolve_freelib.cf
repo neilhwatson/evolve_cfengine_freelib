@@ -873,12 +873,13 @@ bundle agent efl_start_service ( ref )
 
    processes:
       "${svc[${s}][1]}" -> { "${svc[${s}][3]}" }
-         comment       => "Promise process is running",
-         handle        => "efl_start_service_processes_proc",
-			classes       => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
-			action        => efl_ulog( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
-         ifvarclass    => "${svc[${s}][0]}",
-         restart_class => canonify( "efl_start_service_command_${svc[${s}][1]}" );
+         comment        => "Promise process is running",
+         handle         => "efl_start_service_processes_proc",
+			classes        => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
+			action         => efl_ulog( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
+			process_select => by_command( "${svc[${s}][1]}" ),
+         ifvarclass     => "${svc[${s}][0]}",
+         restart_class  => canonify( "efl_start_service_command_${svc[${s}][1]}" );
 
    commands:
       "${svc[${s}][2]}" -> { "${svc[${s}][3]}" }
