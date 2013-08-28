@@ -142,12 +142,12 @@ bundle agent efl_main( ref )
 
       "i" 
          comment => "Convert module list to local list for bug work-around",
-         slist   => { @{return_index_pl.i} };
+         slist   => { @{return_index_pl.efl_main} };
 
    classes:
       "use_ordered_index"
          comment    => "Created ordered index for method calls",
-         expression => usemodule( "return_index.pl", "${dim_methods}" );
+         expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
 
    methods:
       "methods loop wrapper"
