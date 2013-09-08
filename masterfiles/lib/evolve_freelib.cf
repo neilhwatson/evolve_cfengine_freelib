@@ -142,12 +142,12 @@ bundle agent efl_main( ref )
 
       "i" 
          comment => "Convert module list to local list for bug work-around",
-         slist   => { @{return_index_pl.efl_main} };
+         slist   => { @{return_index_pl.i} };
 
    classes:
       "use_ordered_index"
          comment    => "Created ordered index for method calls",
-         expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
+         expression => usemodule( "return_index.pl", "${dim_methods}" );
 
    methods:
       "methods loop wrapper"
@@ -873,13 +873,12 @@ bundle agent efl_start_service ( ref )
 
    processes:
       "${svc[${s}][1]}" -> { "${svc[${s}][3]}" }
-         comment        => "Promise process is running",
-         handle         => "efl_start_service_processes_proc",
-			classes        => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
-			action         => efl_ulog( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
-			process_select => by_command( "${svc[${s}][1]}" ),
-         ifvarclass     => "${svc[${s}][0]}",
-         restart_class  => canonify( "efl_start_service_command_${svc[${s}][1]}" );
+         comment       => "Promise process is running",
+         handle        => "efl_start_service_processes_proc",
+			classes       => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
+			action        => efl_ulog( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
+         ifvarclass    => "${svc[${s}][0]}",
+         restart_class => canonify( "efl_start_service_command_${svc[${s}][1]}" );
 
    commands:
       "${svc[${s}][2]}" -> { "${svc[${s}][3]}" }
@@ -1026,17 +1025,9 @@ bundle agent efl_chkconfig_enable_service ( ref )
             comment => "Check mode required for Debian's chkconfig",
             string  => "${paths.path[chkconfig]} -c";
 
-         "chkconfig_enable"
-            comment => "Enable mode required for Debian's chkconfig",
-            string  => "${paths.path[chkconfig]} -a";
-
       !debian::
          "chkconfig_check"
             comment => "Check mode not required for none Debian",
-            string  => "${paths.path[chkconfig]}";
-
-         "chkconfig_enable"
-            comment => "Enable mode required for none Debian chkconfig",
             string  => "${paths.path[chkconfig]}";
 
       any::
@@ -1106,17 +1097,9 @@ bundle agent efl_chkconfig_disable_service ( ref )
             comment => "Check mode required for Debian's chkconfig",
             string  => "${paths.path[chkconfig]} -c";
 
-         "chkconfig_disable"
-            comment => "Disable mode required for Debian's chkconfig",
-            string  => "${paths.path[chkconfig]} -d";
-
       !debian::
          "chkconfig_check"
             comment => "Check mode not required for none Debian",
-            string  => "${paths.path[chkconfig]}";
-
-         "chkconfig_disable"
-            comment => "Disable mode required for none Debian chkconfig",
             string  => "${paths.path[chkconfig]}";
 
       any::
