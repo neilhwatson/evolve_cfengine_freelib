@@ -1389,7 +1389,9 @@ body action efl_ulog ( handle, promiser, promisee, if_elapsed )
       log_kept     => "${efl_c.promise_log}";
       log_repaired => "${efl_c.promise_log}";
       log_failed   => "${efl_c.promise_log}";
-		log_string   => "${efl_c.udate} ;; ${handle} ;; ${promiser} ;; ${promisee}";
+		log_string   => "${handle} ;; ${promiser} ;; ${promisee}";
+# Remove date due to CFEngine bug 3441
+		#log_string   => "${efl_c.udate} ;; ${handle} ;; ${promiser} ;; ${promisee}";
 }
 
 body classes efl_rkn( promiser, handle )
@@ -1399,4 +1401,74 @@ body classes efl_rkn( promiser, handle )
       repair_failed     => { "${promiser}_handle_${handle}_notkept" };
       repair_denied     => { "${promiser}_handle_${handle}_notkept" };
       repair_timeout    => { "${promiser}_handle_${handle}_notkept" };
+}
+
+bundle agent efl_bug3430 (ref)
+{
+	meta:
+		"purpose" string => "Workaround CFEngine tcdb corruption and deadlock issues";
+		"readme"  string => "See bug https://cfengine.com/dev/issues/3430";
+
+	vars:
+      redhat::
+         "lsof" string => "/usr/sbin/lsof";
+
+      debian::
+         "lsof" string => "/usr/bin/lsof";
+
+      any::
+		"cf_lock_tcdb"
+			comment => "Location of lock database",
+			string  => "${sys.workdir}/state/cf_lock.tcdb";
+
+		"lsof_pids_string"
+			comment => "Count number of openings to cf_lock.tcdb",
+			string  => execresult( "${lsof} -t ${cf_lock_tcdb}", "noshell" );
+
+		"lsof_pids"
+			comment => "Convert string to list",
+			slist   => splitstring( "${lsof_pids_string}", "\s+", "10" );
+
+		"no_of_pids"
+			comment => "Convert string returned from execresult to int",
+			int     => length( "lsof_pids" );
+
+	classes:
+		"kill_pids"
+			expression => isgreaterthan( "${no_of_pids}", "1" );
+
+		"delete_cf_lock"
+			expression => "efl_bug3430_processes_kill_cf_agent_repaired";
+
+		"report_kill_and_delete"
+			expression => classmatch( "efl_bug3430.*?_repaired" );
+
+	files:
+		delete_cf_lock::
+			"${cf_lock_tcdb}" -> { "CFEngine bug 3430" }
+				comment => "Remove corrupted lock file",
+				handle  => "efl_bug3430_files_delete_cf_lock_tcdb",
+				classes => efl_rkn( "${cf_lock_tcdb}", "efl_bug3430_files_delete_cf_lock_tcdb" ),
+				action  => efl_ulog( "efl_bug3430_files_delete_cf_lock_tcdb", "${cf_lock_tcdb}", "CFEngine bug 3430", "1" ),
+				delete  => tidy;
+
+	processes:
+		kill_pids::
+			"cf-agent" -> { "CFEngine bug 3430" }
+				comment        => "Kill pids",
+				handle         => "efl_bug3430_processes_kill_cf_agent",
+				signals        => { "term", "kill" },
+				classes        => efl_rkn( "cf-agent", "efl_bug3430_processes_kill_cf_agent" ),
+				action         => efl_ulog( "efl_bug3430_processes_kill_cf_agent", "cf-agent", "CFEngine bug 3430", "1" ),
+				process_select => by_pid( "${lsof_pids}" );
+
+	reports:
+		report_kill_and_delete::
+			"TCDB corruption detected. Repair was attempted.";
+}
+
+body process_select by_pid( pid )
+{
+	pid            => irange( "${pid}", "${pid}" );
+	process_result => "pid";
 }
