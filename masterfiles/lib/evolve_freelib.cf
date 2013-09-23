@@ -147,7 +147,7 @@ bundle agent efl_main( ref )
    classes:
       "use_ordered_index"
          comment    => "Created ordered index for method calls",
-         expression => usemodule( "return_index.pl", "${dim_methods}" );
+         expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
 
    methods:
       "methods loop wrapper"
