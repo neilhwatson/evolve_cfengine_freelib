@@ -1421,9 +1421,13 @@ bundle agent efl_bug3430 (ref)
 			comment => "Location of lock database",
 			string  => "${sys.workdir}/state/cf_lock.tcdb";
 
+		"cf_lock_tcdb_lock"
+			comment => "Location of lock database",
+			string  => "${cf_lock_tcdb}.lock";
+
 		"lsof_pids_string"
 			comment => "Count number of openings to cf_lock.tcdb",
-			string  => execresult( "${lsof} -t ${cf_lock_tcdb}", "noshell" );
+			string  => execresult( "${lsof} -t ${cf_lock_tcdb_lock}", "noshell" );
 
 		"lsof_pids"
 			comment => "Convert string to list",
