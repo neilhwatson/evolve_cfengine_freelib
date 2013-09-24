@@ -1064,11 +1064,11 @@ bundle agent efl_chkconfig_enable_service ( ref )
             expression => returnszero( "${chkconfig_check} ${svc[${s}][1]}", "noshell" );
 
    commands:
-      "${chkconfig_enable} ${svc[${s}][1]} on" -> { "${svc[${s}][2]}" }
+      "${paths.path[chkconfig]} ${svc[${s}][1]} on" -> { "${svc[${s}][2]}" }
          comment    => "Enable service using chkconfig",
          handle     => "efl_chkconfig_enable_service_commands_chkconfig",
          ifvarclass => canonify( "efl_chkconfig_enable_${svc[${s}][1]}" ),
-			classes    => efl_rkn( "${chkconfig_enable} ${svc[${s}][1]} off", "efl_chkconfig_enable_service_commands_chkconfig" ),
+			classes    => efl_rkn( "${paths.path[chkconfig]} ${svc[${s}][1]} off", "efl_chkconfig_enable_service_commands_chkconfig" ),
 			action     => efl_ulog( "efl_chkconfig_enable_service_commands_chkconfig", "${svc[${s}][1]}", "${svc[${s}][2]}", "1" ),
          contain    => silent;
 
@@ -1136,11 +1136,11 @@ bundle agent efl_chkconfig_disable_service ( ref )
             not        => returnszero( "${chkconfig_check} ${svc[${s}][1]}", "noshell" );
 
    commands:
-      "${chkconfig_disable} ${svc[${s}][1]} off" -> { "${svc[${s}][2]}" }
+      "${paths.path[chkconfig]} ${svc[${s}][1]} off" -> { "${svc[${s}][2]}" }
          comment    => "Enable service using chkconfig",
          handle     => "efl_chkconfig_disable_service_commands_chkconfig",
          ifvarclass => canonify( "efl_chkconfig_disable_${svc[${s}][1]}" ),
-			classes    => efl_rkn( "${chkconfig_disable} ${svc[${s}][1]} off", "efl_chkconfig_disable_service_commands_chkconfig" ),
+			classes    => efl_rkn( "${paths.path[chkconfig]} ${svc[${s}][1]} off", "efl_chkconfig_disable_service_commands_chkconfig" ),
 			action     => efl_ulog( "efl_chkconfig_disable_service_commands_chkconfig", "${svc[${s}][1]}", "${svc[${s}][2]}", "1" ),
          contain    => silent;
 
