@@ -30,19 +30,8 @@
 #
 # Requirements
 # 
-# Cfengine Core 3.4.x or higher
-# cfengine_stdlib.cf
-# ( https://raw.github.com/cfengine/core/master/masterfiles/libraries/cfengine_stdlib.cf )
-
-#
-# Known issues
-#
-# Parameter data files cannot contain variables at this time due to Cfengine bug 2333.
-# (https://cfengine.com/dev/issues/2333)
-
-# TODO add 
-# classes      => efl_rkn( "${files[${f}][1]}", "handle" ),
-# action       => efl_ulog( "handle", "${files[${f}][1]}", "${files[${f}][8]}", "1" ),
+# CFEngine Core 3.5.x or higher
+# CFEengine standard library
 
 bundle agent efl_skeleton ( ref )
 {
@@ -55,7 +44,7 @@ bundle agent efl_skeleton ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_skeleton_vars_files",
          int     => readstringarrayidx(
-            "skel",
+            "skel_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -66,7 +55,15 @@ bundle agent efl_skeleton ( ref )
 		"f"
 			comment => "Get index array loaded above.",
 			handle  => "efl_skeleton_vars_f",
-			slist   => getindices( "skel" );
+			slist   => getindices( "skel_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist => { "0" };
+ 
+      "skel[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string => "${skel_o[${f}][${f2}]}";
 }
 
 bundle common efl_c
@@ -132,7 +129,7 @@ bundle agent efl_main( ref )
       "dim_methods"
          comment => "Read data to be used in method promises.",
          int     => readstringarrayidx(
-            "meth",
+            "meth_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -144,10 +141,19 @@ bundle agent efl_main( ref )
          comment => "Convert module list to local list for bug work-around",
          slist   => { @{return_index_pl.efl_main} };
 
+      "i2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5" };
+ 
+      "meth[${i}][${i2}]"
+         comment => "Work around for bug 2333",
+         string => "${meth_o[${i}][${i2}]}";
+
    classes:
-      "use_ordered_index"
-         comment    => "Created ordered index for method calls",
-         expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
+      !use_ordered_index::
+         "use_ordered_index"
+            comment    => "Created ordered index for method calls",
+            expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
 
    methods:
       "methods loop wrapper"
@@ -190,7 +196,7 @@ bundle agent efl_sysctl_live( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_sysctl_live_vars_sysctl_promiser",
          int     => readstringarrayidx(
-            "sysctl_promiser",
+            "sysctl_promiser_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -201,7 +207,15 @@ bundle agent efl_sysctl_live( ref )
 		"x"
 			comment => "Get index array loaded above.",
 			handle  => "efl_sysctl_live_vars_x",
-			slist   => getindices( "sysctl_promiser" );
+			slist   => getindices( "sysctl_promiser_o" );
+
+      "x2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3" };
+      
+      "sysctl_promiser[${x}][${x2}]"
+         comment => "Work around for bug 2333",
+         string => "${sysctl_promiser_o[${x}][${x2}]}";
 
       "efl_sysctl_live[${sysctl_promiser[${x}][1]}]"
          comment    => "Set current live value",
@@ -236,7 +250,7 @@ bundle agent efl_sysctl_live( ref )
 
    reports:
       ulog::
-         "${efl_c.udate} ;; efl_sysctl_live_classes_ok ;; ${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]} ;; ${sysctl_promiser[${x}][3]}" -> { "${sysctl_promiser[${x}][3]}" }
+         "efl_sysctl_live_classes_ok ;; ${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]} ;; ${sysctl_promiser[${x}][3]}" -> { "${sysctl_promiser[${x}][3]}" }
             handle         => "efl_sysctl_live_reports_log_promises",
             ifvarclass     => canonify( "${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]}_handle_efl_sysctl_live_classes_ok_kept" ),
             report_to_file => "${sys.workdir}/unicorn/log/promises";
@@ -258,13 +272,26 @@ bundle agent efl_sysctl_conf_file( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_sysctl_conf_file_vars_sysctl",
          int     => readstringarrayidx(
-            "sysctl",
+            "sysctl_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
             "${efl_c.max_num}",
             "${efl_c.max_bytes}"
          );
+
+		"x"
+			comment => "Get index array loaded above.",
+			handle  => "efl_sysctl_conf_file_vars_x",
+			slist   => getindices( "sysctl_o" );
+
+      "x2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3" };
+      
+      "sysctl[${x}][${x2}]"
+         comment => "Work around for bug 2333",
+         string => "${sysctl_o[${x}][${x2}]}";
 
    files:
       "${sysctl_conf}" -> { "Provisioning" }
@@ -316,7 +343,7 @@ bundle agent efl_command ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_command_vars_files",
          int     => readstringarrayidx(
-            "cmd",
+            "cmd_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -327,7 +354,15 @@ bundle agent efl_command ( ref )
 		"c"
 			comment => "Get index array loaded above.",
 			handle  => "efl_command_vars_c",
-			slist   => getindices( "cmd" );
+			slist   => getindices( "cmd_o" );
+
+      "c2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5" };
+
+      "cmd[${c}][${c2}]"
+         comment => "Work around for bug 2333",
+         string => "${cmd_o[${c}][${c2}]}";
 
    commands:
       "${cmd[${c}][1]}" -> { "${cmd[${c}][5]}" }
@@ -360,7 +395,7 @@ bundle agent efl_link ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_link_vars_files",
          int     => readstringarrayidx(
-            "link",
+            "link_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -371,7 +406,15 @@ bundle agent efl_link ( ref )
 		"l"
 			comment => "Get index array loaded above.",
 			handle  => "efl_link_vars_f",
-			slist   => getindices( "link" );
+			slist   => getindices( "link_o" );
+
+      "l2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4" };
+
+      "link[${l}][${l2}]"
+         comment => "Work around for bug 2333",
+         string => "link_o[${l}][${l2}]";
 
    files:
       "${link[${l}][1]}" -> { "${link[${l}][4]}" }
@@ -407,7 +450,7 @@ bundle agent efl_delete_files ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_delete_files_vars_files",
          int     => readstringarrayidx(
-            "files",
+            "files_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -418,7 +461,15 @@ bundle agent efl_delete_files ( ref )
 		"f"
 			comment => "Get index array loaded above.",
 			handle  => "efl_delete_files_vars_f",
-			slist   => getindices( "files" );
+			slist   => getindices( "files_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6" };
+
+      "files[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string => "${files_o[${f}][${f2}]}";
 
    classes:
          "${files[${f}][1]}_isdir_${f}" -> { "${files[${f}][6]}" }
@@ -501,7 +552,7 @@ bundle agent efl_global_strings ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_global_strings_vars_files",
          int     => readstringarrayidx(
-            "string",
+            "string_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -512,7 +563,15 @@ bundle agent efl_global_strings ( ref )
 		"s"
 			comment => "Get index array loaded above.",
 			handle  => "efl_global_strings_vars_s",
-			slist   => getindices( "string" );
+			slist   => getindices( "string_o" );
+
+      "s2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3" };
+
+      "string[${s}][${s2}]"
+         comment => "Work around for bug 2333",
+         string => "${string_o[${s}][${s2}]}";
 
 		"${string[${s}][1]}" -> { "${string[${s}][3]}" }
 			comment    => "Define variable if class is true",
@@ -538,7 +597,7 @@ bundle agent efl_class_cmd_regcmp( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_class_cmd_regcmp_vars_files",
          int     => readstringarrayidx(
-            "class",
+            "class_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -549,7 +608,15 @@ bundle agent efl_class_cmd_regcmp( ref )
 		"c"
 			comment => "Get index array loaded above.",
 			handle  => "efl_class_cmd_regcmp_vars_c",
-			slist   => getindices( "class" );
+			slist   => getindices( "class_o" );
+
+      "c2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6" };
+
+      "class[${c}][${c2}]"
+         comment => "Work around for bug 2333",
+         string => "${class_o[${c}][${c2}]}";
 
 		"cmd_output_${c}" -> { "${class[${c}][6]}" }
 			comment    => "Capture commmand output",
@@ -569,31 +636,18 @@ bundle agent efl_class_cmd_regcmp( ref )
 
       "${class[${c}][1]}" -> { "${class[${c}][6]}" }
          comment    => "Set class if command output matches the anchored regex.",
+         scope      => "namespace",
          ifvarclass => "${class[${c}][1]}_exp",
          expression => regcmp( "${class[${c}][5]}", "${cmd_output_${c}}" );
 
       "${class[${c}][1]}" -> { "${class[${c}][6]}" }
          comment    => "Set class if command output matches the anchored regex.",
+         scope      => "namespace",
          ifvarclass => "${class[${c}][1]}_not",
          not        => regcmp( "${class[${c}][5]}", "${cmd_output_${c}}" );
-
-   methods:
-      "bug 1780 workaround"
-         usebundle  => elf_bug1780( "${class[${c}][1]}" ),
-         comment    => "Send class variable to common bundle to make global class",
-         ifvarclass => "${class[${c}][1]}";
 }
 
-bundle common elf_bug1780( ref )
-{
-   meta:
-      "purpose" string => "Define given string to a class. Workaround for bug 1780";
-
-   classes:
-      "${ref}" expression => "any";
-}
-
-bundle common efl_class_classmatch( ref )
+bundle agent efl_class_classmatch( ref )
 {
    meta:
       "purpose" string => "Set global class if the given regex matches a defined class";
@@ -606,7 +660,7 @@ bundle common efl_class_classmatch( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_class_classmatch_vars_files",
          int     => readstringarrayidx(
-            "class",
+            "class_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -617,15 +671,24 @@ bundle common efl_class_classmatch( ref )
 		"c"
 			comment => "Get index array loaded above.",
 			handle  => "efl_class_classmatch_vars_c",
-			slist   => getindices( "class" );
+			slist   => getindices( "class_o" );
+
+      "c2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2" };
+
+      "class[${c}][${c2}]"
+         comment => "Work around for bug 2333",
+         string => "${class_o[${c}][${c2}]}";
 
    classes:
       "${class[${c}][0]}" -> { "${class[${c}][2]}" }
          comment    => "Set class if classmatch function returns true.",
+         scope      => "namespace",
          expression => classmatch( "${class[${c}][1]}" );
 }
 
-bundle common efl_class_iprange( ref )
+bundle agent efl_class_iprange( ref )
 {
    meta:
       "purpose" string => "Set global class if host IP is within the given range";
@@ -638,7 +701,7 @@ bundle common efl_class_iprange( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_class_iprange_vars_files",
          int     => readstringarrayidx(
-            "class",
+            "class_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -649,15 +712,24 @@ bundle common efl_class_iprange( ref )
 		"c"
 			comment => "Get index array loaded above.",
 			handle  => "efl_class_iprange_vars_c",
-			slist   => getindices( "class" );
+			slist   => getindices( "class_o" );
+
+      "c2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2" };
+
+      "class[${c}][${c2}]"
+         comment => "Work around for bug 2333",
+         string => "${class_o[${c}][${c2}]}";
 
    classes:
       "${class[${c}][0]}" -> { "${class[${c}][2]}" }
          comment    => "Set class if iprange function returns true.",
+         scope      => "namespace",
          expression => iprange( "${class[${c}][1]}" );
 }
 
-bundle common efl_class_hostname( ref )
+bundle agent efl_class_hostname( ref )
 #
 # Reads parameter file in the form of <name>-<class>.txt.
 # the file contains a list of unqualified hostnames separated by white space.
@@ -667,27 +739,16 @@ bundle common efl_class_hostname( ref )
       "purpose" string => "Set global class if list item matches hostname";
       "field_0" string => "unqualified hostname";
 
-   vars:
-      "hosts"
-         comment => "Read file into list.",
-         handle  => "efl_class_hostname_vars_hosts",
-         slist   => readstringlist(
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.slist_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-            );
-
    classes:
-      "have_class"
+      "check_hostnames_${ref}"
          comment    => "Get class name from filename",
          expression => regextract( "${efl_c.class}", "${ref}", "class" );
       
-      have_class::
-         "${class[1]}"
-            comment    => "Set class if sys.host matches any list element.",
-            expression => strcmp( "${hosts}", "${sys.uqhost}" );
+      "${class[1]}"
+         comment    => "Set class if unqualified hostname matches any list element.",
+         scope      => "namespace",
+         ifvarclass => canonify( "check_hostnames_${ref}" ),
+         expression => regline( "${sys.uqhost}", "${ref}" );
 }
 
 bundle agent efl_copy_files ( ref )
@@ -710,7 +771,7 @@ bundle agent efl_copy_files ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_copy_files_vars_files",
          int     => readstringarrayidx(
-            "files",
+            "files_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -721,7 +782,15 @@ bundle agent efl_copy_files ( ref )
 		"f"
 			comment => "Get index array loaded above.",
 			handle  => "efl_copy_files_vars_f",
-			slist   => getindices( "files" );
+			slist   => getindices( "files_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+
+      "files[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string => "${files_o[${f}][${f2}]}";
 
    classes:
       "recurse_${files[${f}][1]}_${f}"
@@ -797,7 +866,7 @@ bundle agent efl_packages( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_packageg_vars_files",
          int     => readstringarrayidx(
-            "pkg",
+            "pkg_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -808,7 +877,15 @@ bundle agent efl_packages( ref )
 		"p"
 			comment => "Get index array loaded above.",
 			handle  => "efl_packageg_vars_p",
-			slist   => getindices( "pkg" );
+			slist   => getindices( "pkg_o" );
+
+      "p2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5" };
+
+      "pkg[${p}][${p2}]"
+         comment => "Work around for bug 2333",
+         string => "${pkg_o[${p}][${p2}]}";
 
    classes:
       "do not specify version ${pkg[${p}][2]}_${pkg[${p}][3]}"
@@ -858,7 +935,7 @@ bundle agent efl_start_service ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_start_service_vars_files",
          int     => readstringarrayidx(
-            "svc",
+            "svc_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -869,7 +946,15 @@ bundle agent efl_start_service ( ref )
 		"s"
 			comment => "Get index array loaded above.",
 			handle  => "efl_start_service_vars_s",
-			slist   => getindices( "svc" );
+			slist   => getindices( "svc_o" );
+
+      "s2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3" };
+
+      "svc[${s}][${s2}]"
+         comment => "Work around for bug 2333",
+         string => "${svc_o[${s}][${s2}]}";
 
    processes:
       "${svc[${s}][1]}" -> { "${svc[${s}][3]}" }
@@ -911,7 +996,7 @@ bundle agent efl_service ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_service_vars_files",
          int     => readstringarrayidx(
-            "svc",
+            "svc_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -922,7 +1007,15 @@ bundle agent efl_service ( ref )
 		"s"
 			comment => "Get index array loaded above.",
 			handle  => "efl_service_vars_s",
-			slist   => getindices( "svc" );
+			slist   => getindices( "svc_o" );
+
+      "s2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+
+      "svc[${s}][${s2}]"
+         comment => "Work around for bug 2333",
+         string => "${svc_o[${s}][${s2}]}";
 
    classes:
       "${svc[${s}][3]}_is_not_a_template" 
@@ -1035,7 +1128,7 @@ bundle agent efl_chkconfig_enable_service ( ref )
             comment => "Read data file for parsing.",
             handle  => "efl_chkconfig_enable_service_vars_files",
             int     => readstringarrayidx(
-               "svc",
+               "svc_o",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1046,7 +1139,15 @@ bundle agent efl_chkconfig_enable_service ( ref )
 		"s"
 			comment => "Get index array loaded above.",
 			handle  => "efl_chkconfig_enable_service_vars_s",
-			slist   => getindices( "svc" );
+			slist   => getindices( "svc_o" );
+
+      "s2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2" };
+
+      "svc[${s}][${s2}]"
+         comment => "Work around for bug 2333",
+         string => "${svc_o[${s}][${s2}]}";
 
    classes:
       _stdlib_path_exists_chkconfig::
@@ -1107,7 +1208,7 @@ bundle agent efl_chkconfig_disable_service ( ref )
             comment => "Read data file for parsing.",
             handle  => "efl_chkconfig_disable_service_vars_files",
             int     => readstringarrayidx(
-               "svc",
+               "svc_o",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1118,7 +1219,15 @@ bundle agent efl_chkconfig_disable_service ( ref )
 		"s"
 			comment => "Get index array loaded above.",
 			handle  => "efl_chkconfig_disable_service_vars_s",
-			slist   => getindices( "svc" );
+			slist   => getindices( "svc_o" );
+
+      "s2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2" };
+
+      "svc[${s}][${s2}]"
+         comment => "Work around for bug 2333",
+         string => "${svc_o[${s}][${s2}]}";
 
    classes:
       _stdlib_path_exists_chkconfig::
@@ -1173,7 +1282,7 @@ bundle agent efl_file_perms ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_file_perms_vars_files",
          int     => readstringarrayidx(
-            "files",
+            "files_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -1184,7 +1293,15 @@ bundle agent efl_file_perms ( ref )
 		"f"
 			comment => "Get index array loaded above.",
 			handle  => "efl_file_perms_vars_f",
-			slist   => getindices( "files" );
+			slist   => getindices( "files_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8" };
+
+      "files[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string => "${files_o[${f}][${f2}]}";
 
       classes:
          "efl_no_recurse_${files[${f}][1]}"
@@ -1280,7 +1397,7 @@ bundle agent efl_edit_template ( ref )
          comment => "Read data file for parsing.",
          handle  => "efl_edit_template_vars_files",
          int     => readstringarrayidx(
-            "files",
+            "files_o",
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -1291,7 +1408,15 @@ bundle agent efl_edit_template ( ref )
 		"f"
 			comment => "Get index array loaded above.",
 			handle  => "efl_edit_template_vars_f",
-			slist   => getindices( "files" );
+			slist   => getindices( "files_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8" };
+
+      "files[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string => "${files_o[${f}][${f2}]}";
 
    files:
       "${efl_c.cache}/${files[${f}][1]}" -> { "${files[${f}][6]}" }
