@@ -104,13 +104,17 @@ bundle common efl_c
          comment => "Maximum number of bytes to read from data file.",
          string  => "1M";
 
-		"promise_log"
-			comment => "Location for experimental promise outcome log.",
-			string => "${sys.workdir}/unicorn/log/promises";
+      "logdir"
+         comment => "Log dir for unicorn logs",
+         string => "${sys.workdir}/unicorn/log";
 
-		"udate"
-			comment => "Date stamp to match agent output",
-			string => strftime( "localtime", "%Y-%m-%dT%H:%M:%S%z", now() );
+      "promise_log"
+         comment => "Location for experimental promise outcome log.",
+         string  => "${logdir}/promises";
+
+      "udate"
+         comment => "Date stamp to match agent output",
+         string  => strftime( "localtime", "%Y-%m-%dT%H:%M:%S%z", now() );
 }
 
 bundle agent efl_main( ref )
@@ -807,16 +811,18 @@ bundle agent efl_copy_files ( ref )
       "${files[${f}][1]}" -> { "${files[${f}][9]}" }
          comment    => "Copy a single file",
          handle     => "efl_copy_files_remote_single",
-			classes    => efl_rkn( "${files[${f}][1]}", "efl_copy_files_remote_single" ),
-			action     => efl_ulog( "efl_copy_files_remote_single", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
+         create     => 'true',
+         classes    => efl_rkn( "${files[${f}][1]}", "efl_copy_files_remote_single" ),
+         action     => efl_ulog( "efl_copy_files_remote_single", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
          ifvarclass => and( "${files[${f}][0]}", not(  canonify( "recurse_${files[${f}][1]}" ) ) ),
          copy_from  => efl_cpf( "${files[${f}][3]}", "${files[${f}][4]}", "${files[${f}][5]}" );
 
       "${files[${f}][1]}" -> { "${files[${f}][9]}" }
          comment      => "Copy and recurse",
          handle       => "efl_copy_files_remove_recurse",
-			classes    => efl_rkn( "${files[${f}][1]}", "efl_copy_files_remove_recurse" ),
-			action     => efl_ulog( "efl_copy_files_remove_recurse", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
+         create       => 'true',
+         classes      => efl_rkn( "${files[${f}][1]}", "efl_copy_files_remove_recurse" ),
+         action       => efl_ulog( "efl_copy_files_remove_recurse", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
          ifvarclass   => and( "${files[${f}][0]}", canonify( "recurse_${files[${f}][1]}_${f}" ) ),
          depth_search => recurse( "inf" ),
          file_select  => by_name( "${files[${f}][2]}" ),
