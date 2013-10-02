@@ -815,7 +815,7 @@ bundle agent efl_copy_files ( ref )
          classes    => efl_rkn( "${files[${f}][1]}", "efl_copy_files_remote_single" ),
          action     => efl_ulog( "efl_copy_files_remote_single", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
          ifvarclass => and( "${files[${f}][0]}", not(  canonify( "recurse_${files[${f}][1]}" ) ) ),
-         copy_from  => efl_cpf( "${files[${f}][3]}", "${files[${f}][4]}", "${files[${f}][5]}" );
+         copy_from  => efl_cpf( "${files[${f}][3]}", "@{${files[${f}][4]}}", "${files[${f}][5]}" );
 
       "${files[${f}][1]}" -> { "${files[${f}][9]}" }
          comment      => "Copy and recurse",
@@ -826,7 +826,7 @@ bundle agent efl_copy_files ( ref )
          ifvarclass   => and( "${files[${f}][0]}", canonify( "recurse_${files[${f}][1]}_${f}" ) ),
          depth_search => recurse( "inf" ),
          file_select  => by_name( "${files[${f}][2]}" ),
-         copy_from    => efl_cpf( "${files[${f}][3]}", "${files[${f}][4]}", "${files[${f}][5]}" );
+         copy_from    => efl_cpf( "${files[${f}][3]}", "@{${files[${f}][4]}}", "${files[${f}][5]}" );
 
       "${files[${f}][1]}" -> { "${files[${f}][9]}" }
          comment    => "Promise permissions and ownership",
