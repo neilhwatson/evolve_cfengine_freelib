@@ -105,8 +105,8 @@ bundle common efl_c
          string  => "1M";
 
       "logdir"
-         comment => "Log dir for unicorn logs",
-         string => "${sys.workdir}/unicorn/log";
+         comment => "Log dir for Delta Reporting logs",
+         string => "${sys.workdir}/delta_reporting/log";
 
       "promise_log"
          comment => "Location for experimental promise outcome log.",
