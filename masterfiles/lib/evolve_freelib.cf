@@ -115,6 +115,11 @@ bundle common efl_c
       "udate"
          comment => "Date stamp to match agent output",
          string  => strftime( "localtime", "%Y-%m-%dT%H:%M:%S%z", now() );
+
+      "efl_server_txt"
+            comment => "Server access rules parameter file",
+# NOTE Access file must be hardcoded because server bundles do not accept arguments.
+            string => "${sys.workdir}/inputs/user_data/bundle_params/efl_server.txt";
 }
 
 bundle agent efl_main( ref )
@@ -1511,6 +1516,54 @@ bundle agent efl_mon_cfengine
            "Standard deviation: ${mon.dev_cfengine_out}";
 }
 
+bundle server efl_server
+{
+   meta:
+      "purpose" string => "Read cf-server access rules.";
+      "field_0" string => "Context";
+      "field_1" string => "Promiser directory";
+      "field_2" string => "Comma separated admit list";
+      "field_3" string => "Promisee";
+
+   vars:
+      "dim_acl"
+         comment => "Read data file for parsing.",
+         handle  => "efl_server_vars_files",
+         int     => readstringarrayidx(
+            "acl_o",
+            "${efl_c.efl_server_txt}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+		"f"
+			comment => "Get index array loaded above.",
+			handle  => "efl_server_vars_f",
+			slist   => getindices( "acl_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist   => { "0","1","2","3" };
+ 
+      "acl[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string  => "${acl_o[${f}][${f2}]}";
+
+      "acl_list[${f}]"
+         comment => "Turn comma list into slist",
+         slist   => splitstring( "${acl[${f}][2]}", "\s*,\s*", "10" );
+
+   access:
+
+      "${acl[${f}][1]}" -> { "${acl[${f}][3]}" }
+            handle     => "efl_server_grant_access_policy",
+            comment    => "Grant client access to the policy server",
+            ifvarclass => "${acl[${f}][0]}",
+            admit      => { "@{acl_list[${f}]}" };
+}
+
 body action efl_delta_reporting ( handle, promiser, promisee, if_elapsed )
 {
    ifelapsed => "${if_elapsed}";
@@ -1609,3 +1662,4 @@ body process_select by_pid( pid )
 	pid            => irange( "${pid}", "${pid}" );
 	process_result => "pid";
 }
+
