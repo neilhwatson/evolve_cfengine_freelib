@@ -18,10 +18,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Introduction
 
-The bundles contained in this library primarily focus on content driven
+The bundles contained in this library primarily focus on data driven
 policy.  Each such bundle takes csv type delimited parameter file as shown in
 the common bundle efl_c. A record consists of a single line and the required
 fields.
+
+Details and exmples are here:
+http://evolvethinking.com/category/cfengine/efl/
 
 A skeleton bundle is provided for those that wish to create new bundles.
 
@@ -29,7 +32,3 @@ Requirements
 
 Cfengine Core 3.5.x or higher. There is an older 3.4 branch too.
 The Cfengine standard library. 
-
-Known issues
-
-Parameter data files cannot contain variables at this time due to Cfengine bug 2333. (https://cfengine.com/dev/issues/2333)
