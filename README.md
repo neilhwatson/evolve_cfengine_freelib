@@ -23,7 +23,7 @@ policy.  Each such bundle takes csv type delimited parameter file as shown in
 the common bundle efl_c. A record consists of a single line and the required
 fields.
 
-Details and exmples are here:
+Details and examples are here:
 http://evolvethinking.com/category/cfengine/efl/
 
 A skeleton bundle is provided for those that wish to create new bundles.
