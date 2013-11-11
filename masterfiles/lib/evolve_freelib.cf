@@ -656,6 +656,47 @@ bundle agent efl_class_cmd_regcmp( ref )
          not        => regcmp( "${class[${c}][5]}", "${cmd_output_${c}}" );
 }
 
+bundle agent efl_class_expression( ref )
+{
+   meta:
+      "purpose" string => "Set global class if the given class expression is true.";
+      "field_0" string => "Class promiser";
+      "field_1" string => "Class expression";
+      "field_2" string => "Promisee";
+
+   vars:
+      "dim_class"
+         comment => "Read data file for parsing.",
+         handle  => "efl_class_expression_vars_files",
+         int     => readstringarrayidx(
+            "class_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+		"c"
+			comment => "Get index array loaded above.",
+			handle  => "efl_class_expression_vars_c",
+			slist   => getindices( "class_o" );
+
+      "c2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2" };
+
+      "class[${c}][${c2}]"
+         comment => "Work around for bug 2333",
+         string => "${class_o[${c}][${c2}]}";
+
+   classes:
+      "${class[${c}][0]}" -> { "${class[${c}][2]}" }
+         comment    => "Set class if expression is true.",
+         scope      => "namespace",
+         expression => "${class[${c}][1]}";
+}
+
 bundle agent efl_class_classmatch( ref )
 {
    meta:
