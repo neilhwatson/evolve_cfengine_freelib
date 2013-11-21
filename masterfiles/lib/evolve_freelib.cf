@@ -650,7 +650,7 @@ bundle agent efl_class_cmd_regcmp( ref )
          expression => regcmp( "${class[${c}][5]}", "${cmd_output_${c}}" );
 
       "${class[${c}][1]}" -> { "${class[${c}][6]}" }
-         comment    => "Set class if command output matches the anchored regex.",
+         comment    => "Set class if command output does not match the anchored regex.",
          scope      => "namespace",
          ifvarclass => "${class[${c}][1]}_not",
          not        => regcmp( "${class[${c}][5]}", "${cmd_output_${c}}" );
@@ -806,7 +806,7 @@ bundle agent efl_copy_files ( ref )
    meta:
       "purpose" string => "Copy files";
       "field_0" string => "Context";
-      "field_1" string => "File promiser";
+      "field_1" string => "File promiser. A trailing /. indicates a directory for recursive copy.";
       "field_2" string => "leaf regex";
       "field_3" string => "File source";
       "field_4" string => "Server";
