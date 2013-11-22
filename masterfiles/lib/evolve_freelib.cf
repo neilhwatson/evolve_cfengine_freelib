@@ -423,7 +423,7 @@ bundle agent efl_link ( ref )
 
       "link[${l}][${l2}]"
          comment => "Work around for bug 2333",
-         string => "link_o[${l}][${l2}]";
+         string => "${link_o[${l}][${l2}]}";
 
    files:
       "${link[${l}][1]}" -> { "${link[${l}][4]}" }
