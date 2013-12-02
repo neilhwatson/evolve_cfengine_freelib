@@ -52,10 +52,10 @@ bundle agent efl_skeleton ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"f"
-			comment => "Get index array loaded above.",
-			handle  => "efl_skeleton_vars_f",
-			slist   => getindices( "skel_o" );
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_skeleton_vars_f",
+         slist   => getindices( "skel_o" );
 
       "f2"
          comment => "Work around for bug 2333",
@@ -64,6 +64,11 @@ bundle agent efl_skeleton ( ref )
       "skel[${f}][${f2}]"
          comment => "Work around for bug 2333",
          string => "${skel_o[${f}][${f2}]}";
+
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "skel[${f}][0]";
+# Call the above variable as ${${class[${f}]}} 
 }
 
 bundle common efl_c
@@ -76,9 +81,20 @@ bundle common efl_c
          comment => "Location for agent to cache template and other temp files",
          string  => "/var/cache/cfengine";
 
-      "policy_servers"
-         comment => "Policy servers for remote copies",
-         slist   => { "${sys.policy_hub}" };
+      amd_com::
+         "policy_servers"
+            comment => "Policy servers for remote copies",
+            slist   => { "@{ps.policy_servers}" };
+
+      !amd_com::
+         "policy_servers"
+            comment => "Policy servers for remote copies",
+            slist   => { "${sys.policy_hub}" };
+
+      any::
+      "localhost"
+         comment => "Use when policy server is localhost",
+         slist => { "localhost" };
 
       "class"
          comment => "Regex to extract class name from parameter file name.",
@@ -158,6 +174,25 @@ bundle agent efl_main( ref )
          comment => "Work around for bug 2333",
          string => "${meth_o[${i}][${i2}]}";
 
+      "class[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "meth[${i}][0]";
+      "promiser[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "meth[${i}][1]";
+      "bundle[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "meth[${i}][2]";
+      "ifelapsed[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "meth[${i}][3]";
+      "parameter[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "meth[${i}][4]";
+      "promisee[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "meth[${i}][5]";
+
    classes:
       !use_ordered_index::
          "use_ordered_index"
@@ -168,13 +203,13 @@ bundle agent efl_main( ref )
       "methods loop wrapper"
          comment    => "Call wrapper bundle to workaround naked variable bug.",
          handle     => "efl_main_methods_efl_bug2638",
-         ifvarclass => "${meth[${i}][0]}",
-         action     => if_elapsed( "${meth[${i}][3]}" ),
+         ifvarclass => "${${class[${i}]}}",
+         action     => if_elapsed( "${${ifelapsed[${i}]}}" ),
          usebundle  => efl_bug2638(
-            "${meth[${i}][1]}_${i}",
-            "${meth[${i}][5]}",
-            "${meth[${i}][2]}",
-            "${meth[${i}][4]}"
+            "${${promiser[${i}]}}_${i}",
+            "${${promisee[${i}]}}",
+            "${${bundle[${i}]}}",
+            "${${parameter[${i}]}}"
          );
 }
 
@@ -213,10 +248,10 @@ bundle agent efl_sysctl_live( ref )
             "${efl_c.max_bytes}"
          );
 
-		"x"
-			comment => "Get index array loaded above.",
-			handle  => "efl_sysctl_live_vars_x",
-			slist   => getindices( "sysctl_promiser_o" );
+      "x"
+         comment => "Get index array loaded above.",
+         handle  => "efl_sysctl_live_vars_x",
+         slist   => getindices( "sysctl_promiser_o" );
 
       "x2"
          comment => "Work around for bug 2333",
@@ -226,42 +261,55 @@ bundle agent efl_sysctl_live( ref )
          comment => "Work around for bug 2333",
          string => "${sysctl_promiser_o[${x}][${x2}]}";
 
-      "efl_sysctl_live[${sysctl_promiser[${x}][1]}]"
-         comment    => "Set current live value",
-         ifvarclass => "${sysctl_promiser[${x}][0]}",
+      "class[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "sysctl_promiser[${x}][0]";
+      "sysctl_name[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "sysctl_promiser[${x}][1]";
+      "sysctl_value[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "sysctl_promiser[${x}][2]";
+      "promisee[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "sysctl_promiser[${x}][3]";
+
+      "efl_sysctl_live[${${sysctl_name[${x}]}}]"
+         comment    => "Get current live value",
+         ifvarclass => "${${class[${x}]}}",
          string     => execresult(
-            "${paths.path[sysctl]} -n ${sysctl_promiser[${x}][1]} |${paths.path[tr]} '[:space:]' ' ' ",
+            "${paths.path[sysctl]} -n ${${sysctl_name[${x}]}} |${paths.path[tr]} '[:space:]' ' ' ",
             "useshell"
          );
 
    classes:
 # TODO need to set promises differently here?
-		"set_live_sysctl_${sysctl_promiser[${x}][1]}"
-			comment    => "Set class if live sysctl variable not equal to promised value",
-			ifvarclass => "${sysctl_promiser[${x}][0]}",
-			not        => strcmp( "${sysctl_promiser[${x}][2]}", "${efl_sysctl_live[${sysctl_promiser[${x}][1]}]}" );
+      "set_live_sysctl_${${sysctl_name[${x}]}}"
+         comment    => "Set class if live sysctl variable not equal to promised value",
+         ifvarclass => "${${class[${x}]}}",
+         not        => strcmp( "${${sysctl_value[${x}]}}", "${efl_sysctl_live[${${sysctl_name[${x}]}}]}" );
 
-		"${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]}_handle_efl_sysctl_live_classes_ok_kept"
-			comment    => "Set class if live sysctl variable not equal to promised value",
-			handle     => "efl_sysctl_live_classes_ok",
-			scope      => "namespace",
-			ifvarclass => "${sysctl_promiser[${x}][0]}",
-			expression => strcmp( "${sysctl_promiser[${x}][2]}", "${efl_sysctl_live[${sysctl_promiser[${x}][1]}]}" );
+      "${${sysctl_name[${x}]}}=${${sysctl_value[${x}]}}_handle_efl_sysctl_live_classes_ok_kept"
+         comment    => "Set class if live sysctl variable not equal to promised value",
+         handle     => "efl_sysctl_live_classes_ok",
+         scope      => "namespace",
+         ifvarclass => "${${class[${x}]}}",
+         expression => strcmp( "${${sysctl_value[${x}]}}", "${efl_sysctl_live[${${sysctl_name[${x}]}}]}" );
 
    commands:
-      "${paths.path[sysctl]} -w ${sysctl_promiser[${x}][1]}='${sysctl_promiser[${x}][2]}'" -> { "${sysctl_promiser[${x}][3]}" }
+      "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'" -> { "${${promisee[${x}]}}" }
          comment    => "Set live sysctl variable",
          handle     => "efl_sysctl_live_commands_sysctl_w",
-			classes    => efl_rkn( "${paths.path[sysctl]} -w ${sysctl_promiser[${x}][1]}='${sysctl_promiser[${x}][2]}'", "efl_sysctl_live_commands_sysctl_w" ),
-			action     => efl_delta_reporting( "efl_sysctl_live_commands_sysctl_w", "${paths.path[sysctl]} -w ${sysctl_promiser[${x}][1]}='${sysctl_promiser[${x}][2]}'", "${sysctl_promiser[${x}][3]}", "1" ),
-         ifvarclass => canonify( "set_live_sysctl_${sysctl_promiser[${x}][1]}" ),
+         classes    => efl_rkn( "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "efl_sysctl_live_commands_sysctl_w" ),
+         action     => efl_delta_reporting( "efl_sysctl_live_commands_sysctl_w", "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "${${promisee[${x}]}}", "1" ),
+         ifvarclass => canonify( "set_live_sysctl_${${sysctl_name[${x}]}}" ),
          contain    => in_shell_and_silent;
 
    reports:
       delta_reporting::
-         "efl_sysctl_live_classes_ok ;; ${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]} ;; ${sysctl_promiser[${x}][3]}" -> { "${sysctl_promiser[${x}][3]}" }
+         "efl_sysctl_live_classes_ok ;; ${${sysctl_name[${x}]}}=${${sysctl_value[${x}]}} ;; ${${promisee[${x}]}}" -> { "${${promisee[${x}]}}" }
             handle         => "efl_sysctl_live_reports_log_promises",
-            ifvarclass     => canonify( "${sysctl_promiser[${x}][1]}=${sysctl_promiser[${x}][2]}_handle_efl_sysctl_live_classes_ok_kept" ),
+            ifvarclass     => canonify( "${${sysctl_name[${x}]}}=${${sysctl_value[${x}]}}_handle_efl_sysctl_live_classes_ok_kept" ),
             report_to_file => "${efl_c.promise_log}";
 }
 
@@ -289,10 +337,10 @@ bundle agent efl_sysctl_conf_file( ref )
             "${efl_c.max_bytes}"
          );
 
-		"x"
-			comment => "Get index array loaded above.",
-			handle  => "efl_sysctl_conf_file_vars_x",
-			slist   => getindices( "sysctl_o" );
+      "x"
+         comment => "Get index array loaded above.",
+         handle  => "efl_sysctl_conf_file_vars_x",
+         slist   => getindices( "sysctl_o" );
 
       "x2"
          comment => "Work around for bug 2333",
@@ -306,16 +354,16 @@ bundle agent efl_sysctl_conf_file( ref )
       "${sysctl_conf}" -> { "Provisioning" }
          comment       => "Promise whole contents of sysctl.conf",
          handle        => "efl_sysctl_conf_file_files_contents",
-			classes       => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_contents" ),
-			action        => efl_delta_reporting( "efl_sysctl_conf_file_files_contents", "${sysctl_conf}", "Harending", "1" ),
+         classes       => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_contents" ),
+         action        => efl_delta_reporting( "efl_sysctl_conf_file_files_contents", "${sysctl_conf}", "Harending", "1" ),
          create        => "true",
          edit_defaults => empty,
          edit_line     => el_efl_sysctl_conf_file( "efl_sysctl_conf_file.sysctl" );
 
       "${sysctl_conf}" -> { "Provisioning" }
          handle  => "efl_sysctl_conf_file_files_perms",
-			classes => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_perms" ),
-			action  => efl_delta_reporting( "efl_sysctl_conf_file_files_perms", "${sysctl_conf}", "Harending", "1" ),
+         classes => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_perms" ),
+         action  => efl_delta_reporting( "efl_sysctl_conf_file_files_perms", "${sysctl_conf}", "Harending", "1" ),
          perms   => mog( "644", "root", "root" );
 }
 
@@ -327,13 +375,26 @@ bundle edit_line el_efl_sysctl_conf_file( ref )
          handle  => "el_efl_sysctl_conf_file_vars_x",
          slist   => getindices( "${ref}" );
 
+      "class[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "${ref}[${x}][0]";
+      "sysctl_name[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "${ref}[${x}][1]";
+      "sysctl_value[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "${ref}[${x}][2]";
+      "promisee[${x}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "${ref}[${x}][3]";
+
    insert_lines:
-      "${${ref}[${x}][1]} = ${${ref}[${x}][2]}" -> { "${${ref}[${x}][3]}" }
+      "${${sysctl_name[${x}]}} = ${${sysctl_value[${x}]}}" -> { "${${promisee[${x}]}}" }
          handle     => "el_efl_sysctl_conf_file_insert_lines",
 # TODO classes and actions do not seem to work in this bundle type.
-			classes    => efl_rkn( "${${ref}[${x}][1]} = ${${ref}[${x}][2]}", "el_efl_sysctl_conf_file_insert_lines" ),
-			action     => efl_delta_reporting( "el_efl_sysctl_conf_file_insert_lines", "${${ref}[${x}][1]} = ${${ref}[${x}][2]}", "${${ref}[${x}][3]}", "1" ),
-         ifvarclass => "${${ref}[${x}][0]}";
+         classes    => efl_rkn( "${${sysctl_name[${x}]}} = ${${sysctl_value[${x}]}}", "el_efl_sysctl_conf_file_insert_lines" ),
+         action     => efl_delta_reporting( "el_efl_sysctl_conf_file_insert_lines", "${${sysctl_name[${x}]}} = ${${sysctl_value[${x}]}}", "${${promisee[${x}]}}", "1" ),
+         ifvarclass => "${${class[${x}]}}";
 }
 
 bundle agent efl_command ( ref )
@@ -360,10 +421,10 @@ bundle agent efl_command ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"c"
-			comment => "Get index array loaded above.",
-			handle  => "efl_command_vars_c",
-			slist   => getindices( "cmd_o" );
+      "c"
+         comment => "Get index array loaded above.",
+         handle  => "efl_command_vars_c",
+         slist   => getindices( "cmd_o" );
 
       "c2"
          comment => "Work around for bug 2333",
@@ -373,15 +434,34 @@ bundle agent efl_command ( ref )
          comment => "Work around for bug 2333",
          string => "${cmd_o[${c}][${c2}]}";
 
+      "class[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "cmd[${c}][0]";
+      "command[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "cmd[${c}][1]";
+      "useshell[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "cmd[${c}][2]";
+      "module[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "cmd[${c}][3]";
+      "ifelapsed[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "cmd[${c}][4]";
+      "promisee[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "cmd[${c}][5]";
+
    commands:
-      "${cmd[${c}][1]}" -> { "${cmd[${c}][5]}" }
+      "${${command[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Run desired command",
-			handle => "efl_command_commands",
-         ifvarclass => "${cmd[${c}][0]}",
-         contain    => contain_efl_command( "${cmd[${c}][2]}" ),
-         module     => "${cmd[${c}][3]}",
-			classes    => efl_rkn( "${cmd[${c}][1]}", "efl_command_commands" ),
-			action     => efl_delta_reporting( "efl_command_commands", "${cmd[${c}][1]}", "${cmd[${c}][5]}", "${cmd[${c}][4]}" );
+         handle     => "efl_command_commands",
+         ifvarclass => "${${class[${c}]}}",
+         contain    => contain_efl_command( "${${useshell[${c}]}}" ),
+         module     => "${${module[${c}]}}",
+         classes    => efl_rkn( "${${command[${c}]}}", "efl_command_commands" ),
+         action     => efl_delta_reporting( "efl_command_commands", "${${command[${c}]}}", "${${promisee[${c}]}}", "${${ifelapsed[${c}]}}" );
 }
 
 body contain contain_efl_command ( useshell )
@@ -394,8 +474,8 @@ bundle agent efl_link ( ref )
    meta:
       "purpose" string => "Link files if context is true.";
       "field_0" string => "Context";
-      "field_1" string => "File promiser";
-      "field_2" string => "Link source";
+      "field_1" string => "Link promiser";
+      "field_2" string => "Link target";
       "field_3" string => "Link type";
       "field_4" string => "Promisee";
 
@@ -412,10 +492,10 @@ bundle agent efl_link ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"l"
-			comment => "Get index array loaded above.",
-			handle  => "efl_link_vars_f",
-			slist   => getindices( "link_o" );
+      "l"
+         comment => "Get index array loaded above.",
+         handle  => "efl_link_vars_f",
+         slist   => getindices( "link_o" );
 
       "l2"
          comment => "Work around for bug 2333",
@@ -425,14 +505,30 @@ bundle agent efl_link ( ref )
          comment => "Work around for bug 2333",
          string => "${link_o[${l}][${l2}]}";
 
+      "class[${l}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "link[${l}][0]";
+      "link[${l}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "link[${l}][1]";
+      "target[${l}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "link[${l}][2]";
+      "type[${l}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "link[${l}][3]";
+      "promisee[${l}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "link[${l}][4]";
+
    files:
-      "${link[${l}][1]}" -> { "${link[${l}][4]}" }
+      "${${link[${l}]}}" -> { "${${promisee[${l}]}}" }
          comment    => "Make link if class is true",
          handle     => "efl_link_files_target",
-         ifvarclass => "${link[${l}][0]}",
-			classes    => efl_rkn( "${link[${l}][1]}", "efl_link_files_target" ),
-			action     => efl_delta_reporting( "efl_link_files_target", "${link[${l}][1]}", "${link[${l}][4]}", "1" ),
-         link_from  => efl_source_type( "${link[${l}][2]}", "${link[${l}][3]}" );
+         ifvarclass => "${${class[${l}]}}",
+         classes    => efl_rkn( "${${link[${l}]}}", "efl_link_files_target" ),
+         action     => efl_delta_reporting( "efl_link_files_target", "${${link[${l}]}}", "${${promisee[${l}]}}", "1" ),
+         link_from  => efl_source_type( "${${target[${l}]}}", "${${type[${l}]}}" );
 }
 
 body link_from efl_source_type ( source, type )
@@ -467,10 +563,10 @@ bundle agent efl_delete_files ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"f"
-			comment => "Get index array loaded above.",
-			handle  => "efl_delete_files_vars_f",
-			slist   => getindices( "files_o" );
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_delete_files_vars_f",
+         slist   => getindices( "files_o" );
 
       "f2"
          comment => "Work around for bug 2333",
@@ -480,63 +576,85 @@ bundle agent efl_delete_files ( ref )
          comment => "Work around for bug 2333",
          string => "${files_o[${f}][${f2}]}";
 
-   classes:
-         "${files[${f}][1]}_isdir_${f}" -> { "${files[${f}][6]}" }
-            comment    => "Determine if promiser is a directory",
-            ifvarclass => "${files[${f}][0]}",
-            expression => isdir( "${files[${f}][1]}" );
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][0]";
+      "file[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][1]";
+      "recurse[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][2]";
+      "leaf[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][3]";
+      "negate[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][4]";
+      "age[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][5]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][6]";
 
-         "${files[${f}][1]}_negative_match_${f}" -> { "${files[${f}][6]}" }
+   classes:
+         "${${file[${f}]}}_isdir_${f}" -> { "${${promisee[${f}]}}" }
+            comment    => "Determine if promiser is a directory",
+            ifvarclass => "${${class[${f}]}}",
+            expression => isdir( "${${file[${f}]}}" );
+
+         "${${file[${f}]}}_negative_match_${f}" -> { "${${promisee[${f}]}}" }
             comment    => "Determine if negated match is desired.",
-            ifvarclass => "${files[${f}][0]}",
-            expression => strcmp( "yes", "${files[${f}][4]}" );
+            ifvarclass => "${${class[${f}]}}",
+            expression => strcmp( "yes", "${${negate[${f}]}}" );
 
    files:
-      "${files[${f}][1]}" -> { "${files[${f}][6]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment      => "Delete files recursively",
          handle       => "efl_delete_files_files_isdir",
-			classes      => efl_rkn( "${files[${f}][1]}", "efl_delete_files_files_isdir" ),
-			action       => efl_delta_reporting( "efl_delete_files_files_isdir", "${files[${f}][1]}", "${files[${f}][6]}", "1" ),
+         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_isdir" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_isdir", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
          ifvarclass   => and(
-            canonify( "${files[${f}][1]}_isdir_${f}" ),
-            not( canonify( "${files[${f}][1]}_negative_match_${f}" ))),
-         depth_search => recurse( "${files[${f}][2]}" ),
-         file_select  => name_age( "${files[${f}][3]}", "${files[${f}][5]}" ),
+            canonify( "${${file[${f}]}}_isdir_${f}" ),
+            not( canonify( "${${file[${f}]}}_negative_match_${f}" ))),
+         depth_search => recurse( "${${recurse[${f}]}}" ),
+         file_select  => name_age( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
 
-      "${files[${f}][1]}" -> { "${files[${f}][6]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment      => "Delete files",
          handle       => "efl_delete_files_files_single",
-			classes      => efl_rkn( "${files[${f}][1]}", "efl_delete_files_files_single" ),
-			action       => efl_delta_reporting( "efl_delete_files_files_single", "${files[${f}][1]}", "${files[${f}][6]}", "1" ),
+         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_single" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
          ifvarclass   => and(
-            canonify( "${files[${f}][0]}" ),
-            not( canonify( "${files[${f}][1]}_isdir_${f}" )),
-            not( canonify( "${files[${f}][1]}_negative_match_${f}" ))),
-         file_select  => name_age( "${files[${f}][3]}", "${files[${f}][5]}" ),
+            canonify( "${${class[${f}]}}" ),
+            not( canonify( "${${file[${f}]}}_isdir_${f}" )),
+            not( canonify( "${${file[${f}]}}_negative_match_${f}" ))),
+         file_select  => name_age( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
 
-      "${files[${f}][1]}" -> { "${files[${f}][6]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment      => "Delete files recursively excluding leaf name.",
          handle       => "efl_delete_files_files_isdir_negative",
-			classes      => efl_rkn( "${files[${f}][1]}", "efl_delete_files_files_isdir_negative" ),
-			action       => efl_delta_reporting( "efl_delete_files_files_isdir_negative", "${files[${f}][1]}", "${files[${f}][6]}", "1" ),
+         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_isdir_negative" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_isdir_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
          ifvarclass   => and(
-            canonify( "${files[${f}][1]}_isdir_${f}" ),
-            canonify( "${files[${f}][1]}_negative_match_${f}" )),
-         depth_search => recurse( "${files[${f}][2]}" ),
-         file_select  => name_age_negate( "${files[${f}][3]}", "${files[${f}][5]}" ),
+            canonify( "${${file[${f}]}}_isdir_${f}" ),
+            canonify( "${${file[${f}]}}_negative_match_${f}" )),
+         depth_search => recurse( "${${recurse[${f}]}}" ),
+         file_select  => name_age_negate( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
 
-      "${files[${f}][1]}" -> { "${files[${f}][6]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment      => "Delete files, excluding leaf name",
          handle       => "efl_delete_files_files_single_negative",
-			classes      => efl_rkn( "${files[${f}][1]}", "efl_delete_files_files_single_negative" ),
-			action       => efl_delta_reporting( "efl_delete_files_files_single_negative", "${files[${f}][1]}", "${files[${f}][6]}", "1" ),
+         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_single_negative" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_single_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
          ifvarclass   => and(
-            not( canonify( "${files[${f}][1]}_isdir_${f}" )),
-            canonify( "${files[${f}][1]}_negative_match_${f}" )),
-         file_select  => name_age_negate( "${files[${f}][3]}", "${files[${f}][5]}" ),
+            not( canonify( "${${file[${f}]}}_isdir_${f}" )),
+            canonify( "${${file[${f}]}}_negative_match_${f}" )),
+         file_select  => name_age_negate( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
 }
 
@@ -569,10 +687,10 @@ bundle agent efl_global_strings ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"s"
-			comment => "Get index array loaded above.",
-			handle  => "efl_global_strings_vars_s",
-			slist   => getindices( "string_o" );
+      "s"
+         comment => "Get index array loaded above.",
+         handle  => "efl_global_strings_vars_s",
+         slist   => getindices( "string_o" );
 
       "s2"
          comment => "Work around for bug 2333",
@@ -582,10 +700,23 @@ bundle agent efl_global_strings ( ref )
          comment => "Work around for bug 2333",
          string => "${string_o[${s}][${s2}]}";
 
-		"${string[${s}][1]}" -> { "${string[${s}][3]}" }
-			comment    => "Define variable if class is true",
-			ifvarclass => "${string[${s}][0]}",
-			string     => "${string[${s}][2]}";
+      "class[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "string[${s}][0]";
+      "name[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "string[${s}][1]";
+      "value[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "string[${s}][2]";
+      "promisee[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "string[${s}][3]";
+
+      "${${name[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment    => "Define variable if class is true",
+         ifvarclass => "${${class[${s}]}}",
+         string     => "${${value[${s}]}}";
 }
 
 bundle agent efl_class_cmd_regcmp( ref )
@@ -614,10 +745,10 @@ bundle agent efl_class_cmd_regcmp( ref )
             "${efl_c.max_bytes}"
          );
 
-		"c"
-			comment => "Get index array loaded above.",
-			handle  => "efl_class_cmd_regcmp_vars_c",
-			slist   => getindices( "class_o" );
+      "c"
+         comment => "Get index array loaded above.",
+         handle  => "efl_class_cmd_regcmp_vars_c",
+         slist   => getindices( "class_o" );
 
       "c2"
          comment => "Work around for bug 2333",
@@ -627,33 +758,55 @@ bundle agent efl_class_cmd_regcmp( ref )
          comment => "Work around for bug 2333",
          string => "${class_o[${c}][${c2}]}";
 
-		"cmd_output_${c}" -> { "${class[${c}][6]}" }
-			comment    => "Capture commmand output",
-			ifvarclass => "${class[${c}][0]}",
-			string     => execresult( "${class[${c}][3]}", "${class[${c}][4]}" );
+      "context[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][0]";
+      "class_to_set[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][1]";
+      "not[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][2]";
+      "command[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][3]";
+      "useshell[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][4]";
+      "regex[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][5]";
+      "promisee[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][6]";
+
+      "cmd_output_${c}" -> { "${${promisee[${c}]}}" }
+         comment    => "Capture commmand output",
+         ifvarclass => "${${context[${c}]}}",
+         string     => execresult( "${${command[${c}]}}", "${${useshell[${c}]}}" );
 
    classes:
-      "${class[${c}][1]}_not" -> { "${class[${c}][6]}" }
+      "${${class_to_set[${c}]}}_not" -> { "${${promisee[${c}]}}" }
          comment    => "Use not rather than expression",
-         ifvarclass => "${class[${c}][0]}",
-         expression => strcmp( "${class[${c}][2]}", "yes" );
+         ifvarclass => "${${context[${c}]}}",
+         expression => strcmp( "${${not[${c}]}}", "yes" );
 
-      "${class[${c}][1]}_exp" -> { "${class[${c}][6]}" }
+      "${${class_to_set[${c}]}}_exp" -> { "${${promisee[${c}]}}" }
          comment    => "Use expression",
-         ifvarclass => "${class[${c}][0]}",
-         expression => strcmp( "${class[${c}][2]}", "no" );
+         ifvarclass => "${${context[${c}]}}",
+         expression => strcmp( "${${not[${c}]}}", "no" );
 
-      "${class[${c}][1]}" -> { "${class[${c}][6]}" }
+      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if command output matches the anchored regex.",
          scope      => "namespace",
-         ifvarclass => "${class[${c}][1]}_exp",
-         expression => regcmp( "${class[${c}][5]}", "${cmd_output_${c}}" );
+         ifvarclass => "${${class_to_set[${c}]}}_exp",
+         expression => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
 
-      "${class[${c}][1]}" -> { "${class[${c}][6]}" }
+      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if command output does not match the anchored regex.",
          scope      => "namespace",
-         ifvarclass => "${class[${c}][1]}_not",
-         not        => regcmp( "${class[${c}][5]}", "${cmd_output_${c}}" );
+         ifvarclass => "${${class_to_set[${c}]}}_not",
+         not        => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
 }
 
 bundle agent efl_class_expression( ref )
@@ -677,10 +830,10 @@ bundle agent efl_class_expression( ref )
             "${efl_c.max_bytes}"
          );
 
-		"c"
-			comment => "Get index array loaded above.",
-			handle  => "efl_class_expression_vars_c",
-			slist   => getindices( "class_o" );
+      "c"
+         comment => "Get index array loaded above.",
+         handle  => "efl_class_expression_vars_c",
+         slist   => getindices( "class_o" );
 
       "c2"
          comment => "Work around for bug 2333",
@@ -690,11 +843,21 @@ bundle agent efl_class_expression( ref )
          comment => "Work around for bug 2333",
          string => "${class_o[${c}][${c2}]}";
 
+      "context[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][0]";
+      "class_to_set[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][1]";
+      "promisee[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][2]";
+
    classes:
-      "${class[${c}][0]}" -> { "${class[${c}][2]}" }
+      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if expression is true.",
          scope      => "namespace",
-         expression => "${class[${c}][1]}";
+         expression => "${${context[${c}]}}";
 }
 
 bundle agent efl_class_classmatch( ref )
@@ -718,10 +881,10 @@ bundle agent efl_class_classmatch( ref )
             "${efl_c.max_bytes}"
          );
 
-		"c"
-			comment => "Get index array loaded above.",
-			handle  => "efl_class_classmatch_vars_c",
-			slist   => getindices( "class_o" );
+      "c"
+         comment => "Get index array loaded above.",
+         handle  => "efl_class_classmatch_vars_c",
+         slist   => getindices( "class_o" );
 
       "c2"
          comment => "Work around for bug 2333",
@@ -731,11 +894,21 @@ bundle agent efl_class_classmatch( ref )
          comment => "Work around for bug 2333",
          string => "${class_o[${c}][${c2}]}";
 
+      "class_to_set[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][0]";
+      "regex[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][1]";
+      "promisee[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][2]";
+
    classes:
-      "${class[${c}][0]}" -> { "${class[${c}][2]}" }
+      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if classmatch function returns true.",
          scope      => "namespace",
-         expression => classmatch( "${class[${c}][1]}" );
+         expression => classmatch( "${${regex[${c}]}}" );
 }
 
 bundle agent efl_class_iprange( ref )
@@ -759,10 +932,10 @@ bundle agent efl_class_iprange( ref )
             "${efl_c.max_bytes}"
          );
 
-		"c"
-			comment => "Get index array loaded above.",
-			handle  => "efl_class_iprange_vars_c",
-			slist   => getindices( "class_o" );
+      "c"
+         comment => "Get index array loaded above.",
+         handle  => "efl_class_iprange_vars_c",
+         slist   => getindices( "class_o" );
 
       "c2"
          comment => "Work around for bug 2333",
@@ -772,11 +945,21 @@ bundle agent efl_class_iprange( ref )
          comment => "Work around for bug 2333",
          string => "${class_o[${c}][${c2}]}";
 
+      "class_to_set[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][0]";
+      "ip_range[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][1]";
+      "promisee[${c}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "class[${c}][2]";
+
    classes:
-      "${class[${c}][0]}" -> { "${class[${c}][2]}" }
+      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if iprange function returns true.",
          scope      => "namespace",
-         expression => iprange( "${class[${c}][1]}" );
+         expression => iprange( "${${ip_range[${c}]}}" );
 }
 
 bundle agent efl_class_hostname( ref )
@@ -829,10 +1012,10 @@ bundle agent efl_copy_files ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"f"
-			comment => "Get index array loaded above.",
-			handle  => "efl_copy_files_vars_f",
-			slist   => getindices( "files_o" );
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_copy_files_vars_f",
+         slist   => getindices( "files_o" );
 
       "f2"
          comment => "Work around for bug 2333",
@@ -842,55 +1025,86 @@ bundle agent efl_copy_files ( ref )
          comment => "Work around for bug 2333",
          string => "${files_o[${f}][${f2}]}";
 
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][0]";
+      "file[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][1]";
+      "leaf[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][2]";
+      "source[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][3]";
+      "server[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][4]";
+      "encrypt[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][5]";
+      "mode[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][6]";
+      "owner[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][7]";
+      "group[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][8]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][9]";
+
    classes:
-      "recurse_${files[${f}][1]}_${f}"
+      "recurse_${${file[${f}]}}_${f}"
          comment    => "Set if promiser is a directory",
-         ifvarclass => "${files[${f}][0]}",
-         expression => regcmp( ".+/\.", "${files[${f}][1]}" );
+         ifvarclass => "${${class[${f}]}}",
+         expression => regcmp( ".+/\.", "${${file[${f}]}}" );
       
    files:
-      "${files[${f}][1]}" -> { "${files[${f}][9]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Create promiser directory",
-         ifvarclass => canonify( "recurse_${files[${f}][1]}" ),
+         ifvarclass => canonify( "recurse_${${file[${f}]}}" ),
          create     => 'true';
 
-      "${files[${f}][1]}" -> { "${files[${f}][9]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Copy a single file",
          handle     => "efl_copy_files_remote_single",
          create     => 'true',
-         classes    => efl_rkn( "${files[${f}][1]}", "efl_copy_files_remote_single" ),
-         action     => efl_delta_reporting( "efl_copy_files_remote_single", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
-         ifvarclass => and( "${files[${f}][0]}", not(  canonify( "recurse_${files[${f}][1]}" ) ) ),
-         copy_from  => efl_cpf( "${files[${f}][3]}", "@{${files[${f}][4]}}", "${files[${f}][5]}" );
+         classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remote_single" ),
+         action     => efl_delta_reporting( "efl_copy_files_remote_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass => and( "${${class[${f}]}}", not(  canonify( "recurse_${${file[${f}]}}" ) ) ),
+         copy_from  => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
 
-      "${files[${f}][1]}" -> { "${files[${f}][9]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment      => "Copy and recurse",
          handle       => "efl_copy_files_remove_recurse",
          create       => 'true',
-         classes      => efl_rkn( "${files[${f}][1]}", "efl_copy_files_remove_recurse" ),
-         action       => efl_delta_reporting( "efl_copy_files_remove_recurse", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
-         ifvarclass   => and( "${files[${f}][0]}", canonify( "recurse_${files[${f}][1]}_${f}" ) ),
+         classes      => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remove_recurse" ),
+         action       => efl_delta_reporting( "efl_copy_files_remove_recurse", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass   => and( "${${class[${f}]}}", canonify( "recurse_${${file[${f}]}}_${f}" ) ),
          depth_search => recurse( "inf" ),
-         file_select  => by_name( "${files[${f}][2]}" ),
-         copy_from    => efl_cpf( "${files[${f}][3]}", "@{${files[${f}][4]}}", "${files[${f}][5]}" );
+         file_select  => by_name( "${${leaf[${f}]}}" ),
+         copy_from    => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
 
-      "${files[${f}][1]}" -> { "${files[${f}][9]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Promise permissions and ownership",
          handle     => "efl_copy_files_single_perms",
-			classes    => efl_rkn( "${files[${f}][1]}", "efl_copy_files_single_perms" ),
-			action     => efl_delta_reporting( "efl_copy_files_single_perms", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
-         ifvarclass => and( "${files[${f}][0]}", not( canonify( "recurse_${files[${f}][1]}_${f}" ) ) ),
-         perms      => mog( "${files[${f}][6]}", "${files[${f}][7]}", "${files[${f}][8]}" );
+         classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_single_perms" ),
+         action     => efl_delta_reporting( "efl_copy_files_single_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass => and( "${${class[${f}]}}", not( canonify( "recurse_${${file[${f}]}}_${f}" ) ) ),
+         perms      => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
 
-      "${files[${f}][1]}" -> { "${files[${f}][9]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment      => "Promise permissions and ownership",
          handle       => "efl_copy_files_recurse_perms",
-			classes      => efl_rkn( "${files[${f}][1]}", "efl_copy_files_recurse_perms" ),
-			action       => efl_delta_reporting( "efl_copy_files_recurse_perms", "${files[${f}][1]}", "${files[${f}][9]}", "1" ),
-         ifvarclass   => and( "${files[${f}][0]}", canonify( "recurse_${files[${f}][1]}_${f}" ) ),
+         classes      => efl_rkn( "${${file[${f}]}}", "efl_copy_files_recurse_perms" ),
+         action       => efl_delta_reporting( "efl_copy_files_recurse_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass   => and( "${${class[${f}]}}", canonify( "recurse_${${file[${f}]}}_${f}" ) ),
          depth_search => recurse( "inf" ),
-         file_select  => by_name( "${files[${f}][2]}" ),
-         perms        => mog( "${files[${f}][6]}", "${files[${f}][7]}", "${files[${f}][8]}" );
+         file_select  => by_name( "${${leaf[${f}]}}" ),
+         perms        => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
 }
 
 body copy_from efl_cpf(from, server, encrypt)
@@ -926,10 +1140,10 @@ bundle agent efl_packages( ref )
             "${efl_c.max_bytes}"
          );
 
-		"p"
-			comment => "Get index array loaded above.",
-			handle  => "efl_packageg_vars_p",
-			slist   => getindices( "pkg_o" );
+      "p"
+         comment => "Get index array loaded above.",
+         handle  => "efl_packageg_vars_p",
+         slist   => getindices( "pkg_o" );
 
       "p2"
          comment => "Work around for bug 2333",
@@ -939,38 +1153,57 @@ bundle agent efl_packages( ref )
          comment => "Work around for bug 2333",
          string => "${pkg_o[${p}][${p2}]}";
 
+      "class[${p}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "pkg[${p}][0]";
+      "policy[${p}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "pkg[${p}][1]";
+      "name[${p}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "pkg[${p}][2]";
+      "version[${p}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "pkg[${p}][3]";
+      "arch[${p}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "pkg[${p}][4]";
+      "promisee[${p}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "pkg[${p}][5]";
+
    classes:
-      "do not specify version ${pkg[${p}][2]}_${pkg[${p}][3]}"
+      "do not specify version ${${name[${p}]}}_${${version[${p}]}}"
          comment    => "If version is '0' then do not specify version string",
-         expression => strcmp( "${pkg[${p}][3]}", "0" );
+         expression => strcmp( "${${version[${p}]}}", "0" );
 
    packages:
-      "${pkg[${p}][2]}" -> { "${pkg[${p}][5]}" }
+      "${${name[${p}]}}" -> { "${${promisee[${p}]}}" }
          comment               => "Promise package without version.",
          handle                => "efl_packageg_packages_generic_no_version",
-			classes               => efl_rkn( "${pkg[${p}][2]}", "efl_packageg_packages_generic_no_version" ),
-			action                => efl_delta_reporting( "efl_packageg_packages_generic_no_version", "${pkg[${p}][2]}", "${pkg[${p}][5]}", "1" ),
+         classes               => efl_rkn( "${${name[${p}]}}", "efl_packageg_packages_generic_no_version" ),
+         action                => efl_delta_reporting( "efl_packageg_packages_generic_no_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
          ifvarclass            => and(
-            canonify( "do not specify version ${pkg[${p}][2]}_${pkg[${p}][3]}" ),
-            "${pkg[${p}][0]}"
+            canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}" ),
+            "${${class[${p}]}}"
          ),
-         package_policy        => "${pkg[${p}][1]}",
+         package_policy        => "${${policy[${p}]}}",
          package_method        => generic,
-         package_architectures => { "${pkg[${p}][4]}" };
+         package_architectures => { "${${arch[${p}]}}" };
 
-      "${pkg[${p}][2]}" -> { "${pkg[${p}][5]}" }
+      "${${name[${p}]}}" -> { "${${promisee[${p}]}}" }
          comment               => "Promise package with version.",
          handle                => "efl_packageg_packages_generic_version",
-			classes               => efl_rkn( "${pkg[${p}][2]}", "efl_packageg_packages_generic_version" ),
-			action                => efl_delta_reporting( "efl_packageg_packages_generic_version", "${pkg[${p}][2]}", "${pkg[${p}][5]}", "1" ),
+         classes               => efl_rkn( "${${name[${p}]}}", "efl_packageg_packages_generic_version" ),
+         action                => efl_delta_reporting( "efl_packageg_packages_generic_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
          ifvarclass            => and(
-            not( canonify( "do not specify version ${pkg[${p}][2]}_${pkg[${p}][3]}" ) ),
-            "${pkg[${p}][0]}"
+            not( canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}" ) ),
+            "${${class[${p}]}}"
          ),
-         package_policy        => "${pkg[${p}][1]}",
+         package_policy        => "${${policy[${p}]}}",
          package_method        => generic,
-         package_version       => "${pkg[${p}][3]}",
-         package_architectures => { "${pkg[${p}][4]}" };
+         package_version       => "${${version[${p}]}}",
+         package_architectures => { "${${arch[${p}]}}" };
 }
 
 bundle agent efl_start_service ( ref )
@@ -995,10 +1228,10 @@ bundle agent efl_start_service ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"s"
-			comment => "Get index array loaded above.",
-			handle  => "efl_start_service_vars_s",
-			slist   => getindices( "svc_o" );
+      "s"
+         comment => "Get index array loaded above.",
+         handle  => "efl_start_service_vars_s",
+         slist   => getindices( "svc_o" );
 
       "s2"
          comment => "Work around for bug 2333",
@@ -1008,23 +1241,36 @@ bundle agent efl_start_service ( ref )
          comment => "Work around for bug 2333",
          string => "${svc_o[${s}][${s2}]}";
 
+      "class[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][0]";
+      "process[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][1]";
+      "command[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][2]";
+      "promisee[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][3]";
+
    processes:
-      "${svc[${s}][1]}" -> { "${svc[${s}][3]}" }
+      "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment       => "Promise process is running",
          handle        => "efl_start_service_processes_proc",
-			classes       => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
-			action        => efl_delta_reporting( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
-         ifvarclass    => "${svc[${s}][0]}",
-         restart_class => canonify( "efl_start_service_command_${svc[${s}][1]}" );
+         classes       => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
+         action        => efl_delta_reporting( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
+         ifvarclass    => "${${class[${s}]}}",
+         restart_class => canonify( "efl_start_service_command_${${process[${s}]}}" );
 
    commands:
-      "${svc[${s}][2]}" -> { "${svc[${s}][3]}" }
+      "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Restart service is required.",
          handle     => "efl_start_service_commands_restart",
-			classes    => efl_rkn( "${svc[${c}][1]}", "efl_start_service_commands_restart" ),
-			action     => efl_delta_reporting( "efl_start_service_commands_restart", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
+         classes    => efl_rkn( "${svc[${c}][1]}", "efl_start_service_commands_restart" ),
+         action     => efl_delta_reporting( "efl_start_service_commands_restart", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
          contain    => in_shell_and_silent,
-         ifvarclass => canonify( "efl_start_service_command_${svc[${s}][1]}" );
+         ifvarclass => canonify( "efl_start_service_command_${${process[${s}]}}" );
 }
 
 bundle agent efl_service ( ref )
@@ -1056,10 +1302,10 @@ bundle agent efl_service ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"s"
-			comment => "Get index array loaded above.",
-			handle  => "efl_service_vars_s",
-			slist   => getindices( "svc_o" );
+      "s"
+         comment => "Get index array loaded above.",
+         handle  => "efl_service_vars_s",
+         slist   => getindices( "svc_o" );
 
       "s2"
          comment => "Work around for bug 2333",
@@ -1069,85 +1315,119 @@ bundle agent efl_service ( ref )
          comment => "Work around for bug 2333",
          string => "${svc_o[${s}][${s2}]}";
 
-   classes:
-      "${svc[${s}][3]}_is_not_a_template" 
-         comment    => "Is configuration file a template?",
-         ifvarclass => "${svc[${s}][0]}",
-         expression => strcmp( "${svc[${s}][4]}", "no" );
+      "class[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][0]";
+      "process[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][1]";
+      "config_file[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][2]";
+      "source_file[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][3]";
+      "template[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][4]";
+      "encrypt[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][5]";
+      "mode[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][6]";
+      "user[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][7]";
+      "group[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][8]";
+      "command[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][9]";
+      "promisee[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][10]";
 
-      "${svc[${s}][3]}_is_a_template"
+   classes:
+      "${${source_file[${s}]}}_is_not_a_template" 
          comment    => "Is configuration file a template?",
-         ifvarclass => "${svc[${s}][0]}",
-         expression => strcmp( "${svc[${s}][4]}", "yes" );
+         ifvarclass => "${${class[${s}]}}",
+         expression => strcmp( "${${template[${s}]}}", "no" );
+
+      "${${source_file[${s}]}}_is_a_template"
+         comment    => "Is configuration file a template?",
+         ifvarclass => "${${class[${s}]}}",
+         expression => strcmp( "${${template[${s}]}}", "yes" );
 
    files:
-      "${efl_c.cache}/${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
+      "${efl_c.cache}/${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Cache the source file source file",
          handle     => "efl_service_files_cache",
-			classes    => efl_rkn( "${efl_c.cache}/${svc[${s}][2]}", "efl_service_svc_cache" ),
-			action     => efl_delta_reporting( "efl_service_svc_cache", "${efl_c.cache}/${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
-         ifvarclass => "${svc[${s}][0]}",
+         classes    => efl_rkn( "${efl_c.cache}/${${config_file[${s}]}}", "efl_service_svc_cache" ),
+         action     => efl_delta_reporting( "efl_service_svc_cache", "${efl_c.cache}/${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         ifvarclass => "${${class[${s}]}}",
          create     => "true",
          perms      => mog(
-            "${svc[${s}][6]}",
-            "${svc[${s}][7]}",
-            "${svc[${s}][8]}"   
+            "${${mode[${s}]}}",
+            "${${user[${s}]}}",
+            "${${group[${s}]}}"   
             ),
-         copy_from  => efl_cpf( "${svc[${s}][3]}", "@{efl_c.policy_servers}", "${svc[${s}][5]}" );
+         copy_from  => efl_cpf( "${${source_file[${s}]}}", "@{efl_c.policy_servers}", "${${encrypt[${s}]}}" );
 
-      "${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
+      "${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Promise contents of configuration file",
          handle     => "efl_service_files_config",
-			classes    => efl_rkn( "${svc[${s}][2]}", "efl_service_files_config" ),
-			action     => efl_delta_reporting( "efl_service_files_config", "${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
-         ifvarclass => canonify( "${svc[${s}][3]}_is_not_a_template" ),
+         classes    => efl_rkn( "${${config_file[${s}]}}", "efl_service_files_config" ),
+         action     => efl_delta_reporting( "efl_service_files_config", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         ifvarclass => canonify( "${${source_file[${s}]}}_is_not_a_template" ),
          create     => "true",
-         copy_from  => efl_cpf( "${efl_c.cache}/${svc[${s}][2]}", "localhost", "${svc[${s}][5]}" );
+         copy_from  => efl_cpf( "${efl_c.cache}/${${config_file[${s}]}}", "localhost", "${${encrypt[${s}]}}" );
 
-      "${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
+      "${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment       => "Promise contents of configurationn file from template",
          handle        => "efl_service_files_config_template",
-			classes       => efl_rkn( "${svc[${s}][2]}", "efl_service_files_config_template" ),
-			action        => efl_delta_reporting( "efl_service_files_config_template", "${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
+         classes       => efl_rkn( "${${config_file[${s}]}}", "efl_service_files_config_template" ),
+         action        => efl_delta_reporting( "efl_service_files_config_template", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
          create        => "true",
          edit_defaults => empty,
-         ifvarclass    => canonify( "${svc[${s}][3]}_is_a_template" ),
-         edit_template => "${efl_c.cache}/${svc[${s}][2]}";
+         ifvarclass    => canonify( "${${source_file[${s}]}}_is_a_template" ),
+         edit_template => "${efl_c.cache}/${${config_file[${s}]}}";
 
-      "${svc[${s}][2]}" -> { "${svc[${s}][10]}" }
+      "${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Promise permissions of configuration file",
          handle     => "efl_service_files_config_template_permissions",
-			classes    => efl_rkn( "${svc[${s}][2]}", "efl_service_files_config_template_permissions" ),
-			action     => efl_delta_reporting( "efl_service_files_config_template_permissions", "${svc[${s}][2]}", "${svc[${s}][10]}", "1" ),
-         ifvarclass => "${svc[${s}][0]}",
+         classes    => efl_rkn( "${${config_file[${s}]}}", "efl_service_files_config_template_permissions" ),
+         action     => efl_delta_reporting( "efl_service_files_config_template_permissions", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         ifvarclass => "${${class[${s}]}}",
          perms      => mog(
-            "${svc[${s}][6]}",
-            "${svc[${s}][7]}",
-            "${svc[${s}][8]}"   
+            "${${mode[${s}]}}",
+            "${${user[${s}]}}",
+            "${${group[${s}]}}"   
             );
 
    processes:
-      "${svc[${s}][1]}" -> { "${svc[${s}][10]}" }
+      "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment        => "Promise process is running",
          handle         => "efl_service_processes_proc",
-			classes        => efl_rkn( "${svc[${s}][1]}", "efl_service_processes_proc" ),
-			action         => efl_delta_reporting( "efl_service_processes_proc", "${svc[${s}][1]}", "${svc[${s}][10]}", "1" ),
-			process_select => by_command( "${svc[${s}][1]}" ),
-         ifvarclass     => "${svc[${s}][0]}",
-         restart_class  => canonify( "efl_service_command_${svc[${s}][9]}" );
+         classes        => efl_rkn( "${${process[${s}]}}", "efl_service_processes_proc" ),
+         action         => efl_delta_reporting( "efl_service_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         process_select => by_command( "${${process[${s}]}}" ),
+         ifvarclass     => "${${class[${s}]}}",
+         restart_class  => canonify( "efl_service_command_${${command[${s}]}}" );
 
    commands:
-      "${svc[${s}][9]}" -> { "${svc[${s}][10]}" }
+      "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Restart service is required.",
          handle     => "efl_service_commands_restart",
-			classes    => efl_rkn( "${svc[${s}][9]}", "efl_service_commands_restart" ),
-			action     => efl_delta_reporting( "efl_service_commands_restart", "${svc[${s}][9]}", "${svc[${s}][10]}", "1" ),
+         classes    => efl_rkn( "${${command[${s}]}}", "efl_service_commands_restart" ),
+         action     => efl_delta_reporting( "efl_service_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
          contain    => in_shell_and_silent,
          ifvarclass => or (
-				canonify( "efl_service_command_${svc[${s}][9]}" ),
-				canonify( "${svc[${s}][2]}_handle_efl_service_files_config_repaired" ),
-				canonify( "${svc[${s}][2]}_handle_efl_service_files_config_template_repaired" )
-				);
+               canonify( "efl_service_command_${${command[${s}]}}" ),
+               canonify( "${${config_file[${s}]}}_handle_efl_service_files_config_repaired" ),
+               canonify( "${${config_file[${s}]}}_handle_efl_service_files_config_template_repaired" )
+               );
 }
 
 body process_select by_command( command )
@@ -1188,10 +1468,10 @@ bundle agent efl_chkconfig_enable_service ( ref )
                "${efl_c.max_bytes}"
             );
 
-		"s"
-			comment => "Get index array loaded above.",
-			handle  => "efl_chkconfig_enable_service_vars_s",
-			slist   => getindices( "svc_o" );
+         "s"
+            comment => "Get index array loaded above.",
+            handle  => "efl_chkconfig_enable_service_vars_s",
+            slist   => getindices( "svc_o" );
 
       "s2"
          comment => "Work around for bug 2333",
@@ -1201,34 +1481,44 @@ bundle agent efl_chkconfig_enable_service ( ref )
          comment => "Work around for bug 2333",
          string => "${svc_o[${s}][${s2}]}";
 
+      "class[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][0]";
+      "service[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][1]";
+      "promisee[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "svc[${s}][2]";
+
    classes:
       _stdlib_path_exists_chkconfig::
-         "efl_chkconfig_enable_${svc[${s}][1]}"
+         "efl_chkconfig_enable_${${service[${s}]}}"
             comment    => "Check if service is enabled",
-				handle     => "efl_chkconfig_enable_classes_needs_repair",
-            ifvarclass => "${svc[${s}][0]}",
-            not        => returnszero( "${chkconfig_check} ${svc[${s}][1]}", "noshell" );
+            handle     => "efl_chkconfig_enable_classes_needs_repair",
+            ifvarclass => "${${class[${s}]}}",
+            not        => returnszero( "${chkconfig_check} ${${service[${s}]}}", "noshell" );
 
-         "${svc[${s}][1]}_handle_efl_chkconfig_enable_classes_ok_kept"
+         "${${service[${s}]}}_handle_efl_chkconfig_enable_classes_ok_kept"
             comment    => "Check if service is enabled",
-				handle     => "efl_chkconfig_enable_classes_ok",
-				scope      => "namespace",
-            ifvarclass => "${svc[${s}][0]}",
-            expression => returnszero( "${chkconfig_check} ${svc[${s}][1]}", "noshell" );
+            handle     => "efl_chkconfig_enable_classes_ok",
+            scope      => "namespace",
+            ifvarclass => "${${class[${s}]}}",
+            expression => returnszero( "${chkconfig_check} ${${service[${s}]}}", "noshell" );
 
    commands:
-      "${paths.path[chkconfig]} ${svc[${s}][1]} on" -> { "${svc[${s}][2]}" }
+      "${paths.path[chkconfig]} ${${service[${s}]}} on" -> { "${${promisee[${s}]}}" }
          comment    => "Enable service using chkconfig",
          handle     => "efl_chkconfig_enable_service_commands_chkconfig",
-         ifvarclass => canonify( "efl_chkconfig_enable_${svc[${s}][1]}" ),
-			classes    => efl_rkn( "${paths.path[chkconfig]} ${svc[${s}][1]} off", "efl_chkconfig_enable_service_commands_chkconfig" ),
-			action     => efl_delta_reporting( "efl_chkconfig_enable_service_commands_chkconfig", "${svc[${s}][1]}", "${svc[${s}][2]}", "1" ),
+         ifvarclass => canonify( "efl_chkconfig_enable_${${service[${s}]}}" ),
+         classes    => efl_rkn( "${paths.path[chkconfig]} ${${service[${s}]}} off", "efl_chkconfig_enable_service_commands_chkconfig" ),
+         action     => efl_delta_reporting( "efl_chkconfig_enable_service_commands_chkconfig", "${${service[${s}]}}", "${${promisee[${s}]}}", "1" ),
          contain    => silent;
 
    reports:
       delta_reporting::
-         "${efl_c.udate} ;; efl_chkconfig_enable_classes_ok ;; ${svc[${s}][1]} ;; ${svc[${s}][2]}"
-            ifvarclass      => canonify( "${svc[${s}][1]}_handle_efl_chkconfig_enable_classes_ok_kept" ),
+         "${efl_c.udate} ;; efl_chkconfig_enable_classes_ok ;; ${${service[${s}]}} ;; ${${promisee[${s}]}}"
+            ifvarclass      => canonify( "${${service[${s}]}}_handle_efl_chkconfig_enable_classes_ok_kept" ),
             report_to_file  => "${efl_c.promise_log}";
 
       !_stdlib_path_exists_chkconfig::
@@ -1269,47 +1559,57 @@ bundle agent efl_chkconfig_disable_service ( ref )
                "${efl_c.max_bytes}"
             );
 
-		"s"
-			comment => "Get index array loaded above.",
-			handle  => "efl_chkconfig_disable_service_vars_s",
-			slist   => getindices( "svc_o" );
+         "s"
+            comment => "Get index array loaded above.",
+            handle  => "efl_chkconfig_disable_service_vars_s",
+            slist   => getindices( "svc_o" );
 
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2" };
+         "s2"
+            comment => "Work around for bug 2333",
+            slist => { "0", "1", "2" };
 
-      "svc[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string => "${svc_o[${s}][${s2}]}";
+         "svc[${s}][${s2}]"
+            comment => "Work around for bug 2333",
+            string => "${svc_o[${s}][${s2}]}";
+
+         "class[${s}]"
+            comment => "Turn into reference for simpler reading.",
+            string  => "svc[${s}][0]";
+         "service[${s}]"
+            comment => "Turn into reference for simpler reading.",
+            string  => "svc[${s}][1]";
+         "promisee[${s}]"
+            comment => "Turn into reference for simpler reading.",
+            string  => "svc[${s}][2]";
 
    classes:
       _stdlib_path_exists_chkconfig::
-         "efl_chkconfig_disable_${svc[${s}][1]}"
+         "efl_chkconfig_disable_${${service[${s}]}}"
             comment    => "Check if service is enabled",
-				handle     => "efl_chkconfig_disable_classes_needs_repair",
-            ifvarclass => "${svc[${s}][0]}",
-            expression => returnszero( "${chkconfig_check} ${svc[${s}][1]}", "noshell" );
+            handle     => "efl_chkconfig_disable_classes_needs_repair",
+            ifvarclass => "${${class[${s}]}}",
+            expression => returnszero( "${chkconfig_check} ${${service[${s}]}}", "noshell" );
 
-         "${svc[${s}][1]}_handle_efl_chkconfig_disable_classes_ok_kept"
+         "${${service[${s}]}}_handle_efl_chkconfig_disable_classes_ok_kept"
             comment    => "Check if service is enabled",
-				handle     => "efl_chkconfig_disable_classes_ok",
-				scope      => "namespace",
-            ifvarclass => "${svc[${s}][0]}",
-            not        => returnszero( "${chkconfig_check} ${svc[${s}][1]}", "noshell" );
+            handle     => "efl_chkconfig_disable_classes_ok",
+            scope      => "namespace",
+            ifvarclass => "${${class[${s}]}}",
+            not        => returnszero( "${chkconfig_check} ${${service[${s}]}}", "noshell" );
 
    commands:
-      "${paths.path[chkconfig]} ${svc[${s}][1]} off" -> { "${svc[${s}][2]}" }
+      "${paths.path[chkconfig]} ${${service[${s}]}} off" -> { "${${promisee[${s}]}}" }
          comment    => "Enable service using chkconfig",
          handle     => "efl_chkconfig_disable_service_commands_chkconfig",
-         ifvarclass => canonify( "efl_chkconfig_disable_${svc[${s}][1]}" ),
-			classes    => efl_rkn( "${paths.path[chkconfig]} ${svc[${s}][1]} off", "efl_chkconfig_disable_service_commands_chkconfig" ),
-			action     => efl_delta_reporting( "efl_chkconfig_disable_service_commands_chkconfig", "${svc[${s}][1]}", "${svc[${s}][2]}", "1" ),
+         ifvarclass => canonify( "efl_chkconfig_disable_${${service[${s}]}}" ),
+         classes    => efl_rkn( "${paths.path[chkconfig]} ${${service[${s}]}} off", "efl_chkconfig_disable_service_commands_chkconfig" ),
+         action     => efl_delta_reporting( "efl_chkconfig_disable_service_commands_chkconfig", "${${service[${s}]}}", "${${promisee[${s}]}}", "1" ),
          contain    => silent;
 
    reports:
       delta_reporting::
-         "${efl_c.udate} ;; efl_chkconfig_disable_classes_ok ;; ${svc[${s}][1]} ;; ${svc[${s}][2]}"
-            ifvarclass      => canonify( "${svc[${s}][1]}_handle_efl_chkconfig_disable_classes_ok_kept" ),
+         "${efl_c.udate} ;; efl_chkconfig_disable_classes_ok ;; ${${service[${s}]}} ;; ${${promisee[${s}]}}"
+            ifvarclass      => canonify( "${${service[${s}]}}_handle_efl_chkconfig_disable_classes_ok_kept" ),
             report_to_file  => "${efl_c.promise_log}";
 
       !_stdlib_path_exists_chkconfig::
@@ -1344,10 +1644,10 @@ bundle agent efl_file_perms ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"f"
-			comment => "Get index array loaded above.",
-			handle  => "efl_file_perms_vars_f",
-			slist   => getindices( "files_o" );
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_file_perms_vars_f",
+         slist   => getindices( "files_o" );
 
       "f2"
          comment => "Work around for bug 2333",
@@ -1357,75 +1657,103 @@ bundle agent efl_file_perms ( ref )
          comment => "Work around for bug 2333",
          string => "${files_o[${f}][${f2}]}";
 
-      classes:
-         "efl_no_recurse_${files[${f}][1]}"
-            comment    => "Is recursion desired?",
-            handle     => "efl_files_perms_classes_recurse",
-            ifvarclass => "${files[${f}][0]}",
-            expression => strcmp( "no", "${files[${f}][2]}" );
-         
-         "efl_negative_match_${files[${f}][1]}"
-            comment => "Is negative match desired?",
-            handle => "efl_files_perms_classes_negate",
-            ifvarclass => "${files[${f}][0]}",
-            expression => strcmp( "yes", "${files[${f}][4]}" );
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][0]";
+      "file[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][1]";
+      "recurse[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][2]";
+      "leaf[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][3]";
+      "negative[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][4]";
+      "mode[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][5]";
+      "user[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][6]";
+      "group[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][7]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][8]";
 
-         "efl_positive_match_${files[${f}][1]}"
+      classes:
+         "efl_no_recurse_${${file[${f}]}}"
+            comment    => "Is recursion desired?",
+            handle     => "efl_file_perms_classes_recurse",
+            ifvarclass => "${${class[${f}]}}",
+            expression => strcmp( "no", "${${recurse[${f}]}}" );
+         
+         "efl_negative_match_${${file[${f}]}}"
+            comment => "Is negative match desired?",
+            handle => "efl_file_perms_classes_negate",
+            ifvarclass => "${${class[${f}]}}",
+            expression => strcmp( "yes", "${${negative[${f}]}}" );
+
+         "efl_positive_match_${${file[${f}]}}"
             comment => "Is positive match desired?",
-            handle => "efl_files_perms_classes_positive",
-            ifvarclass => "${files[${f}][0]}",
-            expression => strcmp( "no", "${files[${f}][4]}" );
+            handle => "efl_file_perms_classes_positive",
+            ifvarclass => "${${class[${f}]}}",
+            expression => strcmp( "no", "${${negative[${f}]}}" );
 
       files:
-         "${files[${f}][1]}" -> { "${files[${f}][8]}" }
+         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions of file recurse_with_base and positive match",
-            handle       => "efl_files_perms_files_recurse_with_base_postive",
+            handle       => "efl_file_perms_files_recurse_with_base_postive",
             ifvarclass   => and(
-               not( canonify( "efl_no_recurse_${files[${f}][1]}" ) ),
-               canonify( "efl_positive_match_${files[${f}][1]}")
+               not( canonify( "efl_no_recurse_${${file[${f}]}}" ) ),
+               canonify( "efl_positive_match_${${file[${f}]}}")
                ),
-				classes      => efl_rkn( "${files[${f}][1]}", "efl_files_perms_files_recurse_with_base_postive" ),
-				action       => efl_delta_reporting( "efl_files_perms_files_recurse_with_base_postive", "${files[${f}][1]}", "${files[${f}][8]}", "1" ),
-            depth_search => recurse_with_base( "${files[${f}][2]}" ),
-            file_select  => by_name( "${files[${f}][3]}" ),
-            perms        => mog( "${files[${f}][5]}", "${files[${f}][6]}", "${files[${f}][7]}" );
+            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_recurse_with_base_postive" ),
+            action       => efl_delta_reporting( "efl_file_perms_files_recurse_with_base_postive", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+            depth_search => recurse_with_base( "${${recurse[${f}]}}" ),
+            file_select  => by_name( "${${leaf[${f}]}}" ),
+            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
 
-         "${files[${f}][1]}" -> { "${files[${f}][8]}" }
+         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions of file recurse_with_base and negative leaf match",
-            handle       => "efl_files_perms_files_recurse_with_base_negative",
+            handle       => "efl_file_perms_files_recurse_with_base_negative",
             ifvarclass   => and(
-               not( canonify( "efl_no_recurse_${files[${f}][1]}" ) ),
-               canonify( "efl_negative_match_${files[${f}][1]}")
+               not( canonify( "efl_no_recurse_${${file[${f}]}}" ) ),
+               canonify( "efl_negative_match_${${file[${f}]}}")
                ),
-				classes      => efl_rkn( "${files[${f}][1]}", "efl_files_perms_files_recurse_with_base_negative" ),
-				action       => efl_delta_reporting( "efl_files_perms_files_recurse_with_base_negative", "${files[${f}][1]}", "${files[${f}][8]}", "1" ),
-            depth_search => recurse_with_base( "${files[${f}][2]}" ),
-            file_select  => negate_by_name( "${files[${f}][3]}" ),
-            perms        => mog( "${files[${f}][5]}", "${files[${f}][6]}", "${files[${f}][7]}" );
+            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_recurse_with_base_negative" ),
+            action       => efl_delta_reporting( "efl_file_perms_files_recurse_with_base_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+            depth_search => recurse_with_base( "${${recurse[${f}]}}" ),
+            file_select  => negate_by_name( "${${leaf[${f}]}}" ),
+            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
 
-         "${files[${f}][1]}" -> { "${files[${f}][8]}" }
+         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions using positive match",
-            handle       => "efl_files_perms_files_positive",
+            handle       => "efl_file_perms_files_positive",
             ifvarclass   => and(
-               canonify( "efl_no_recurse_${files[${f}][1]}" ),
-               canonify( "efl_positive_match_${files[${f}][1]}")
+               canonify( "efl_no_recurse_${${file[${f}]}}" ),
+               canonify( "efl_positive_match_${${file[${f}]}}")
                ),
-				classes      => efl_rkn( "${files[${f}][1]}", "efl_files_perms_files_positive" ),
-				action       => efl_delta_reporting( "efl_files_perms_files_positive", "${files[${f}][1]}", "${files[${f}][8]}", "1" ),
-            file_select  => by_name( "${files[${f}][3]}" ),
-            perms        => mog( "${files[${f}][5]}", "${files[${f}][6]}", "${files[${f}][7]}" );
+            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_positive" ),
+            action       => efl_delta_reporting( "efl_file_perms_files_positive", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+            file_select  => by_name( "${${leaf[${f}]}}" ),
+            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
 
-         "${files[${f}][1]}" -> { "${files[${f}][8]}" }
+         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions using negative leaf match",
-            handle       => "efl_files_perms_files_negative",
+            handle       => "efl_file_perms_files_negative",
             ifvarclass   => and(
-               canonify( "efl_no_recurse_${files[${f}][1]}" ),
-               canonify( "efl_negative_match_${files[${f}][1]}")
+               canonify( "efl_no_recurse_${${file[${f}]}}" ),
+               canonify( "efl_negative_match_${${file[${f}]}}")
                ),
-				classes      => efl_rkn( "${files[${f}][1]}", "efl_files_perms_files_negative" ),
-				action       => efl_delta_reporting( "efl_files_perms_files_negative", "${files[${f}][1]}", "${files[${f}][8]}", "1" ),
-            file_select  => negate_by_name( "${files[${f}][3]}" ),
-            perms        => mog( "${files[${f}][5]}", "${files[${f}][6]}", "${files[${f}][7]}" );
+            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_negative" ),
+            action       => efl_delta_reporting( "efl_file_perms_files_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+            file_select  => negate_by_name( "${${leaf[${f}]}}" ),
+            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
 }
 
 body file_select negate_by_name(names)
@@ -1442,7 +1770,7 @@ bundle agent efl_edit_template ( ref )
       "field_1" string => "Promiser file";
       "field_2" string => "Source file";
       "field_3" string => "Mode";
-      "field_4" string => "Owner";
+      "field_4" string => "User";
       "field_5" string => "Group";
       "field_6" string => "Promisee";
 
@@ -1459,10 +1787,10 @@ bundle agent efl_edit_template ( ref )
             "${efl_c.max_bytes}"
          );
 
-		"f"
-			comment => "Get index array loaded above.",
-			handle  => "efl_edit_template_vars_f",
-			slist   => getindices( "files_o" );
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_edit_template_vars_f",
+         slist   => getindices( "files_o" );
 
       "f2"
          comment => "Work around for bug 2333",
@@ -1472,34 +1800,56 @@ bundle agent efl_edit_template ( ref )
          comment => "Work around for bug 2333",
          string => "${files_o[${f}][${f2}]}";
 
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][0]";
+      "file[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][1]";
+      "source[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][2]";
+      "mode[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][3]";
+      "user[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][4]";
+      "group[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][5]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][6]";
+
    files:
-      "${efl_c.cache}/${files[${f}][1]}" -> { "${files[${f}][6]}" }
+      "${efl_c.cache}/${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Locally cache template file.",
          handle     => "efl_edit_template_cache_template",
-			classes    => efl_rkn( "${efl_c.cache}/${files[${f}][1]}", "efl_edit_template_cache_template" ),
-			action     => efl_delta_reporting( "efl_edit_template_cache_template", "${efl_c.cache}/${files[${f}][1]}", "${files[${f}][6]}", "1" ),
-         ifvarclass => "${files[${f}][0]}",
+         classes    => efl_rkn( "${efl_c.cache}/${${file[${f}]}}", "efl_edit_template_cache_template" ),
+         action     => efl_delta_reporting( "efl_edit_template_cache_template", "${efl_c.cache}/${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass => "${${class[${f}]}}",
          create     => "true",
-         perms      => mog( "${files[${f}][3]}", "${files[${f}][4]}", "${files[${f}][5]}" ),
-         copy_from  => remote_dcp( "${files[${f}][2]}", "@{efl_c.policy_servers}" );
+         perms      => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" ),
+         copy_from  => remote_dcp( "${${source[${f}]}}", "@{efl_c.policy_servers}" );
 
-      "${files[${f}][1]}" -> { "${files[${f}][6]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment       => "Promise contents of file",
          handle        => "efl_edit_template_files_promiser",
-			classes    => efl_rkn( "${files[${f}][1]}", "efl_edit_template_files_promiser" ),
-			action     => efl_delta_reporting( "efl_edit_template_files_promiser", "${files[${f}][1]}", "${files[${f}][6]}", "1" ),
-         ifvarclass    => "${files[${f}][0]}",
+         classes       => efl_rkn( "${${file[${f}]}}", "efl_edit_template_files_promiser" ),
+         action        => efl_delta_reporting( "efl_edit_template_files_promiser", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass    => "${${class[${f}]}}",
          create        => "true",
          edit_defaults => empty,
-         edit_template => "${efl_c.cache}/${files[${f}][1]}";
+         edit_template => "${efl_c.cache}/${${file[${f}]}}";
 
-      "${files[${f}][1]}" -> { "${files[${f}][6]}" }
+      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Promise permissions of file",
          handle     => "efl_edit_template_files_perms",
-			classes    => efl_rkn( "${files[${f}][1]}", "efl_edit_template_files_perms" ),
-			action     => efl_delta_reporting( "efl_edit_template_files_perms", "${files[${f}][1]}", "${files[${f}][6]}", "1" ),
-         ifvarclass => "${files[${f}][0]}",
-         perms      => mog( "${files[${f}][3]}", "${files[${f}][4]}", "${files[${f}][5]}" );
+         classes    => efl_rkn( "${${file[${f}]}}", "efl_edit_template_files_perms" ),
+         action     => efl_delta_reporting( "efl_edit_template_files_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass => "${${class[${f}]}}",
+         perms      => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
 }
 
 bundle agent efl_lastseen
@@ -1562,7 +1912,7 @@ bundle server efl_server
    meta:
       "purpose" string => "Read cf-server access rules.";
       "field_0" string => "Context";
-      "field_1" string => "Promiser directory";
+      "field_1" string => "Promiser path";
       "field_2" string => "Comma separated admit list";
       "field_3" string => "Promisee";
 
@@ -1579,10 +1929,10 @@ bundle server efl_server
             "${efl_c.max_bytes}"
          );
 
-		"f"
-			comment => "Get index array loaded above.",
-			handle  => "efl_server_vars_f",
-			slist   => getindices( "acl_o" );
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_server_vars_f",
+         slist   => getindices( "acl_o" );
 
       "f2"
          comment => "Work around for bug 2333",
@@ -1592,16 +1942,29 @@ bundle server efl_server
          comment => "Work around for bug 2333",
          string  => "${acl_o[${f}][${f2}]}";
 
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][0]";
+      "path[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][1]";
+      "admit[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][2]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][3]";
+
       "acl_list[${f}]"
          comment => "Turn comma list into slist",
-         slist   => splitstring( "${acl[${f}][2]}", "\s*,\s*", "10" );
+         slist   => splitstring( "${${admit[${f}]}}", "\s*,\s*", "10" );
 
    access:
 
-      "${acl[${f}][1]}" -> { "${acl[${f}][3]}" }
+      "${${path[${f}]}}" -> { "${${promisee[${f}]}}" }
             handle     => "efl_server_grant_access_policy",
             comment    => "Grant client access to the policy server",
-            ifvarclass => "${acl[${f}][0]}",
+            ifvarclass => "${${class[${f}]}}",
             admit      => { "@{acl_list[${f}]}" };
 }
 
@@ -1616,9 +1979,9 @@ body action efl_delta_reporting ( handle, promiser, promisee, if_elapsed )
       log_kept     => "${efl_c.promise_log}";
       log_repaired => "${efl_c.promise_log}";
       log_failed   => "${efl_c.promise_log}";
-		log_string   => "${handle} ;; ${promiser} ;; ${promisee}";
+      log_string   => "${handle} ;; ${promiser} ;; ${promisee}";
 # Remove date due to CFEngine bug 3441
-		#log_string   => "${efl_c.udate} ;; ${handle} ;; ${promiser} ;; ${promisee}";
+      #log_string   => "${efl_c.udate} ;; ${handle} ;; ${promiser} ;; ${promisee}";
 }
 
 body classes efl_rkn( promiser, handle )
@@ -1632,11 +1995,11 @@ body classes efl_rkn( promiser, handle )
 
 bundle agent efl_bug3430 (ref)
 {
-	meta:
-		"purpose" string => "Workaround CFEngine tcdb corruption and deadlock issues";
-		"readme"  string => "See bug https://cfengine.com/dev/issues/3430";
+   meta:
+      "purpose" string => "Workaround CFEngine tcdb corruption and deadlock issues";
+      "readme"  string => "See bug https://cfengine.com/dev/issues/3430";
 
-	vars:
+   vars:
       redhat::
          "lsof" string => "/usr/sbin/lsof";
 
@@ -1644,63 +2007,63 @@ bundle agent efl_bug3430 (ref)
          "lsof" string => "/usr/bin/lsof";
 
       any::
-		"cf_lock_tcdb"
-			comment => "Location of lock database",
-			string  => "${sys.workdir}/state/cf_lock.tcdb";
+         "cf_lock_tcdb"
+            comment => "Location of lock database",
+            string  => "${sys.workdir}/state/cf_lock.tcdb";
 
-		"cf_lock_tcdb_lock"
-			comment => "Location of lock database",
-			string  => "${cf_lock_tcdb}.lock";
+         "cf_lock_tcdb_lock"
+            comment => "Location of lock database",
+            string  => "${cf_lock_tcdb}.lock";
 
-		"lsof_pids_string"
-			comment => "Count number of openings to cf_lock.tcdb",
-			string  => execresult( "${lsof} -t ${cf_lock_tcdb_lock}", "noshell" );
+         "lsof_pids_string"
+            comment => "Count number of openings to cf_lock.tcdb",
+            string  => execresult( "${lsof} -t ${cf_lock_tcdb_lock}", "noshell" );
 
-		"lsof_pids"
-			comment => "Convert string to list",
-			slist   => splitstring( "${lsof_pids_string}", "\s+", "10" );
+         "lsof_pids"
+            comment => "Convert string to list",
+            slist   => splitstring( "${lsof_pids_string}", "\s+", "10" );
 
-		"no_of_pids"
-			comment => "Convert string returned from execresult to int",
-			int     => length( "lsof_pids" );
+         "no_of_pids"
+            comment => "Convert string returned from execresult to int",
+            int     => length( "lsof_pids" );
 
-	classes:
-		"kill_pids"
-			expression => isgreaterthan( "${no_of_pids}", "1" );
+   classes:
+      "kill_pids"
+         expression => isgreaterthan( "${no_of_pids}", "1" );
 
-		"delete_cf_lock"
-			expression => "efl_bug3430_processes_kill_cf_agent_repaired";
+      "delete_cf_lock"
+         expression => "efl_bug3430_processes_kill_cf_agent_repaired";
 
-		"report_kill_and_delete"
-			expression => classmatch( "efl_bug3430.*?_repaired" );
+      "report_kill_and_delete"
+         expression => classmatch( "efl_bug3430.*?_repaired" );
 
-	files:
-		delete_cf_lock::
-			"${cf_lock_tcdb}" -> { "CFEngine bug 3430" }
-				comment => "Remove corrupted lock file",
-				handle  => "efl_bug3430_files_delete_cf_lock_tcdb",
-				classes => efl_rkn( "${cf_lock_tcdb}", "efl_bug3430_files_delete_cf_lock_tcdb" ),
-				action  => efl_delta_reporting( "efl_bug3430_files_delete_cf_lock_tcdb", "${cf_lock_tcdb}", "CFEngine bug 3430", "1" ),
-				delete  => tidy;
+   files:
+      delete_cf_lock::
+         "${cf_lock_tcdb}" -> { "CFEngine bug 3430" }
+            comment => "Remove corrupted lock file",
+            handle  => "efl_bug3430_files_delete_cf_lock_tcdb",
+            classes => efl_rkn( "${cf_lock_tcdb}", "efl_bug3430_files_delete_cf_lock_tcdb" ),
+            action  => efl_delta_reporting( "efl_bug3430_files_delete_cf_lock_tcdb", "${cf_lock_tcdb}", "CFEngine bug 3430", "1" ),
+            delete  => tidy;
 
-	processes:
-		kill_pids::
-			"cf-agent" -> { "CFEngine bug 3430" }
-				comment        => "Kill pids",
-				handle         => "efl_bug3430_processes_kill_cf_agent",
-				signals        => { "term", "kill" },
-				classes        => efl_rkn( "cf-agent", "efl_bug3430_processes_kill_cf_agent" ),
-				action         => efl_delta_reporting( "efl_bug3430_processes_kill_cf_agent", "cf-agent", "CFEngine bug 3430", "1" ),
-				process_select => by_pid( "${lsof_pids}" );
+   processes:
+      kill_pids::
+         "cf-agent" -> { "CFEngine bug 3430" }
+            comment        => "Kill pids",
+            handle         => "efl_bug3430_processes_kill_cf_agent",
+            signals        => { "term", "kill" },
+            classes        => efl_rkn( "cf-agent", "efl_bug3430_processes_kill_cf_agent" ),
+            action         => efl_delta_reporting( "efl_bug3430_processes_kill_cf_agent", "cf-agent", "CFEngine bug 3430", "1" ),
+            process_select => by_pid( "${lsof_pids}" );
 
-	reports:
-		report_kill_and_delete::
-			"TCDB corruption detected. Repair was attempted.";
+   reports:
+      report_kill_and_delete::
+         "TCDB corruption detected. Repair was attempted.";
 }
 
 body process_select by_pid( pid )
 {
-	pid            => irange( "${pid}", "${pid}" );
-	process_result => "pid";
+   pid            => irange( "${pid}", "${pid}" );
+   process_result => "pid";
 }
 
