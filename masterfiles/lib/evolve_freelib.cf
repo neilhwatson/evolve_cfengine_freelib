@@ -843,10 +843,10 @@ bundle agent efl_class_expression( ref )
          comment => "Work around for bug 2333",
          string => "${class_o[${c}][${c2}]}";
 
-      "context[${c}]"
+      "class_to_set[${c}]"
          comment => "Turn into reference for simpler reading.",
          string  => "class[${c}][0]";
-      "class_to_set[${c}]"
+      "class_expression[${c}]"
          comment => "Turn into reference for simpler reading.",
          string  => "class[${c}][1]";
       "promisee[${c}]"
@@ -857,7 +857,7 @@ bundle agent efl_class_expression( ref )
       "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if expression is true.",
          scope      => "namespace",
-         expression => "${${context[${c}]}}";
+         expression => "${${class_expression[${c}]}}";
 }
 
 bundle agent efl_class_classmatch( ref )
