@@ -2067,3 +2067,114 @@ body process_select by_pid( pid )
    process_result => "pid";
 }
 
+bundle agent efl_rcs_pull( ref )
+{
+   meta:
+      "purpose" string => "Build or update a copy from version control";
+      "field_0" string => "Context";
+      "field_1" string => "Update working copy command";
+# Example: /usr/bin/git reset --hard HEAD && /usr/bin/git pull
+      "field_2" string => "Checkout command to be used if update command fails";
+# Example: /usr/bin/git clone https://github.com/evolvethinking/evolve_cfengine_freelib.git
+      "field_3" string => "Destination directory, or your working directory";
+      "field_4" string => "Mode for destination directory.";
+      "field_5" string => "Owner";
+      "field_6" string => "Group";
+      "field_7" string => "Promisee";
+
+   vars:
+      "dim_rcs"
+         comment => "Read data file for parsing.",
+         handle  => "efl_rcs_pull_vars_files",
+         int     => readstringarrayidx(
+            "rcs_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_rcs_pull_vars_f",
+         slist   => getindices( "rcs_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6", "7" };
+ 
+      "rcs[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string => "${rcs_o[${f}][${f2}]}";
+
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][0]";
+      "update[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][1]";
+      "checkout[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][2]";
+      "dir[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][3]";
+      "mode[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][4]";
+      "owner[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][5]";
+      "group[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][6]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rcs[${f}][7]";
+
+   files:
+      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+         comment    => "Create destination directory",
+         handle     => "efl_rcs_pull_files_create_dir",
+         ifvarclass => "${${class[${f}]}}",
+         classes    => efl_rkn( "${${dir[${f}]}}", "efl_rcs_pull_files_create_dir" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_files_create_dir", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         create     => 'true';
+
+      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+         comment    => "promise perms on destination directory",
+         handle     => "efl_rcs_pull_files_dir_perms",
+         ifvarclass => "${${class[${f}]}}",
+         classes    => efl_rkn( "${${dir[${f}]}}", "efl_rcs_pull_files_dir_perms" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_files_dir_perms", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         perms      => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
+
+      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+         comment      => "purge destination directory if update command failed",
+         handle       => "efl_rcs_files_purge_dir",
+         ifvarclass   => canonify( "${${update[${f}]}}_handle_efl_rcs_pull_commands_update_notkept" ),
+         delete       => tidy,
+         depth_search => recurse( "inf" ),
+         file_select  => by_name( ".*" ),
+         classes      => efl_rkn( "${${dir[${f}]}}", "efl_rcs_files_purge_dir" ),
+         action       => efl_delta_reporting( "efl_rcs_files_purge_dir", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" );
+
+   commands:
+      "${${update[${f}]}}" -> { "${${promisee[${f}]}}" }
+         comment    => "Pull update",
+         handle     => "efl_rcs_pull_commands_update",
+         ifvarclass => "${${class[${f}]}}",
+         contain    => in_dir_shell_and_silent( "${${dir[${f}]}}" ),
+         classes    => efl_rkn( "${${update[${f}]}}", "efl_rcs_pull_commands_update" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_commands_update", "${${update[${f}]}}", "${${promisee[${f}]}}", "1" );
+
+      "${${checkout[${f}]}} ${${dir[${f}]}}" -> { "${${promisee[${f}]}}" }
+         comment    => "Pull checkout",
+         handle     => "efl_rcs_pull_commands_checkout",
+         depends_on => { "efl_rcs_files_purge_dir" },
+         ifvarclass => "${${class[${f}]}}",
+         contain    => in_dir_shell_and_silent( "${${dir[${f}]}}" ),
+         classes    => efl_rkn( "${${checkout[${f}]}}", "efl_rcs_pull_commands_checkout" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_commands_checkout", "${${checkout[${f}]}}", "${${promisee[${f}]}}", "1" );
+}
