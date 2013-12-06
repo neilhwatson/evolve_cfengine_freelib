@@ -226,6 +226,86 @@ bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
          usebundle  => ${bundle_name}( "${parameter}" );
 }
 
+bundle agent efl_class_returnszero( ref )
+{
+   meta:
+      "purpose" string => "Skeleton bundle for new bundle authoring";
+      "field_0" string => "Context";
+      "field_1" string => "Class to set";
+      "field_2" string => "Command to run";
+      "field_3" string => "Use shell? yes/no";
+      "field_4" string => "Set class if returns zero (yes) or non-zero (no)";
+      "field_5" string => "Promisee";
+
+   vars:
+      "dim_rz"
+         comment => "Read data file for parsing.",
+         handle  => "efl_class_returnszero_vars_files",
+         int     => readstringarrayidx(
+            "rz_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_class_returnszero_vars_f",
+         slist   => getindices( "rz_o" );
+
+      "f2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6" };
+ 
+      "rz[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string => "${rz_o[${f}][${f2}]}";
+
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rz[${f}][0]";
+      "class_to_set[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rz[${f}][1]";
+      "command[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rz[${f}][2]";
+      "shell[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rz[${f}][3]";
+      "negate[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rz[${f}][4]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "rz[${f}][5]";
+
+   classes:
+      "${${class_to_set[${f}]}}_non_zero" -> { "${${promisee[${f}]}}" }
+         comment    => "Does class to set result from zero or non zero return value",
+         ifvarclass => "${${class[${f}]}}",
+         expression => strcmp( "${${negate[${f}]}}", "no" );
+
+      "${${class_to_set[${f}]}}_zero" -> { "${${promisee[${f}]}}" }
+         comment    => "Does class to set result from zero or non zero return value",
+         ifvarclass => "${${class[${f}]}}",
+         expression => strcmp( "${${negate[${f}]}}", "yes" );
+
+      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+         comment    => "Set class if expression returns non zero",
+         ifvarclass => "${${class_to_set[${f}]}}_non_zero",
+         scope      => "namespace",
+         not        => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+
+      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+         comment    => "Set class if expression returns zero",
+         ifvarclass => "${${class_to_set[${f}]}}_zero",
+         scope      => "namespace",
+         expression => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+}
+
 bundle agent efl_sysctl_live( ref )
 {   
    meta:
