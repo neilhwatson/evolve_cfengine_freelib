@@ -233,7 +233,7 @@ bundle agent efl_class_returnszero( ref )
       "field_0" string => "Context";
       "field_1" string => "Class to set";
       "field_2" string => "Command to run";
-      "field_3" string => "Use shell? yes/no";
+      "field_3" string => "useshell/noshell";
       "field_4" string => "Set class if returns zero (yes) or non-zero (no)";
       "field_5" string => "Promisee";
 
