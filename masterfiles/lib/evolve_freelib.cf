@@ -1210,7 +1210,7 @@ bundle agent efl_packages( ref )
    vars:
       "dim_pkg"
          comment => "Read data file for parsing.",
-         handle  => "efl_packageg_vars_files",
+         handle  => "efl_packages_vars_files",
          int     => readstringarrayidx(
             "pkg_o",
             "${ref}",
@@ -1222,7 +1222,7 @@ bundle agent efl_packages( ref )
 
       "p"
          comment => "Get index array loaded above.",
-         handle  => "efl_packageg_vars_p",
+         handle  => "efl_packages_vars_p",
          slist   => getindices( "pkg_o" );
 
       "p2"
@@ -1260,9 +1260,9 @@ bundle agent efl_packages( ref )
    packages:
       "${${name[${p}]}}" -> { "${${promisee[${p}]}}" }
          comment               => "Promise package without version.",
-         handle                => "efl_packageg_packages_generic_no_version",
-         classes               => efl_rkn( "${${name[${p}]}}", "efl_packageg_packages_generic_no_version" ),
-         action                => efl_delta_reporting( "efl_packageg_packages_generic_no_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
+         handle                => "efl_packages_packages_generic_no_version",
+         classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_no_version" ),
+         action                => efl_delta_reporting( "efl_packages_packages_generic_no_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
          ifvarclass            => and(
             canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}" ),
             "${${class[${p}]}}"
@@ -1273,9 +1273,9 @@ bundle agent efl_packages( ref )
 
       "${${name[${p}]}}" -> { "${${promisee[${p}]}}" }
          comment               => "Promise package with version.",
-         handle                => "efl_packageg_packages_generic_version",
-         classes               => efl_rkn( "${${name[${p}]}}", "efl_packageg_packages_generic_version" ),
-         action                => efl_delta_reporting( "efl_packageg_packages_generic_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
+         handle                => "efl_packages_packages_generic_version",
+         classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_version" ),
+         action                => efl_delta_reporting( "efl_packages_packages_generic_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
          ifvarclass            => and(
             not( canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}" ) ),
             "${${class[${p}]}}"
