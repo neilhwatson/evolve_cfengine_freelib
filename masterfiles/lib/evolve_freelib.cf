@@ -2112,10 +2112,10 @@ bundle agent efl_bug3430 (ref)
          expression => isgreaterthan( "${no_of_pids}", "1" );
 
       "delete_cf_lock"
-         expression => "efl_bug3430_processes_kill_cf_agent_repaired";
+         expression => "cf_agent_handle_efl_bug3430_processes_kill_cf_agent_repaired";
 
       "report_kill_and_delete"
-         expression => classmatch( "efl_bug3430.*?_repaired" );
+         expression => classmatch( ".*?_handle_efl_bug3430.*?_repaired" );
 
    files:
       delete_cf_lock::
