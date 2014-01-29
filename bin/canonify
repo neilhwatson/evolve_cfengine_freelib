@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+
+# Remove for production in case of deployement on legacy platforms.
+#use strict;
+#use warnings;
+
+my $string = $ARGV[0];
+
+$string =~ s/[^a-zA-Z0-9_]/_/g;
+
+print $string."\n";
