@@ -6,6 +6,6 @@
 
 my $string = $ARGV[0];
 
-$string =~ s/[^a-zA-Z0-9_]/_/g;
+$string =~ s/\W/_/g;
 
 print $string."\n";
