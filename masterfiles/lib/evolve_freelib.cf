@@ -745,6 +745,119 @@ mtime       => irange(0,ago(0,0,"$(days)",0,0,0));
 file_result => "mtime.!leaf_name";
 }
 
+bundle agent efl_global_slists( ref )
+{
+   meta:
+      "purpose" string => "Set slist type variable when class is true.";
+      "field_0" string => "Context";
+      "field_1" string => "Variable name";
+      "field_2" string => "csv inline list or path to external file where file format is one list element per line.";
+		"field_4" string => "random shuffle list (r), or determistic shuffle (d), or normal (n)";
+      "field_3" string => "Promisee";
+
+   vars:
+      "dim_slist"
+         comment => "Read data file for parsing.",
+         handle  => "efl_global_slists_vars_files",
+         int     => readstringarrayidx(
+            "slist_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+      "s"
+         comment => "Get index array loaded above.",
+         handle  => "efl_global_slists_vars_s",
+         slist   => getindices( "slist_o" );
+
+      "s2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4" };
+
+      "slist[${s}][${s2}]"
+         comment => "Work around for bug 2333",
+         string  => "${slist_o[${s}][${s2}]}";
+
+      "class[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "slist[${s}][0]";
+      "name[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "slist[${s}][1]";
+      "list_data[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "slist[${s}][2]";
+      "shuffle[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "slist[${s}][3]";
+      "promisee[${s}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "slist[${s}][4]";
+
+		"seed" int => randomint( "1", "999999" );
+
+		"pre_shuffle_${${name[${s}]}}"
+			comment => "Get list from external file",
+			ifvarclass => and( "parse_list_file_${s}", "${${class[${s}]}}"),
+			slist => readstringlist(
+				"${${list_data[${s}]}}",
+				"\s*#[^\n]*",
+				"\n",
+				"500",
+				"1M"
+				);
+
+		"pre_shuffle_${${name[${s}]}}"
+			comment    => "Get list from external file",
+			ifvarclass => and( "parse_csv_list_${s}" , "${${class[${s}]}}"),
+			slist      => splitstring( "${${list_data[${s}]}}", "\s*,\s*", "500" );
+
+		"${${name[${s}]}}"
+			comment    => "no shuffle list",
+			ifvarclass => "n_shuffle_${s}",
+			slist      => { "@{pre_shuffle_${${name[${s}]}}}" };
+
+		"${${name[${s}]}}"
+			comment    => "random shuffle list",
+			ifvarclass => "r_shuffle_${s}",
+			slist      => shuffle( "pre_shuffle_${${name[${s}]}}", "${seed}" );
+
+		"${${name[${s}]}}"
+			comment    => "deterministic shuffle list",
+			ifvarclass => "d_shuffle_${s}",
+			slist      => shuffle( "pre_shuffle_${${name[${s}]}}", "${sys.uqhost}" );
+
+	classes:
+		"parse_list_file_${s}"
+			comment    => "Determine if list_data points to a file",
+			ifvarclass => "${${class[${s}]}}",
+			expression => fileexists( "${${list_data[${s}]}}" );
+
+		"parse_csv_list_${s}"
+			comment    => "If no file then assume data is inline csv",
+			ifvarclass => "${${class[${s}]}}",
+			not        => fileexists( "${${list_data[${s}]}}" );
+
+	  "d_shuffle_${s}"
+			comment    => "Determnistically random list.",
+			ifvarclass => "${${class[${s}]}}",
+			expression => strcmp( "${${shuffle[${s}]}}", "d" );
+
+	  "r_shuffle_${s}"
+			comment    => "Random list.",
+			ifvarclass => "${${class[${s}]}}",
+			expression => strcmp( "${${shuffle[${s}]}}", "r" );
+
+	  "n_shuffle_${s}"
+			comment    => "Normal list without random.",
+			ifvarclass => "${${class[${s}]}}",
+			expression => strcmp( "${${shuffle[${s}]}}", "n" );
+
+}
+
 bundle agent efl_global_strings ( ref )
 {
    meta:
