@@ -1,0 +1,172 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+use File::Find;
+use File::Spec;
+use Digest::MD5;
+use Data::Dumper; # Remove for production
+
+my $dir  = '/var/cfengine/masterfiles';
+my $file = '/var/cfengine/masterfiles/cf_manifest.txt';
+my %manifest;
+
+# Get command options and switches
+GetOptions (
+    'help'    => \( my $help ),
+    'version' => \( my $version ),
+    'file=s'  => \$file,
+    'dir=s'   => \$dir
+    );
+
+
+# Prints usage and exits
+sub usage {
+    my $msg = shift;
+    pod2usage(-verbose=>99,
+        -sections=>"SYNOPSIS",
+        -msg => $msg
+    );
+}
+
+##########################
+# Usage
+ if ( $help ) { usage() }
+
+##########################
+# Version
+if ( $version ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
+
+##########################
+# subs
+sub get_hashes 
+{
+   my $relative_path;
+   if ( -f $File::Find::name )
+   {
+      $relative_path = File::Spec->abs2rel( $File::Find::name, $dir );
+      $manifest{ $relative_path } = calc_file_hash( $File::Find::name );
+   }
+}
+
+sub calc_file_hash
+{
+   my $f = shift;
+   my $d;
+
+   return 0 unless -f $f;
+
+   if ( open ( my $fh, '<', $f ) )
+   {
+      binmode ($fh);
+      $d = Digest::MD5->new->addfile( $fh )->hexdigest;
+      close $fh;
+   }
+   else
+   {
+      warn "Cannot open $f, $!";
+      $d = 0;
+   }
+   return $d;
+}
+
+sub write_manifest
+{
+   foreach my $file ( keys %manifest )
+   {
+      print MANIFEST $file. " ;; ". $manifest{ $file } . "\n";
+   }
+   close MANIFEST;
+}
+
+##########################
+# Validation and Main matter
+if ( $file )
+{
+   unless ( open ( MANIFEST, "+>", $file ) ) {
+      usage( "Cannot open $file, $!" );
+      die;
+   }
+   chmod 0600, $file or die "Cannot chmod 600 $file, $!";
+}
+
+unless ( -e $dir )
+{
+   usage( "Cannot find $dir, $!" );
+   die;
+}
+
+find( \&get_hashes, $dir );
+write_manifest();
+
+#print Dumper( \%manifest );
+
+
+##########################
+# POD
+
+=head1 SYNOPSIS
+
+cf-manifest
+[ -h | --help ] help
+[ -v | -- version ] version
+[ -f | --file ] <manifest file>
+[ -d | --dir ] <dir to manifest>
+
+Use perldoc to see full documentation.
+
+=head1 OPTIONS
+
+=over 5
+
+=item [ -h | --help ]
+
+Print help and exit.
+
+=item [ -v | --version ]
+
+Print version and exit.
+
+=item [ -f | --file ] <file>
+
+Where to write manifest.
+
+=item [ -d | --dir ] <dir to manifest>
+
+Directory whose contentes will be manifested.
+
+=back
+
+=head1 DESCRIPTION
+
+=head1 CAVEATS
+
+=head1 EXAMPLES
+
+=head1 VERSION
+
+1.0
+
+=head1 SEE ALSO
+
+=head1 AUTHOR
+
+Neil H Watson, Evolve Thinking Limited 
+
+=head1 COPYRIGHT
+
+Copyright 2014 Evolve Thinking Limited
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details
+<http://www.gnu.org/licenses/>.
+
+=cut
