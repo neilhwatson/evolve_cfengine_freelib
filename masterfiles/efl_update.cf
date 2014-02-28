@@ -1,0 +1,201 @@
+# This is a work in progress and it not well tested.
+
+# This file is alternative update file. It is simpler, yet reduces server load
+# and server reduncancy.
+
+# TODOs
+# Build manifest.
+# Define required modules.
+# Promise modules
+# Promise inputs from manifest.
+# Promise processes
+
+body file control
+{
+   namespace => "eflu";
+}
+
+body common control
+{
+   bundlesequence => { "main" };
+}
+
+bundle agent config
+{
+   meta:
+      "purpose" string => "User defined configs here.";
+
+   defaults:
+      "policy_servers"
+         comment        => "Default to bootstrap server",
+         slist          => { "${sys.policy_hub}" },
+         if_match_regex => "";
+
+   vars:
+      "modules"
+         comment => "Modules required for a minimum working system.",
+         slist   => { "return_index.pl", "cf-manifest" };
+
+      "modules_path"
+         comment => "Where to find modules on the policy server.",
+         string  => "${sys.workdir}/modules";
+
+      "inputs_manifest"
+         comment => "Manifest file to determine what inputs to download",
+         string  => "efl_manifest.txt";
+
+      "cfengine_procs"
+         comment => "CFEngine processes to start or restart",
+         slist   => { "cf-serverd", "cf-execd", "cf-monitord" };
+
+      "comment"
+         comment => "Comment string in data file.",
+         string  => "\s*#[^\n]*";
+
+      "array_delimiter"
+         comment => "Field delimiter for CSV data files read by readstringarrayidx",
+         string  => "\s*;;\s*";
+
+      "max_num"
+         comment => "Maximum number of lines to read from data file",
+         int     => "500";
+
+      "max_bytes"
+         comment => "Maximum number of bytes to read from data file.",
+         string  => "1M";
+
+      "policy_servers_file"
+         comment => "File that contains redundant policy servers.",
+         string  => "${sys.workdir}/policy_servers.dat";
+
+      load_policy_servers::
+         "policy_servers_unshuffled"
+            comment => "Read into string for processing",
+            slist   => readstringlist(
+               "${policy_servers_file}",
+               "#[^\n]*", # Allowed comments in file.
+               "[\n]",    # One server IP or hostname per line.
+               "10",      # Maximum allowed entries.
+               "10K"      # Maximum file size
+               );
+
+         "seed"
+            comment => "Seed deterministic shuffle.",
+            string  => "${sys.fqhost}";
+
+         "policy_servers"
+            comment => "Shuffle deterministically for load balancing",
+            slist   => shuffle( "policy_servers_unshuffled", "${seed}" );
+
+   classes:
+      "load_policy_servers"
+         comment    => "Not to be confused with policy_server.dat",
+         expression => fileexists( "${policy_servers_file}" );
+
+   reports:
+      debug::
+         "policy_servers => ${policy_servers}"
+            comment => "Set debug to see debugging reports";
+}
+
+bundle agent main
+{
+   meta:
+      "purpose" string => "Drives bundle order through method calls.";
+
+   methods:
+      "Load configs"
+         handle => "main_methods_config",
+         usebundle => config;
+
+      "Download manifest"
+         handle     => "main_methods_download_manifest",
+         depends_on => { "main_methods_config" },
+         usebundle  => download_manifest ( "${config.inputs_manifest}" );
+
+      "Update inputs"
+         handle     => "main_methods_inputs",
+         depends_on => { "main_methods_config", "main_methods_manifest" },
+         usebundle  => inputs ( "${sys.workdir}/inputs/${config.inputs_manifest}" );
+}
+
+bundle agent download_manifest( ref )
+{
+   meta:
+      "purpose" string => "Download inputs manifest file";
+
+   files:
+      "${sys.workdir}/inputs/${ref}"
+         handle    => "download_manifest_files_inputs_manifest",
+         perms     => mog( "600", "root", "root" ),
+         copy_from => secure_cp( 
+            "${sys.workdir}/masterfiles/${ref}",
+            "@{eflu:config.policy_servers}" # prefix with namespace because of bug
+            );
+}
+
+bundle agent inputs( ref )
+{
+   meta:
+      "purpose" string => "Download inputs determined by manifest file.";
+
+   vars:
+      "dim_manifest"
+         comment => "Read data file for parsing.",
+         int     => readstringarrayidx(
+            "manifest_o",
+            "${ref}",
+            "${config.comment}",
+            "${config.array_delimiter}",
+            "${config.max_num}",
+            "${config.max_bytes}"
+         );
+
+      "r"
+         comment => "Get index array loaded above.",
+         slist   => getindices( "manifest_o" );
+
+      "r2"
+         comment => "Work around for bug 2333",
+         slist   => { "0", "1" };
+ 
+      "manifest[${r}][${r2}]"
+         comment => "Work around for bug 2333",
+         string  => "${manifest_o[${r}][${r2}]}";
+
+      "manifest_file[${r}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "manifest[${r}][0]";
+
+      "manifest_md5sum[${r}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "manifest[${r}][1]";
+
+   classes:
+      "download_${${manifest_file[${r}]}}"
+         not => fileexists( "${sys.workdir}/inputs/${${manifest_file[${r}]}}" );
+
+      "download_${${manifest_file[${r}]}}"
+         ifvarclass => not( canonify( "download_${${manifest_file[${r}]}}" ) ),
+         not        => hashmatch( "${sys.workdir}/inputs/${${manifest_file[${r}]}}", "md5", "${${manifest_md5sum[${r}]}}" );
+
+   reports:
+      "download ${${manifest_file[${r}]}}"
+         ifvarclass => canonify( "download_${${manifest_file[${r}]}}" );
+}
+
+body perms mog(mode,user,group)
+{
+      owners => { "$(user)" };
+      groups => { "$(group)" };
+      mode   => "$(mode)";
+}
+
+body copy_from secure_cp(from,server)
+{
+      source      => "$(from)";
+      servers     => { "$(server)" };
+      compare     => "digest";
+      encrypt     => "true";
+      verify      => "true";
+}

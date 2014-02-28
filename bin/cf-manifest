@@ -13,6 +13,8 @@ my $dir  = '/var/cfengine/masterfiles';
 my $file = '/var/cfengine/masterfiles/cf_manifest.txt';
 my %manifest;
 
+my $allowed_input_files = qr/\.(cf|tmp|txt)$/;
+
 # Get command options and switches
 GetOptions (
     'help'    => \( my $help ),
@@ -44,7 +46,7 @@ if ( $version ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
 sub get_hashes 
 {
    my $relative_path;
-   if ( -f $File::Find::name )
+   if ( -f $File::Find::name && $File::Find::name =~ m/$allowed_input_files/ )
    {
       $relative_path = File::Spec->abs2rel( $File::Find::name, $dir );
       $manifest{ $relative_path } = calc_file_hash( $File::Find::name );
