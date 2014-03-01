@@ -5,15 +5,12 @@
 
 # TODOs
 # Build manifest.
-# Define required modules.
-# Promise modules
-# Promise inputs from manifest.
-# Promise processes
 
-body file control
-{
-   namespace => "eflu";
-}
+# namespace left out due to bug.
+# body file control
+# {
+#    namespace => "eflu";
+# }
 
 body common control
 {
@@ -113,10 +110,14 @@ bundle agent main
          depends_on => { "main_methods_config" },
          usebundle  => download_manifest ( "${config.inputs_manifest}" );
 
-      "Update inputs"
+      "Update inputs and modules"
          handle     => "main_methods_inputs",
-         depends_on => { "main_methods_config", "main_methods_manifest" },
-         usebundle  => inputs ( "${sys.workdir}/inputs/${config.inputs_manifest}" );
+         depends_on => { "main_methods_config", "main_methods_download_manifest" },
+         usebundle  => inputs_and_modules ( "${sys.workdir}/inputs/${config.inputs_manifest}" );
+
+      "Start processes"
+         handle => "main_methods_start_procs",
+         usebundle => start_procs;
 }
 
 bundle agent download_manifest( ref )
@@ -130,11 +131,12 @@ bundle agent download_manifest( ref )
          perms     => mog( "600", "root", "root" ),
          copy_from => secure_cp( 
             "${sys.workdir}/masterfiles/${ref}",
-            "@{eflu:config.policy_servers}" # prefix with namespace because of bug
+            # "@{eflu:config.policy_servers}" # prefix with namespace because of bug
+            "@{config.policy_servers}" 
             );
 }
 
-bundle agent inputs( ref )
+bundle agent inputs_and_modules( ref )
 {
    meta:
       "purpose" string => "Download inputs determined by manifest file.";
@@ -179,23 +181,84 @@ bundle agent inputs( ref )
          ifvarclass => not( canonify( "download_${${manifest_file[${r}]}}" ) ),
          not        => hashmatch( "${sys.workdir}/inputs/${${manifest_file[${r}]}}", "md5", "${${manifest_md5sum[${r}]}}" );
 
+   files:
+      "${sys.workdir}/inputs/${${manifest_file[${r}]}}"
+         handle     => "inputs_and_modules_files_inputs_download",
+         comment    => "Download file shown to be new by the mainfest",
+         ifvarclass => canonify( "download_${${manifest_file[${r}]}}" ),
+         perms      => mog( "600", "root", "root" ),
+         classes    => if_repaired( "kill_cf_procs" ),
+         copy_from  => secure_cp( "${sys.workdir}/masterfiles/${${manifest_file[${r}]}}", "@{config.policy_servers}" );
+      
+      "${sys.workdir}/inputs/${${manifest_file[${r}]}}"
+         handle     => "inputs_and_modules_files_inputs_permissions",
+         comment    => "Promise file perms for files not downloaded",
+         ifvarclass => not( canonify( "download_${${manifest_file[${r}]}}" ) ),
+         perms      => mog( "600", "root", "root" );
+
+# TODO were to put masterfiles module? sitefiles?
+      "${sys.workdir}/modules/${config.modules}"
+         handle    => "inputs_and_modules_files_modules_download",
+         comment   => "Update modules",
+         perms     => mog( "700", "root", "root" ),
+         copy_from => secure_cp( "${config.modules_path}/${config.modules}", "@{config.policy_servers}" );
+
+   processes:
+      kill_cf_procs::
+         "${config.cfengine_procs}"
+            handle         => "inputs_and_modules_processes_kill",
+            comment        => "Kill procs for later restart.",
+            process_select => by_name( "(${sys.workdir}/bin/){0,1}${config.cfengine_procs}" ),
+            signals        => { "term", "kill" };
+
    reports:
-      "download ${${manifest_file[${r}]}}"
-         ifvarclass => canonify( "download_${${manifest_file[${r}]}}" );
+      debug::
+         "download ${${manifest_file[${r}]}}"
+            ifvarclass => canonify( "download_${${manifest_file[${r}]}}" );
+}
+
+bundle agent start_procs
+{
+   meta:
+      "purpose" string => "Start CFEngine processes";
+
+   processes:
+      "${config.cfengine_procs}"
+         handle         => "start_procs_processes_start",
+         comment        => "Kill procs for later restart.",
+         process_select => by_name( "(${sys.workdir}/bin/){0,1}${config.cfengine_procs}" ),
+         restart_class  => canonify( "restart_${config.cfengine_procs}" );
+
+   commands:
+      "${sys.workdir}/bin/${config.cfengine_procs}"
+         handle     => "start_procs_commands_start",
+         comment    => "Issue restart commmand",
+         ifvarclass => canonify( "restart_${config.cfengine_procs}" );
+}
+   
+body process_select by_name( command_regex )
+{
+   command        => "${command_regex}";
+   process_result => "command";
 }
 
 body perms mog(mode,user,group)
 {
-      owners => { "$(user)" };
-      groups => { "$(group)" };
-      mode   => "$(mode)";
+   owners => { "$(user)" };
+   groups => { "$(group)" };
+   mode   => "$(mode)";
 }
 
 body copy_from secure_cp(from,server)
 {
-      source      => "$(from)";
-      servers     => { "$(server)" };
-      compare     => "digest";
-      encrypt     => "true";
-      verify      => "true";
+   source      => "$(from)";
+   servers     => { "$(server)" };
+   compare     => "digest";
+   encrypt     => "true";
+   verify      => "true";
+}
+
+body classes if_repaired(x)
+{
+   promise_repaired => { "$(x)" };
 }

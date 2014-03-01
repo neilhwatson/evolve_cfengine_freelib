@@ -10,7 +10,7 @@ use Digest::MD5;
 use Data::Dumper; # Remove for production
 
 my $dir  = '/var/cfengine/masterfiles';
-my $file = '/var/cfengine/masterfiles/cf_manifest.txt';
+my $file = '/var/cfengine/masterfiles/efl_manifest.txt';
 my %manifest;
 
 my $allowed_input_files = qr/\.(cf|tmp|txt)$/;
@@ -45,8 +45,11 @@ if ( $version ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
 # subs
 sub get_hashes 
 {
+   
    my $relative_path;
-   if ( -f $File::Find::name && $File::Find::name =~ m/$allowed_input_files/ )
+   if ( -f $File::Find::name &&
+      $File::Find::name =~ m/$allowed_input_files/  &&
+      $File::Find::name ne $file )
    {
       $relative_path = File::Spec->abs2rel( $File::Find::name, $dir );
       $manifest{ $relative_path } = calc_file_hash( $File::Find::name );
