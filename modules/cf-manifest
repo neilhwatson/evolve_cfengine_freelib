@@ -7,7 +7,7 @@ use Pod::Usage;
 use File::Find;
 use File::Spec;
 use Digest::MD5;
-use Data::Dumper; # Remove for production
+#use Data::Dumper; # Remove for production
 
 my $dir  = '/var/cfengine/masterfiles';
 my $file = '/var/cfengine/masterfiles/efl_manifest.txt';

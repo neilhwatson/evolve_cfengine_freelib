@@ -1,12 +1,9 @@
 # This is a work in progress and it not well tested.
 
 # This file is alternative update file. It is simpler, yet reduces server load
-# and server reduncancy.
+# and uses server reduncancy.
 
-# TODOs
-# Build manifest.
-
-# namespace left out due to bug.
+# namespace left out due to bug https://cfengine.com/dev/issues/4762
 # body file control
 # {
 #    namespace => "eflu";
@@ -63,7 +60,7 @@ bundle agent config
 
       "policy_servers_file"
          comment => "File that contains redundant policy servers.",
-         string  => "${sys.workdir}/policy_servers.dat";
+         string  => "${sys.workdir}/efl_policy_servers.dat";
 
       load_policy_servers::
          "policy_servers_unshuffled"
@@ -175,9 +172,11 @@ bundle agent inputs_and_modules( ref )
 
    classes:
       "download_${${manifest_file[${r}]}}"
-         not => fileexists( "${sys.workdir}/inputs/${${manifest_file[${r}]}}" );
+         comment => "Set download class if file is missing.",
+         not     => fileexists( "${sys.workdir}/inputs/${${manifest_file[${r}]}}" );
 
       "download_${${manifest_file[${r}]}}"
+         comment    => "Set download class if file checksum does not match manifest.",
          ifvarclass => not( canonify( "download_${${manifest_file[${r}]}}" ) ),
          not        => hashmatch( "${sys.workdir}/inputs/${${manifest_file[${r}]}}", "md5", "${${manifest_md5sum[${r}]}}" );
 
