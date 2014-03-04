@@ -86,6 +86,10 @@ bundle agent config
          comment    => "Not to be confused with policy_server.dat",
          expression => fileexists( "${policy_servers_file}" );
 
+      "daily_inputs_sync_with_purge"
+         scope      => "namespace",
+         expression => splayclass( "${sys.host}", "daily" );
+
    reports:
       debug::
          "policy_servers => ${policy_servers}"
@@ -102,19 +106,28 @@ bundle agent main
          handle => "main_methods_config",
          usebundle => config;
 
-      "Download manifest"
-         handle     => "main_methods_download_manifest",
-         depends_on => { "main_methods_config" },
-         usebundle  => download_manifest ( "${config.inputs_manifest}" );
+      !daily_inputs_sync_with_purge::
+         "Download manifest"
+            handle     => "main_methods_download_manifest",
+            depends_on => { "main_methods_config" },
+            usebundle  => download_manifest ( "${config.inputs_manifest}" );
 
-      "Update inputs and modules"
-         handle     => "main_methods_inputs",
-         depends_on => { "main_methods_config", "main_methods_download_manifest" },
-         usebundle  => inputs_and_modules ( "${sys.workdir}/inputs/${config.inputs_manifest}" );
+         "Update inputs and modules"
+            handle     => "main_methods_inputs",
+            depends_on => { "main_methods_config", "main_methods_download_manifest" },
+            usebundle  => inputs_and_modules ( "${sys.workdir}/inputs/${config.inputs_manifest}" );
 
-      "Start processes"
-         handle => "main_methods_start_procs",
-         usebundle => start_procs;
+      daily_inputs_sync_with_purge::
+         "Recurse inputs copy with purge"
+            handle     => "main_methods_inputs_purge",
+            depends_on => { "main_methods_config" },
+            usebundle  => inputs_purge;
+
+      any::
+         "Start processes"
+            handle     => "main_methods_start_procs",
+            depends_on => { "main_methods_config" },
+            usebundle  => start_procs;
 }
 
 bundle agent download_manifest( ref )
@@ -131,6 +144,28 @@ bundle agent download_manifest( ref )
             # "@{eflu:config.policy_servers}" # prefix with namespace because of bug
             "@{config.policy_servers}" 
             );
+}
+
+bundle agent inputs_purge
+{
+   meta:
+      "purpose" string => "Do a full sync of inputs with purging on.";
+
+   files:
+      "${sys.workdir}/inputs/"
+         handle       => "inputs_purge_files_inputs",
+         perms        => mog( "600", "root", "root" ),
+         classes      => if_repaired( "kill_cf_procs" ),
+         depth_search => recurse( "inf" ),
+         copy_from    => secure_sync( "${sys.workdir}/masterfiles/", "@{config.policy_servers}" );
+
+   processes:
+      kill_cf_procs::
+         "${config.cfengine_procs}"
+            handle         => "inputs_purge_processes_kill",
+            comment        => "Kill procs for later restart.",
+            process_select => by_name( "(${sys.workdir}/bin/){0,1}${config.cfengine_procs}" ),
+            signals        => { "term", "kill" };
 }
 
 bundle agent inputs_and_modules( ref )
@@ -257,7 +292,24 @@ body copy_from secure_cp(from,server)
    verify      => "true";
 }
 
+body copy_from secure_sync(from,server)
+{
+   source      => "$(from)";
+   servers     => { "$(server)" };
+   compare     => "digest";
+   purge       => "true";
+   type_check  => "false";
+   encrypt     => "true";
+   verify      => "true";
+}
+
 body classes if_repaired(x)
 {
    promise_repaired => { "$(x)" };
+}
+
+body depth_search recurse(d)
+{
+depth => "$(d)";
+xdev  => "true";
 }
