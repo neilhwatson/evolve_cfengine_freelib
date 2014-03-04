@@ -1265,7 +1265,7 @@ bundle agent efl_copy_files ( ref )
    files:
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Create promiser directory",
-         ifvarclass => canonify( "recurse_${${file[${f}]}}" ),
+         ifvarclass => canonify( "recurse_${${file[${f}]}}_${f}" ),
          create     => 'true';
 
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
@@ -1274,7 +1274,7 @@ bundle agent efl_copy_files ( ref )
          create     => 'true',
          classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remote_single" ),
          action     => efl_delta_reporting( "efl_copy_files_remote_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => and( "${${class[${f}]}}", not(  canonify( "recurse_${${file[${f}]}}" ) ) ),
+         ifvarclass => and( "${${class[${f}]}}", not(  canonify( "recurse_${${file[${f}]}}_${f}" ) ) ),
          copy_from  => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
 
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
