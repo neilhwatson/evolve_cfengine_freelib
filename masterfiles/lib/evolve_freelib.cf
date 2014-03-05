@@ -135,7 +135,7 @@ bundle common efl_c
       "efl_server_txt"
             comment => "Server access rules parameter file",
 # NOTE Access file must be hardcoded because server bundles do not accept arguments.
-            string => "${sys.workdir}/inputs/user_data/bundle_params/efl_server.txt";
+            string => "${sys.workdir}/inputs/efl_data/bundle_params/efl_server.txt";
 }
 
 bundle agent efl_main( ref )

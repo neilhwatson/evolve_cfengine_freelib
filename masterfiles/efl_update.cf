@@ -26,41 +26,48 @@ bundle agent config
          if_match_regex => "";
 
    vars:
-      "modules"
-         comment => "Modules required for a minimum working system.",
-         slist   => { "return_index.pl", "cf-manifest" };
+      am_policy_hub::
+         "modules"
+            comment => "Modules required for a minimum working system.",
+            slist   => { "return_index.pl", "cf-manifest" };
+      
+      !am_policy_hub::
+         "modules"
+            comment => "Modules required for a minimum working system.",
+            slist   => { "return_index.pl" };
+      
+      any::
+         "modules_path"
+            comment => "Where to find modules on the policy server.",
+            string  => "${sys.workdir}/modules";
 
-      "modules_path"
-         comment => "Where to find modules on the policy server.",
-         string  => "${sys.workdir}/modules";
+         "inputs_manifest"
+            comment => "Manifest file to determine what inputs to download",
+            string  => "efl_manifest.txt";
 
-      "inputs_manifest"
-         comment => "Manifest file to determine what inputs to download",
-         string  => "efl_manifest.txt";
+         "cfengine_procs"
+            comment => "CFEngine processes to start or restart",
+            slist   => { "cf-serverd", "cf-execd", "cf-monitord" };
 
-      "cfengine_procs"
-         comment => "CFEngine processes to start or restart",
-         slist   => { "cf-serverd", "cf-execd", "cf-monitord" };
+         "comment"
+            comment => "Comment string in data file.",
+            string  => "\s*#[^\n]*";
 
-      "comment"
-         comment => "Comment string in data file.",
-         string  => "\s*#[^\n]*";
+         "array_delimiter"
+            comment => "Field delimiter for CSV data files read by readstringarrayidx",
+            string  => "\s*;;\s*";
 
-      "array_delimiter"
-         comment => "Field delimiter for CSV data files read by readstringarrayidx",
-         string  => "\s*;;\s*";
+         "max_num"
+            comment => "Maximum number of lines to read from data file",
+            int     => "500";
 
-      "max_num"
-         comment => "Maximum number of lines to read from data file",
-         int     => "500";
+         "max_bytes"
+            comment => "Maximum number of bytes to read from data file.",
+            string  => "1M";
 
-      "max_bytes"
-         comment => "Maximum number of bytes to read from data file.",
-         string  => "1M";
-
-      "policy_servers_file"
-         comment => "File that contains redundant policy servers.",
-         string  => "${sys.workdir}/efl_policy_servers.dat";
+         "policy_servers_file"
+            comment => "File that contains redundant policy servers.",
+            string  => "${sys.workdir}/efl_policy_servers.dat";
 
       load_policy_servers::
          "policy_servers_unshuffled"

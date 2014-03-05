@@ -43,15 +43,10 @@ Server setup using Evolve free promise library
 promises.cf.
 * Install return_index.pl to modules/.
 * Plus the short setup above, except building your own command promise.
-* Create dirs efl_data/bundle_params/ in masterfiles.
-* Create file efl_data/bundle_params/main.txt with this line:
-any ;; Run commands ;; efl_command ;; 1 ;; ${sys.workdir}/inputs/efl_data/bundle_params/efl_command.txt ;; efl commands
-* Create file efl_data/bundle_params/efl_command.txt with this line:
-am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; no ;; no ;; 1 ;; efl_update for cfengine
+* Copy efl_data/bundle_params/ to masterfiles.
 * Call the bundle efl_main from your policy via method or bundlesequence with
-the parameter ${sys.workdir}/inputs/efl_data/bundle_params/main.txt.
+the parameter ${sys.workdir}/inputs/efl_data/bundle_params/efl_main.txt.
 Example from stock promises.cf:
-
 
 bundle agent main
 {
@@ -64,7 +59,7 @@ bundle agent main
                  handle => "main_methods_any_init_msg";
 
    "EFL Main"
-      usebundle => efl_main( "${sys.workdir}/inputs/efl_data/bundle_params/main.txt" ),
+      usebundle => efl_main( "${sys.workdir}/inputs/efl_data/bundle_params/efl_main.txt" ),
       comment   => "Run email main looper bundle",
       handle    => "main_methods_andy_elf_main";
 }

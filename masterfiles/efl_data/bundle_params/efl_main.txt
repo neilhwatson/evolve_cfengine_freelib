@@ -1,0 +1,2 @@
+# context ;; promiser     ;; bundle      ;; ifelapsed ;; parameter                                                    ;; promisee
+any       ;; Run commands ;; efl_command ;; 1         ;; ${sys.workdir}/inputs/efl_data/bundle_params/efl_command.txt ;; efl commands

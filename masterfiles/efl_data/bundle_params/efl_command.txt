@@ -1,0 +1,2 @@
+# context     ;; command to run                     ;; use/noshell ;; module ;; ifelapsed ;; promisee
+am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell     ;; false  ;;         1 ;; efl_update for cfengine

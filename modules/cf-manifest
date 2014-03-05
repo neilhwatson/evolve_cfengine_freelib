@@ -79,7 +79,7 @@ sub calc_file_hash
 
 sub write_manifest
 {
-   foreach my $file ( keys %manifest )
+   foreach my $file ( sort keys %manifest )
    {
       print MANIFEST $file. " ;; ". $manifest{ $file } . "\n";
    }
