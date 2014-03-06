@@ -1,19 +1,15 @@
-Intro
+### Introduction
 
 This is a work in progress. It should be considered beta quality. Efl_update.cf
 is an alternative the CFEngine Community's stock update.cf.
 
-Features
+### Features
 
-Reduces sever load when updating the inputs directory.
-
-Starts or restarts CFEngine daemons as required.
-
-More transparent that cf_promises_validated mechanism.
-
-Promises inputs permissions.
-
-Uses redundant policy servers with network load balancing.
+* Reduces sever load when updating the inputs directory.
+* Starts or restarts CFEngine daemons as required.
+* More transparent that cf_promises_validated mechanism.
+* Promises inputs permissions.
+* Uses redundant policy servers with network load balancing.
 
 On the server, Cf-manifext reads masterfiles and builds a file, default name
 efl_manifest.txt, that contains file names and their hashes. Elf_update.cf
@@ -21,7 +17,7 @@ downloads the manifest file and reads it comparing its contents with existing
 inputs.  If any files differ or are missing the agent promises to download
 them from the policy server.
 
-Short server setup
+### Short server setup
 
 * Install efl_update.cf to masterfiles/.
 * Install cf-manifest to modules/.
@@ -30,14 +26,14 @@ Short server setup
 * Change exec_command in executor control body to call efl_update.cf instead of
 update.cf.
 
-Notes
+### Notes
 
 * Only .txt, .tmp, and .cf inputs files are considered. If you wish to change
 this you'll have to edit cf-manifest and efl_update.cf.
 * WARNING, This affects how inputs are updated. If something goes wrong you
 may have to update inputs on all clients by hand. Test very, very carefully.
 
-Server setup using Evolve free promise library
+### Server setup using Evolve free promise library
 
 * Install evolve_freelib.cf to lib/ in masterfiles and put in inputs in
 promises.cf.
@@ -48,6 +44,7 @@ promises.cf.
 the parameter ${sys.workdir}/inputs/efl_data/bundle_params/efl_main.txt.
 Example from stock promises.cf:
 
+```
 bundle agent main
 {
  methods:
@@ -63,8 +60,9 @@ bundle agent main
       comment   => "Run email main looper bundle",
       handle    => "main_methods_andy_elf_main";
 }
+```
 
-Redundant policy servers
+### Redundant policy servers
 
 Efl_update reads the file ${sys.workdir}/efl_policy_servers.dat. This file is
 in the format of one hostname or IP address per line, comments using '#' are
@@ -76,6 +74,7 @@ used.
 Efl_policy_servers.dat can be created any you wish, but a template files
 promise, with empty as a default, is recommended. Template example:
 
+```
 # Redundant policy servers
 [%CFEngine !dmz_example_com %]
 vega.example.com
@@ -84,7 +83,9 @@ sirius.example.com
 [%CFEngine dmz_example_com %]
 pluto.dmz.example.com
 oort.dmz.example.com
+```
 
-TODO Redundant servers in normal agent runs. Make efl_update.cf an input to
+* TODO Redundant servers in normal agent runs. Make efl_update.cf an input to
 use the config bundle.
-TODO How to make servers redundant.
+
+* TODO How to make servers redundant.
