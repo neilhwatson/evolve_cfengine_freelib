@@ -2,7 +2,7 @@ Copyright Evolve Thinking ( www.evolvethinking.com ).
 For fresh updates visit:
 https://github.com/evolvethinking/evolve_cfengine_freelib
 
-License
+## License
 
 Evolve_freelib.cf is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free
@@ -16,19 +16,58 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Introduction
+## Introduction
 
-The bundles contained in this library primarily focus on data driven
+The bundles contained in this CFEngine library primarily focus on data driven
 policy.  Each such bundle takes csv type delimited parameter file as shown in
 the common bundle efl_c. A record consists of a single line and the required
 fields.
 
+### Contents of the main library
+| Bundle | Purpose |
+|--------|---------|
+| efl_skeleton | A template for creating new bundles. |
+| efl_c | A collection of common tunable variables. |
+| efl_main | A bundle for calling other bundles, in order, using methods. |
+| efl_chkconfig_disable_service | Disable a service from starting at boot. |
+| efl_chkconfig_enable_service | Enable a service to start at boot. |
+| efl_class_classmatch | Creates namespace classes by matching existing class names. |
+| efl_class_cmd_regcmp | Creates namespace classes on the output of a shell command. |
+| efl_class_expression | Creates namespace classes from a class expression. |
+| efl_class_hostname | Creates namespace classs based on the hostname of the host. |
+| efl_class_iprange | Creates namespace classes based on the IP address of the host. |
+| efl_class_returnszero | Creates namespace classes using the return status of a shell command. |
+| efl_command | Configurable commands promises. |
+| efl_copy_files | Configurable file copy promises. |
+| efl_delete_files | Promises to delete files. |
+| efl_edit_template | Promise a file's contents using a template. |
+| efl_file_perms | Configurable file permissions promises. |
+| efl_global_slists | Set namespace scoped slists variables. |
+| efl_global_strings | Set namespace scoped strings variables. |
+| efl_lastseen | Report hosts seen in the last 24 hours. |
+| efl_link | Promise links. |
+| efl_mon_cfengine | Report CFEngine internal statistics. |
+| efl_notseen | Report hosts not seen in the last 24 hours. |
+| efl_packages | Promises to add, remove, or update packages. |
+| efl_rcs_pull | Promises to keep a checked out copy of version control current. |
+| efl_server | Promise server access rules. |
+| efl_service | Promises to configure and start a service. |
+| efl_start_service | Promises to start a service that is not running. |
+| efl_sysctl_conf_file | Promises sysctl.conf kernel settings. |
+| efl_sysctl_live | Promises live sysctl Linux kernel settings. |
+
+### An alternate inputs update file
+
+The file efl_update.cf is an alternate high performance, yet simplified,
+collection of bundles to keep CFEngine's inputs directory up to date. See the
+in docs for more information.
+
 Details and examples are here:
 http://evolvethinking.com/category/cfengine/efl/
 
-A skeleton bundle is provided for those that wish to create new bundles.
-
-Requirements
+## Requirements
 
 Cfengine Core 3.5.x or higher. There is an older 3.4 branch too.
 The Cfengine standard library. 
+
+Perl of any version and no special modules.
