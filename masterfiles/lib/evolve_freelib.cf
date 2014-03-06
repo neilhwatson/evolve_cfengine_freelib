@@ -1456,12 +1456,13 @@ bundle agent efl_start_service ( ref )
 
    processes:
       "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
-         comment       => "Promise process is running",
-         handle        => "efl_start_service_processes_proc",
-         classes       => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
-         action        => efl_delta_reporting( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
-         ifvarclass    => "${${class[${s}]}}",
-         restart_class => canonify( "efl_start_service_command_${${process[${s}]}}" );
+         comment        => "Promise process is running",
+         handle         => "efl_start_service_processes_proc",
+         process_select => by_command( "${${process[${s}]}}" ),
+         classes        => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
+         action         => efl_delta_reporting( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
+         ifvarclass     => "${${class[${s}]}}",
+         restart_class  => canonify( "efl_start_service_command_${${process[${s}]}}" );
 
    commands:
       "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }

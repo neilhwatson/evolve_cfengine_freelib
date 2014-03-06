@@ -1,4 +1,4 @@
-# This is a work in progress and it not well tested.
+# This is a work in progress and is not well tested.
 
 # This file is alternative update file. It is simpler, yet reduces server load
 # and uses server reduncancy.
