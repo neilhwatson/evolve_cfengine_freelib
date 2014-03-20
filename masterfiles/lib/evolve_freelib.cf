@@ -365,14 +365,14 @@ bundle agent efl_sysctl_live( ref )
          comment    => "Get current live value",
          ifvarclass => "${${class[${x}]}}",
          string     => execresult(
-            "${paths.path[sysctl]} -n ${${sysctl_name[${x}]}} |${paths.path[tr]} '[:space:]' ' ' ",
+            "${paths.path[sysctl]} -n ${${sysctl_name[${x}]}} |${paths.path[tr]} -d '\\n' | ${paths.path[tr]} '[:space:]' ' '",
             "useshell"
          );
 
    classes:
-# TODO need to set promises differently here?
       "set_live_sysctl_${${sysctl_name[${x}]}}"
          comment    => "Set class if live sysctl variable not equal to promised value",
+# This class may be falsely set due to bug 3577. A work around is in commands below.
          ifvarclass => "${${class[${x}]}}",
          not        => strcmp( "${${sysctl_value[${x}]}}", "${efl_sysctl_live[${${sysctl_name[${x}]}}]}" );
 
@@ -389,7 +389,8 @@ bundle agent efl_sysctl_live( ref )
          handle     => "efl_sysctl_live_commands_sysctl_w",
          classes    => efl_rkn( "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "efl_sysctl_live_commands_sysctl_w" ),
          action     => efl_delta_reporting( "efl_sysctl_live_commands_sysctl_w", "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "${${promisee[${x}]}}", "1" ),
-         ifvarclass => canonify( "set_live_sysctl_${${sysctl_name[${x}]}}" ),
+# This and statement is due to CFEngine bug 3577. When the bug is fixed remove {class}.
+         ifvarclass => and( "${${class[${x}]}}",  canonify( "set_live_sysctl_${${sysctl_name[${x}]}}" ) ), 
          contain    => in_shell_and_silent;
 
    reports:
@@ -1459,8 +1460,8 @@ bundle agent efl_start_service ( ref )
          comment        => "Promise process is running",
          handle         => "efl_start_service_processes_proc",
          process_select => by_command( "${${process[${s}]}}" ),
-         classes        => efl_rkn( "${svc[${c}][1]}", "efl_start_service_processes_proc" ),
-         action         => efl_delta_reporting( "efl_start_service_processes_proc", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
+         classes        => efl_rkn( "${${process[${s}]}}", "efl_start_service_processes_proc" ),
+         action         => efl_delta_reporting( "efl_start_service_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
          ifvarclass     => "${${class[${s}]}}",
          restart_class  => canonify( "efl_start_service_command_${${process[${s}]}}" );
 
@@ -1468,8 +1469,8 @@ bundle agent efl_start_service ( ref )
       "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Restart service is required.",
          handle     => "efl_start_service_commands_restart",
-         classes    => efl_rkn( "${svc[${c}][1]}", "efl_start_service_commands_restart" ),
-         action     => efl_delta_reporting( "efl_start_service_commands_restart", "${svc[${c}][1]}", "${svc[${c}][3]}", "1" ),
+         classes    => efl_rkn( "${${command[${s}]}}", "efl_start_service_commands_restart" ),
+         action     => efl_delta_reporting( "efl_start_service_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
          contain    => in_shell_and_silent,
          ifvarclass => canonify( "efl_start_service_command_${${process[${s}]}}" );
 }
