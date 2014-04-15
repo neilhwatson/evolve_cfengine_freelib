@@ -30,7 +30,7 @@
 #
 # Requirements
 # 
-# CFEngine Core 3.5.x or higher
+# CFEngine Core 3.6.x or higher
 # CFEengine standard library
 
 bundle agent efl_skeleton ( ref )

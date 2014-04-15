@@ -67,7 +67,6 @@ http://evolvethinking.com/category/cfengine/efl/
 
 ## Requirements
 
-Cfengine Core 3.5.x or higher. There is an older 3.4 branch too.
-The Cfengine standard library. 
-
-Perl of any version and no special modules.
+1. Cfengine Core 3.6.x or higher. There are older 3.4, and 3.5  branch too.
+1. The Cfengine standard library. 
+1. Perl of any version and no special modules.

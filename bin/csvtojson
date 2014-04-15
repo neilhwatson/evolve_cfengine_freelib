@@ -1,0 +1,244 @@
+#!/usr/bin/perl
+
+##########################
+# TODO
+# CHANGE VERSION
+##########################
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+use JSON;
+
+my ($help, $version, $sample, %sample );
+my $delimiter = ';;';
+
+# Sample data
+$sample{commands} = <<'END';
+# For efl_commands bundle, header must match new json bundle requirements
+  context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
+  am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell      ;; false  ;;         1 ;; efl_update for cfengine
+  backup_host ;; /usr/local/bin/backup              ;; nohell         ;; false  ;;         1 ;; my backups
+END
+
+$sample{server} = <<'END';
+# For access server promises
+ Context ;; directory ;; hosts ;; Promisee
+ ettin     ;; ${sys.workdir}/masterfiles/     ;; 172.16.100.254, 10.0.0.100, 192.168.0.1     ;; cfengine server
+ ettin     ;; ${sys.workdir}/modules/         ;; 172.16.100.254, 10.100.0.100, 192.168.100.1 ;; cfengine server
+END
+
+# Get command options and switches
+GetOptions (
+    'help' => \$help,
+    'version' => \$version,
+    'delemiter=s' => \$delimiter,
+    'sample=s' => \$sample,
+    );
+
+
+# Prints usage and exits
+sub usage {
+    my $msg = shift;
+    pod2usage(-verbose=>99,
+        -sections=>"SYNOPSIS",
+        -msg => $msg
+    );
+}
+
+##########################
+# Usage
+ if ( $help ) { usage() }
+
+##########################
+# Version
+if ( $version ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
+
+sub trim_whitespace
+{
+   my @fields = @_;
+
+   @fields = map { s/\s+$//; s/^\s+//; $_ } @fields;
+
+   return @fields;
+}
+
+##########################
+# Validate
+if ( $sample  && ! $sample{$sample} )
+{
+   usage( "Wrong sample arg: $sample" );
+   exit 1;
+}
+
+##########################
+# Main matter here
+
+my ( @fields, $pre_json, @pre_json, @headers, $fh );
+my $rows = 0;
+
+if ( $sample )
+{
+   print $sample{$sample};
+   exit;
+}
+
+while (<>)
+{
+  chomp;
+
+  # Remove in line comments.
+  s/\s#.*?$//g;
+
+  # Remove new line, carrage returns in case it is a windows file, or any
+  # trailing white space
+  s/\n//;
+  s/\r//;
+  s/\s$//;
+
+  # Skip comment lines.
+  next if m/^#/;
+
+  # Skip whitespace lines.
+  next if m/^\s$/;
+
+  if ( $rows == 0 )
+  {
+     @headers = split m/$delimiter/;
+     @headers = trim_whitespace( @headers );
+     $rows++;
+  }
+  else
+  {
+     if ( @fields = split m/$delimiter/ )
+     {
+        @fields = trim_whitespace( @fields );
+
+        for ( my $f = 0; $f <= $#fields; $f++ )
+        {
+           if ( $fields[$f] =~ m/,/ )
+           {
+              my @array = split m/,/, $fields[$f];
+              @array = trim_whitespace( @array );
+              push @{ $pre_json->{$headers[$f]} }, @array;
+           }
+           else
+           {
+              $pre_json->{$headers[$f]} = $fields[$f];
+           }
+        }
+        push @pre_json, $pre_json;
+        undef $pre_json;
+        $rows++;
+     }
+  }
+}
+
+my $json = JSON->new->pretty;
+my $pretty_json = $json->encode( \@pre_json );
+print $pretty_json;
+
+##########################
+# POD
+
+=head1 SYNOPSIS
+
+Convert CSV file to JSON file as a filter.
+csvtojson < input.csv > output.json
+[ -h | --help ] help
+[ -v | -- version ] version
+[ -s | --sample] <commands|server> pring sample data
+[ -d | --delimitier] '<delimiter regex>' defaults to ';;'
+
+Use perldoc to see full documentation.
+
+=head1 DESCRIPTION
+
+There must be a header row for correct conversion. Any commas found in a field and program will treat field as an array.
+
+=head1 EXAMPLES
+
+Uncomment the header row for correct conversion.
+
+  context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
+  am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell      ;; false  ;;         1 ;; efl_update for cfengine
+  backup_host ;; /usr/local/bin/backup              ;; nohell         ;; false  ;;         1 ;; my backups
+
+  csvtojson < efl_command.txt > efl_command.json
+
+  cat efl_command.json
+  [
+   {
+      "context"   : "am_policy_hub",
+      "command"   : "${sys.workdir}/modules/cf-manifest",
+      "useshell"  : "noshell",
+      "module"    : "false",
+      "ifelapsed" : "1",
+      "promisee"  : "efl_update for cfengine"
+   },
+   {
+      "context"   : "backup_host",
+      "command"   : "usr/local/bin/backup",
+      "useshell"  : "noshell",
+      "module"    : "false",
+      "ifelapsed" : "1",
+      "promisee"  : "my  backups"
+   }
+   ]
+
+=head2 Using sample data
+
+Show sample data
+   csvtojson -s command
+
+Pipe sample data to program to show resulting JSON.
+   csvtojson -s command | csvtojson
+   [
+      {
+         "hosts" : [
+            "172.16.100.254",
+            "10.0.0.100",
+            "192.168.0.1"
+         ],
+         "Promisee" : "cfengine server",
+         "directory" : "${sys.workdir}/masterfiles/",
+         "Context" : "ettin"
+      },
+      {
+         "hosts" : [
+            "172.16.100.254",
+            "10.100.0.100",
+            "192.168.100.1"
+         ],
+         "Promisee" : "cfengine server",
+         "directory" : "${sys.workdir}/modules/",
+         "Context" : "ettin"
+      }
+   ]
+
+=head1 VERSION
+
+1.0
+
+=head1 SEE ALSO
+
+=head1 AUTHOR
+
+Neil H. Watson, nwatson@evolvethinking.com
+
+=head1 COPYRIGHT
+
+Copyright 2014 Evolve Thinking Limited
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details
+<http://www.gnu.org/licenses/>.
+
+=cut
