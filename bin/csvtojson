@@ -11,23 +11,22 @@ use Getopt::Long;
 use Pod::Usage;
 use JSON;
 
-my ($help, $version, $sample, %sample );
+my ($help, $version, $sample, $bundle, %sample );
 my $delimiter = ';;';
 
 # Sample data
-$sample{commands} = <<'END';
-# For efl_commands bundle, header must match new json bundle requirements
-  context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
+$sample{efl_command} = <<'END';
+# For efl_command bundle, header must match new json bundle requirements
+#  context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
   am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell      ;; false  ;;         1 ;; efl_update for cfengine
   backup_host ;; /usr/local/bin/backup              ;; nohell         ;; false  ;;         1 ;; my backups
 END
 
-$sample{server} = <<'END';
-# For access server promises
- Context ;; directory ;; hosts ;; Promisee
- ettin     ;; ${sys.workdir}/masterfiles/     ;; 172.16.100.254, 10.0.0.100, 192.168.0.1     ;; cfengine server
- ettin     ;; ${sys.workdir}/modules/         ;; 172.16.100.254, 10.100.0.100, 192.168.100.1 ;; cfengine server
-END
+my %headers = (
+   'efl_main'    => [ "class", "promiser", "bundle", "ifelapsed", "parameter", "promisee" ],
+   'efl_command' => [ "class", "command", "useshell", "module", "ifelapsed", "promisee" ],
+   'efl_server'  => [ "class", "path", "admit_ips",  "admit_hostnames", "admit_keys", "promisee" ]
+);
 
 # Get command options and switches
 GetOptions (
@@ -35,8 +34,8 @@ GetOptions (
     'version' => \$version,
     'delemiter=s' => \$delimiter,
     'sample=s' => \$sample,
+    'bundle=s' => \$bundle,
     );
-
 
 # Prints usage and exits
 sub usage {
@@ -66,23 +65,36 @@ sub trim_whitespace
 
 ##########################
 # Validate
-if ( $sample  && ! $sample{$sample} )
+if ( $sample && ! $sample{$sample} )
 {
    usage( "Wrong sample arg: $sample" );
    exit 1;
 }
 
+if ( $bundle && $bundle eq 'all' )
+{
+   print "$_\n" for keys %headers;
+   exit;
+}
+
+if ( $bundle  && ! grep m/^$bundle$/, keys %headers )
+{
+   usage( "Wrong or missing bundle name: $bundle" );
+   exit 2
+}
+
 ##########################
 # Main matter here
-
-my ( @fields, $pre_json, @pre_json, @headers, $fh );
-my $rows = 0;
 
 if ( $sample )
 {
    print $sample{$sample};
    exit;
 }
+
+my ( @fields, $pre_json, @pre_json, $fh );
+my @headers = @{ $headers{$bundle} };
+my $rows = 0;
 
 while (<>)
 {
@@ -103,35 +115,26 @@ while (<>)
   # Skip whitespace lines.
   next if m/^\s$/;
 
-  if ( $rows == 0 )
+  if ( @fields = split m/$delimiter/ )
   {
-     @headers = split m/$delimiter/;
-     @headers = trim_whitespace( @headers );
-     $rows++;
-  }
-  else
-  {
-     if ( @fields = split m/$delimiter/ )
-     {
-        @fields = trim_whitespace( @fields );
+     @fields = trim_whitespace( @fields );
 
-        for ( my $f = 0; $f <= $#fields; $f++ )
+     for ( my $f = 0; $f <= $#fields; $f++ )
+     {
+        if ( $fields[$f] =~ m/,/ )
         {
-           if ( $fields[$f] =~ m/,/ )
-           {
-              my @array = split m/,/, $fields[$f];
-              @array = trim_whitespace( @array );
-              push @{ $pre_json->{$headers[$f]} }, @array;
-           }
-           else
-           {
-              $pre_json->{$headers[$f]} = $fields[$f];
-           }
+           my @array = split m/,/, $fields[$f];
+           @array = trim_whitespace( @array );
+           push @{ $pre_json->{$headers[$f]} }, @array;
         }
-        push @pre_json, $pre_json;
-        undef $pre_json;
-        $rows++;
+        else
+        {
+           $pre_json->{$headers[$f]} = $fields[$f];
+        }
      }
+     push @pre_json, $pre_json;
+     undef $pre_json;
+     $rows++;
   }
 }
 
@@ -150,22 +153,21 @@ csvtojson < input.csv > output.json
 [ -v | -- version ] version
 [ -s | --sample] <commands|server> pring sample data
 [ -d | --delimitier] '<delimiter regex>' defaults to ';;'
+[ -b | --bundle] <bundle name> convert file for this EFL bundle
 
 Use perldoc to see full documentation.
 
 =head1 DESCRIPTION
 
-There must be a header row for correct conversion. Any commas found in a field and program will treat field as an array.
+Any commas found in a field and program will treat field as an array.
 
 =head1 EXAMPLES
 
-Uncomment the header row for correct conversion.
-
-  context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
+  # context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
   am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell      ;; false  ;;         1 ;; efl_update for cfengine
   backup_host ;; /usr/local/bin/backup              ;; nohell         ;; false  ;;         1 ;; my backups
 
-  csvtojson < efl_command.txt > efl_command.json
+  csvtojson -b efl_command < efl_command.txt > efl_command.json
 
   cat efl_command.json
   [
@@ -187,35 +189,14 @@ Uncomment the header row for correct conversion.
    }
    ]
 
+   Show bundles currently support. If yours is missing assume it's WIP.
+
+   csvtojson -b all
+
 =head2 Using sample data
 
 Show sample data
    csvtojson -s command
-
-Pipe sample data to program to show resulting JSON.
-   csvtojson -s command | csvtojson
-   [
-      {
-         "hosts" : [
-            "172.16.100.254",
-            "10.0.0.100",
-            "192.168.0.1"
-         ],
-         "Promisee" : "cfengine server",
-         "directory" : "${sys.workdir}/masterfiles/",
-         "Context" : "ettin"
-      },
-      {
-         "hosts" : [
-            "172.16.100.254",
-            "10.100.0.100",
-            "192.168.100.1"
-         ],
-         "Promisee" : "cfengine server",
-         "directory" : "${sys.workdir}/modules/",
-         "Context" : "ettin"
-      }
-   ]
 
 =head1 VERSION
 

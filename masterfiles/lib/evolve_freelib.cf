@@ -142,82 +142,55 @@ bundle agent efl_main( ref )
 {
    meta:
       "meta_purpose" string => "All policies are called via methods iteration from this bundle.";
-
-      "method_field_0" string => "Context when method is called";
-      "method_field_1" string => "Method promiser name";
-      "method_field_2" string => "Bundle name";
-      "method_field_3" string => "Ifelapsed";
-      "method_field_4" string => "Bundle parameter";
-      "method_field_5" string => "Promisee";
+      "input" string => "Takes a json file of documents in a list";
+# [
+#    {
+#       "class" : "Context when method is called",
+#       "promiser" :  "Method promiser name",
+#       "bundle" : "Bundle name",
+#       "ifelapsed" : "Ifelapsed number of minutes",
+#       "parameter" : "Bundle parameter",
+#       "promisee" : "Promisee"
+#    },
+#    {
+#       repeat new document for next method call
+#    }
+# ]
+#
+# Documents are processed in the order they appear. Order of elements in each
+# document does not matter.
 
    vars:
-      "dim_methods"
-         comment => "Read data to be used in method promises.",
-         int     => readstringarrayidx(
-            "meth_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-            );
+      "d_raw"
+         comment => "Read json file",
+         data    => readjson( "${ref}", "512k" );
+      "i"
+         comment => "Index json data.",
+         slist   => getindices( "d_raw" );
+      "x"
+         comment => "Sub index of pair names to work around bug 2333",
+         slist => getindices( "d_raw[0]" );
 
-      use_ordered_index::
-      "i" 
-         comment => "Convert module list to local list for bug work-around",
-         slist   => { @{return_index_pl.efl_main} };
+      "d[${i}][${x}]"
+         comment => "Create new array to expand vars. See bug CFE 2333",
+         string => "${d_raw[${i}][${x}]}";
 
-      "i2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5" };
- 
-      "meth[${i}][${i2}]"
-         comment => "Work around for bug 2333",
-         string => "${meth_o[${i}][${i2}]}";
-
-      "class[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][0]";
-      "promiser[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][1]";
-      "bundle[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][2]";
-      "ifelapsed[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][3]";
-      "parameter[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][4]";
-      "promisee[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][5]";
-
-   classes:
-      !use_ordered_index::
-         "use_ordered_index"
-            comment    => "Created ordered index for method calls",
-            expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
-
-      any::
-         "run_methods_loop"
-            comment    => "Delays method loop until index is ready",
-            expression => isvariable( "i" );
+      "${x}[${i}]"
+         comment => "Turn into references for simpler reading and editing",
+         string => "d[${i}][${x}]";
 
    methods:
-      run_methods_loop::
-         "methods loop wrapper"
-            comment    => "Call wrapper bundle to workaround naked variable bug.",
-            handle     => "efl_main_methods_efl_bug2638",
-            ifvarclass => "${${class[${i}]}}",
-            action     => if_elapsed( "${${ifelapsed[${i}]}}" ),
-            usebundle  => efl_bug2638(
-               "${${promiser[${i}]}}_${i}",
-               "${${promisee[${i}]}}",
-               "${${bundle[${i}]}}",
-               "${${parameter[${i}]}}"
-            );
+      "methods loop wrapper"
+         comment    => "Call wrapper bundle to workaround naked variable bug.",
+         handle     => "efl_main_methods_efl_bug2638",
+         ifvarclass => "${${class[${i}]}}",
+         action     => if_elapsed( "${${ifelapsed[${i}]}}" ),
+         usebundle  => efl_bug2638(
+            "${${promiser[${i}]}}_${i}",
+            "${${promisee[${i}]}}",
+            "${${bundle[${i}]}}",
+            "${${parameter[${i}]}}"
+         );
 }
 
 bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
@@ -489,67 +462,52 @@ bundle agent efl_command ( ref )
 {
    meta:
       "purpose" string => "Run given command if context is true.";
-      "field_0" string => "Context";
-      "field_1" string => "Command";
-      "field_2" string => "usehell";
-      "field_3" string => "module";
-      "field_4" string => "ifelapsed";
-      "field_5" string => "promisee";
+      "input" string => "Takes a json file of documents in a list";
+# [
+#    {
+#       "class" : "Context when to promise command",
+#       "command" :  "command to run",
+#       "useshell" : "useshell or noshell",
+#       "module" : "yes or no",
+#       "ifelapsed" : "Ifelapsed number of minutes",
+#       "promisee" : "Promisee"
+#    },
+#    {
+#       repeat new document for next command 
+#    }
+# ]
+#
+# Documents are processed in the order they appear. Order of elements in each
+# document does not matter.
 
    vars:
-      "dim_cmd"
-         comment => "Read data file for parsing.",
-         handle  => "efl_command_vars_files",
-         int     => readstringarrayidx(
-            "cmd_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "d_raw"
+         comment => "Read json file",
+         data    => readjson( "${ref}", "512k" );
+      "i"
+         comment => "Index json data.",
+         slist   => getindices( "d_raw" );
+      "x"
+         comment => "Sub index of pair names to work around bug 2333",
+         slist => getindices( "d_raw[0]" );
 
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_command_vars_c",
-         slist   => getindices( "cmd_o" );
+      "d[${i}][${x}]"
+         comment => "Create new array to expand vars. See bug CFE 2333",
+         string => "${d_raw[${i}][${x}]}";
 
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5" };
-
-      "cmd[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${cmd_o[${c}][${c2}]}";
-
-      "class[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][0]";
-      "command[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][1]";
-      "useshell[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][2]";
-      "module[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][3]";
-      "ifelapsed[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][4]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][5]";
+      "${x}[${i}]"
+         comment => "Turn into references for simpler reading and editing",
+         string => "d[${i}][${x}]";
 
    commands:
-      "${${command[${c}]}}" -> { "${${promisee[${c}]}}" }
+      "${${command[${i}]}}" -> { "${${promisee[${i}]}}" }
          comment    => "Run desired command",
          handle     => "efl_command_commands",
-         ifvarclass => "${${class[${c}]}}",
-         contain    => contain_efl_command( "${${useshell[${c}]}}" ),
-         module     => "${${module[${c}]}}",
-         classes    => efl_rkn( "${${command[${c}]}}", "efl_command_commands" ),
-         action     => efl_delta_reporting( "efl_command_commands", "${${command[${c}]}}", "${${promisee[${c}]}}", "${${ifelapsed[${c}]}}" );
+         ifvarclass => "${${class[${i}]}}",
+         contain    => contain_efl_command( "${${useshell[${i}]}}" ),
+         module     => "${${module[${i}]}}",
+         classes    => efl_rkn( "${${command[${i}]}}", "efl_command_commands" ),
+         action     => efl_delta_reporting( "efl_command_commands", "${${command[${i}]}}", "${${promisee[${i}]}}", "${${ifelapsed[${i}]}}" );
 }
 
 body contain contain_efl_command ( useshell )
@@ -2172,6 +2130,64 @@ bundle server efl_server
             comment    => "Grant client access to the policy server",
             ifvarclass => "${${class[${f}]}}",
             admit      => { "@{acl_list[${f}]}" };
+}
+
+bundle server efl_server_36
+{
+# Not ready due to bug 5480.
+   meta:
+      "purpose" string => "Read cf-server access rules.";
+      "input" string => "Takes a json file of documents in a list";
+# [
+#    {
+#       "class" : "Context when when to apply access promise",
+#       "path" :  "promiser path for access promiser",
+#       "admit_ips" : [ "ips", "to", "grant", "access too" ],
+#       "admit_hostnames" : [ "hosts", "to", "grant", "access too" ],
+#       "admit_keys" : [ "keys", "to", "grant", "access too" ],
+#       "promisee" : "Promisee"
+#    },
+#    {
+#       repeat new document for next access promise 
+#    }
+# ]
+#
+# Documents are processed in the order they appear. Order of elements in each
+# document does not matter.
+
+   vars:
+      "d_raw"
+         comment => "Read json file",
+         data    => readjson( "${efl_c.efl_server_txt}", "512k" );
+      "i"
+         comment => "Index json data.",
+         slist   => getindices( "d_raw" );
+
+      "d[${i}][promisee]"
+         comment => "Create new array to expand vars. See bug 2333",
+         string  => "${d_raw[${i}][promisee]}";
+      "d[${i}][path]"
+         comment => "Create new array to expand vars. See bug 2333",
+         string  => "${d_raw[${i}][path]}";
+      "d[${i}][class]"
+         comment => "Create new array to expand vars. See bug 2333",
+         string  => "${d_raw[${i}][class]}";
+
+      # create references for simple reading and editing
+      "promisee[${i}]"  string => "d[${i}][promisee]";
+      "path[${i}]"      string => "d[${i}][path]";
+      "class[${i}]"     string => "d[${i}][class]";
+      "admit_ips" slist  => getvalues( "d_raw[${i}][admit_ips]" );
+
+      "admit_keys" slist => { "key1", "key2", "key3" };
+   access:
+      "${${path[${i}]}}" -> { "${${promisee[${i}]}}" }
+            handle          => "efl_server_new_grant_access_policy",
+            comment         => "Grant client access to the policy server",
+            ifvarclass      => "${${class[${i}]}}",
+            admit_ips       => { "@{admit_ips}" },
+            admit_keys      => { "@{admit_keys}" },
+            admit_hostnames => { "@{admit_hostnames[${i}]}" };
 }
 
 body action efl_delta_reporting ( handle, promiser, promisee, if_elapsed )
