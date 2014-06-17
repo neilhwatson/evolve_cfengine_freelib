@@ -10,11 +10,10 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use JSON;
-
-my ($help, $version, $sample, $bundle, %sample );
-my $delimiter = ';;';
+# use Data::Dumper; TODO remove for prod
 
 # Sample data
+my %sample;
 $sample{efl_command} = <<'END';
 # For efl_command bundle, header must match new json bundle requirements
 #  context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
@@ -23,36 +22,42 @@ $sample{efl_command} = <<'END';
 END
 
 my %headers = (
-   'efl_main'    => [ "class", "promiser", "bundle", "ifelapsed", "parameter", "promisee" ],
-   'efl_command' => [ "class", "command", "useshell", "module", "ifelapsed", "promisee" ],
-   'efl_server'  => [ "class", "path", "admit_ips",  "admit_hostnames", "admit_keys", "promisee" ]
+   'efl_main'    => [ qw/ class promiser bundle ifelapsed parameter promisee / ],
+   'efl_command' => [ qw/ class command useshell module ifelapsed promisee / ],
+   'efl_server'  => [ qw/ class path admit admit_ips  admit_hostnames admit_keys promisee / ],
+   'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ]
 );
 
 # Get command options and switches
+my %opt;
+$opt{delimiter} = ';;';
+$opt{array_delimiter} = ',';
 GetOptions (
-    'help' => \$help,
-    'version' => \$version,
-    'delemiter=s' => \$delimiter,
-    'sample=s' => \$sample,
-    'bundle=s' => \$bundle,
-    );
+   \%opt,
+   'help|?',
+   'version',
+   'delimiter=s',
+   'array_delimiter=s',
+   'sample=s',
+   'bundle=s',
+   );
 
 # Prints usage and exits
 sub usage {
-    my $msg = shift;
-    pod2usage(-verbose=>99,
-        -sections=>"SYNOPSIS",
-        -msg => $msg
-    );
+   my $msg = shift;
+   pod2usage(-verbose=>99,
+      -sections=>"SYNOPSIS",
+      -msg => $msg
+   );
 }
 
 ##########################
 # Usage
- if ( $help ) { usage() }
+ if ( $opt{help} ) { usage() }
 
 ##########################
 # Version
-if ( $version ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
+if ( $opt{version} ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
 
 sub trim_whitespace
 {
@@ -65,38 +70,38 @@ sub trim_whitespace
 
 ##########################
 # Validate
-if ( $sample && ! $sample{$sample} )
+if ( $opt{sample} && ! $sample{$opt{sample}} )
 {
-   usage( "Wrong sample arg: $sample" );
+   usage( "Wrong sample arg: $opt{sample}" );
    exit 1;
 }
 
-if ( $bundle && $bundle eq 'all' )
+if ( $opt{bundle} && $opt{bundle} eq 'all' )
 {
    print "$_\n" for keys %headers;
    exit;
 }
 
-if ( $bundle  && ! grep m/^$bundle$/, keys %headers )
+if ( $opt{bundle}  && ! grep m/^$opt{bundle}$/, keys %headers )
 {
-   usage( "Wrong or missing bundle name: $bundle" );
+   usage( "Wrong or missing bundle name: $opt{bundle}" );
    exit 2
 }
 
 ##########################
 # Main matter here
 
-if ( $sample )
+if ( $opt{sample} )
 {
-   print $sample{$sample};
+   print $sample{$opt{sample}};
    exit;
 }
 
 my ( @fields, $pre_json, @pre_json, $fh );
-my @headers = @{ $headers{$bundle} };
+my @headers = @{ $headers{$opt{bundle}} };
 my $rows = 0;
 
-while (<>)
+while (<STDIN>)
 {
   chomp;
 
@@ -105,9 +110,7 @@ while (<>)
 
   # Remove new line, carrage returns in case it is a windows file, or any
   # trailing white space
-  s/\n//;
-  s/\r//;
-  s/\s$//;
+  s/[\n\r\s]$//;
 
   # Skip comment lines.
   next if m/^#/;
@@ -115,15 +118,15 @@ while (<>)
   # Skip whitespace lines.
   next if m/^\s$/;
 
-  if ( @fields = split m/$delimiter/ )
+  if ( @fields = split m/$opt{delimiter}/ )
   {
      @fields = trim_whitespace( @fields );
 
      for ( my $f = 0; $f <= $#fields; $f++ )
      {
-        if ( $fields[$f] =~ m/,/ )
+        if ( $fields[$f] =~ m/$opt{array_delimiter}/ )
         {
-           my @array = split m/,/, $fields[$f];
+           my @array = split m/$opt{array_delimiter}/, $fields[$f];
            @array = trim_whitespace( @array );
            push @{ $pre_json->{$headers[$f]} }, @array;
         }
@@ -149,10 +152,11 @@ print $pretty_json;
 
 Convert CSV file to JSON file as a filter.
 csvtojson < input.csv > output.json
-[ -h | --help ] help
+[ -h | --help | -? ] help
 [ -v | -- version ] version
 [ -s | --sample] <commands|server> pring sample data
 [ -d | --delimitier] '<delimiter regex>' defaults to ';;'
+[ -a | --array_delimitier] '<delimiter regex>' defaults to ','
 [ -b | --bundle] <bundle name> convert file for this EFL bundle
 
 Use perldoc to see full documentation.
@@ -195,8 +199,8 @@ Any commas found in a field and program will treat field as an array.
 
 =head2 Using sample data
 
-Show sample data
-   csvtojson -s command
+Show sample data for efl_command bundle.
+   csvtojson -s efl_command
 
 =head1 VERSION
 

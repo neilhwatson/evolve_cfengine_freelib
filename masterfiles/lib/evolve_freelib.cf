@@ -40,35 +40,25 @@ bundle agent efl_skeleton ( ref )
       "field_0" string => "Context";
 
    vars:
-      "dim_skel"
-         comment => "Read data file for parsing.",
-         handle  => "efl_skeleton_vars_files",
-         int     => readstringarrayidx(
-            "skel_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "d_raw"
+         comment => "Read json file",
+         data    => readjson( "${ref}", "512k" );
+      "i"
+         comment => "Index json data.",
+         slist   => getindices( "d_raw" );
+      "x"
+         comment => "Sub index of pair names to work around bug 2333",
+         slist => getindices( "d_raw[0]" );
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_skeleton_vars_f",
-         slist   => getindices( "skel_o" );
+      "d[${i}][${x}]"
+         comment => "Create new array to expand vars. See bug CFE 2333",
+         string => "${d_raw[${i}][${x}]}";
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0" };
- 
-      "skel[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${skel_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "skel[${f}][0]";
-# Call the above variable as ${${class[${f}]}} 
+      # create references for simple reading.
+      "promisee[${i}]"  string => "d[${i}][promisee]";
+      "path[${i}]"      string => "d[${i}][path]";
+      "class[${i}]"     string => "d[${i}][class]";
+      # Call the above variable as ${${class[${f}]}} 
 }
 
 bundle common efl_c
@@ -209,81 +199,64 @@ bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
 bundle agent efl_class_returnszero( ref )
 {
    meta:
-      "purpose" string => "Skeleton bundle for new bundle authoring";
-      "field_0" string => "Context";
-      "field_1" string => "Class to set";
-      "field_2" string => "Command to run";
-      "field_3" string => "useshell/noshell";
-      "field_4" string => "Set class if returns zero (yes) or non-zero (no)";
-      "field_5" string => "Promisee";
+      "purpose" string => "Define classes using returnszero function.";
+      "inputs" string =>> "Takes a json file of documents in a list";
+# [
+#    {
+#       "class"        : "Context that must be true to consider promise.",
+#       "class_to_set" : "Class to set if promise evaluates to true.",
+#       "command"      : "Command to run",
+#       "shell"        : "returnszero shell option: useshell, noshell, or powershell",
+#       "zero"         : "Set class if returns zero (yes) or non-zero (no)",
+#       "promisee"     : "promisee for documentation"
+#    }
+# ]
 
    vars:
-      "dim_rz"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_returnszero_vars_files",
-         int     => readstringarrayidx(
-            "rz_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "d_raw"
+         comment => "Read json file",
+         data    => readjson( "${ref}", "512k" );
+      "i"
+         comment => "Index json data.",
+         slist   => getindices( "d_raw" );
+      "x"
+         comment => "Sub index of pair names to work around bug 2333",
+         slist => getindices( "d_raw[0]" );
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_returnszero_vars_f",
-         slist   => getindices( "rz_o" );
+      "d[${i}][${x}]"
+         comment => "Create new array to expand vars. See bug CFE 2333",
+         string => "${d_raw[${i}][${x}]}";
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6" };
- 
-      "rz[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${rz_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][0]";
-      "class_to_set[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][1]";
-      "command[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][2]";
-      "shell[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][3]";
-      "negate[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][4]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][5]";
+      # create references for simple reading.
+      "class[${i}]"        string => "d[${i}][class]";
+      "class_to_set[${i}]" string => "d[${i}][promiser]";
+      "command[${i}]"      string => "d[${i}][command]";
+      "shell[${i}]"        string => "d[${i}][shell]";
+      "zero[${i}]"         string => "d[${i}][zero]";
+      "promisee[${i}]"     string => "d[${i}][promisee]";
 
    classes:
-      "${${class_to_set[${f}]}}_non_zero" -> { "${${promisee[${f}]}}" }
+      "${${class_to_set[${i}]}}_non_zero" -> { "${${promisee[${i}]}}" }
          comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "no" );
+         ifvarclass => "${${class[${i}]}}",
+         expression => strcmp( "${${zero[${i}]}}", "no" );
 
-      "${${class_to_set[${f}]}}_zero" -> { "${${promisee[${f}]}}" }
+      "${${class_to_set[${i}]}}_zero" -> { "${${promisee[${i}]}}" }
          comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "yes" );
+         ifvarclass => "${${class[${i}]}}",
+         expression => strcmp( "${${zero[${i}]}}", "yes" );
 
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${${class_to_set[${i}]}}" -> { "${${promisee[${i}]}}" }
          comment    => "Set class if expression returns non zero",
-         ifvarclass => "${${class_to_set[${f}]}}_non_zero",
+         ifvarclass => "${${class_to_set[${i}]}}_non_zero",
          scope      => "namespace",
-         not        => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+         not        => returnszero( "${${command[${i}]}}", "${${shell[${i}]}}" );
 
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${${class_to_set[${i}]}}" -> { "${${promisee[${i}]}}" }
          comment    => "Set class if expression returns zero",
-         ifvarclass => "${${class_to_set[${f}]}}_zero",
+         ifvarclass => "${${class_to_set[${i}]}}_zero",
          scope      => "namespace",
-         expression => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+         expression => returnszero( "${${command[${i}]}}", "${${shell[${i}]}}" );
 }
 
 bundle agent efl_sysctl_live( ref )
@@ -2073,67 +2046,6 @@ bundle agent efl_mon_cfengine
 
 bundle server efl_server
 {
-   meta:
-      "purpose" string => "Read cf-server access rules.";
-      "field_0" string => "Context";
-      "field_1" string => "Promiser path";
-      "field_2" string => "Comma separated admit list";
-      "field_3" string => "Promisee";
-
-   vars:
-      "dim_acl"
-         comment => "Read data file for parsing.",
-         handle  => "efl_server_vars_files",
-         int     => readstringarrayidx(
-            "acl_o",
-            "${efl_c.efl_server_txt}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_server_vars_f",
-         slist   => getindices( "acl_o" );
-
-      "f2"
-         comment => "Work around for bug 2333",
-         slist   => { "0","1","2","3" };
- 
-      "acl[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string  => "${acl_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][0]";
-      "path[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][1]";
-      "admit[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][2]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][3]";
-
-      "acl_list[${f}]"
-         comment => "Turn comma list into slist",
-         slist   => splitstring( "${${admit[${f}]}}", "\s*,\s*", "10" );
-
-   access:
-
-      "${${path[${f}]}}" -> { "${${promisee[${f}]}}" }
-            handle     => "efl_server_grant_access_policy",
-            comment    => "Grant client access to the policy server",
-            ifvarclass => "${${class[${f}]}}",
-            admit      => { "@{acl_list[${f}]}" };
-}
-
-bundle server efl_server_36
-{
 # Not ready due to bug 5480.
    meta:
       "purpose" string => "Read cf-server access rules.";
@@ -2142,6 +2054,7 @@ bundle server efl_server_36
 #    {
 #       "class" : "Context when when to apply access promise",
 #       "path" :  "promiser path for access promiser",
+#       "admit" : [ "ips", "or cdir", "to", "grant", "access too" ],
 #       "admit_ips" : [ "ips", "to", "grant", "access too" ],
 #       "admit_hostnames" : [ "hosts", "to", "grant", "access too" ],
 #       "admit_keys" : [ "keys", "to", "grant", "access too" ],
@@ -2177,17 +2090,20 @@ bundle server efl_server_36
       "promisee[${i}]"  string => "d[${i}][promisee]";
       "path[${i}]"      string => "d[${i}][path]";
       "class[${i}]"     string => "d[${i}][class]";
-      "admit_ips" slist  => getvalues( "d_raw[${i}][admit_ips]" );
+      "admit"           slist  => getvalues( "d_raw[${i}][admit]" );
+      "admit_ips"       slist  => getvalues( "d_raw[${i}][admit_ips]" );
+      "admit_keys"      slist  => getvalues( "d_raw[${i}][admit_keys]" );
+      "admit_hostnames" slist  => getvalues( "d_raw[${i}][admit_hostnames]" );
 
-      "admit_keys" slist => { "key1", "key2", "key3" };
    access:
       "${${path[${i}]}}" -> { "${${promisee[${i}]}}" }
             handle          => "efl_server_new_grant_access_policy",
             comment         => "Grant client access to the policy server",
             ifvarclass      => "${${class[${i}]}}",
+            admit           => { "@{admit}" },
             admit_ips       => { "@{admit_ips}" },
             admit_keys      => { "@{admit_keys}" },
-            admit_hostnames => { "@{admit_hostnames[${i}]}" };
+            admit_hostnames => { "@{admit_hostnames}" };
 }
 
 body action efl_delta_reporting ( handle, promiser, promisee, if_elapsed )
