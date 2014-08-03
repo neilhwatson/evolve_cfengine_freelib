@@ -16,6 +16,12 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 
+## Version notice
+
+We recommend that you use the 3.5 branch of EFL with CFEngine version 3.5.2.
+CFEngine 3.6 has outstanding bugs that prevent EFL, and possibly your own
+policies, from being reliable.
+
 ## Introduction
 
 The bundles contained in this CFEngine library primarily focus on data driven
