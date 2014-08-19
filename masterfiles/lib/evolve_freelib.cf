@@ -611,12 +611,13 @@ bundle agent efl_link ( ref )
 
    files:
       "${${link[${l}]}}" -> { "${${promisee[${l}]}}" }
-         comment    => "Make link if class is true",
-         handle     => "efl_link_files_target",
-         ifvarclass => "${${class[${l}]}}",
-         classes    => efl_rkn( "${${link[${l}]}}", "efl_link_files_target" ),
-         action     => efl_delta_reporting( "efl_link_files_target", "${${link[${l}]}}", "${${promisee[${l}]}}", "1" ),
-         link_from  => efl_source_type( "${${target[${l}]}}", "${${type[${l}]}}" );
+         comment           => "Make link if class is true",
+         handle            => "efl_link_files_target",
+         ifvarclass        => "${${class[${l}]}}",
+         move_obstructions => 'true',
+         classes           => efl_rkn( "${${link[${l}]}}", "efl_link_files_target" ),
+         action            => efl_delta_reporting( "efl_link_files_target", "${${link[${l}]}}", "${${promisee[${l}]}}", "1" ),
+         link_from         => efl_source_type( "${${target[${l}]}}", "${${type[${l}]}}" );
 }
 
 body link_from efl_source_type ( source, type )
