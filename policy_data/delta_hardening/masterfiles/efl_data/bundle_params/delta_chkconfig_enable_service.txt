@@ -1,0 +1,9 @@
+# context ;; service promiser ;; promisee
+redhat    ;; cpuspeed         ;; nsa_rhel5 v4.2 sec 3.3.15.3
+redhat    ;; iptables         ;; nsa_rhel5 v4.2 sec 2.1.1.6
+redhat    ;; irqbalance       ;; nsa_rhel5 v4.2 sec 3.3.3
+redhat    ;; network          ;; nsa_rhel5 v4.2 sec 3.3.9
+redhat    ;; smartd           ;; nsa_rhel5 v4.2 sec 3.3.11
+redhat    ;; ntpd					;; nsa_rhel5 v4.2 sec 3.10.2.2.1
+
+# Copyright Evolve Thinking ( www.evolvethinking.com ).

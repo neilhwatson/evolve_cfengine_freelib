@@ -1,0 +1,28 @@
+# context ;; variable                                       ;; value ;; promisee
+redhat    ;; fs.suid_dumpable                               ;; 0 ;; nsa_rhel5 v4.2 sec 2.2.4.2, 2.2.4.2.1
+redhat    ;; kernel.exec-shield                             ;; 1 ;; nsa_rhel5 v4.2 sec 2.2.4.3, 2.2.4.3.1 
+redhat    ;; kernel.randomize_va_space                      ;; 1 ;; nsa_rhel5 v4.2 sec 2.2.4.3, 2.2.4.3.1 
+redhat    ;; net.ipv4.ip_forward                            ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.1
+redhat    ;; net.ipv4.conf.all.send_redirects               ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.1
+redhat    ;; net.ipv4.conf.default.send_redirects           ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.1
+redhat    ;; net.ipv4.conf.all.accept_source_route          ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.all.accept_redirects             ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.all.secure_redirects             ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.all.log_martians                 ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.default.accept_source_route      ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.default.accept_redirects         ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.default.secure_redirects         ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.icmp_echo_ignore_broadcasts           ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.icmp_ignore_bogus_error_responses     ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.tcp_syncookies                        ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.all.rp_filter                    ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv4.conf.default.rp_filter                ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.1.2
+redhat    ;; net.ipv6.conf.default.router_solicitations     ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
+redhat    ;; net.ipv6.conf.default.accept_ra_rtr_pref       ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
+redhat    ;; net.ipv6.conf.default.accept_ra_pinfo          ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
+redhat    ;; net.ipv6.conf.default.accept_ra_defrtr         ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
+redhat    ;; net.ipv6.conf.default.autoconf                 ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
+redhat    ;; net.ipv6.conf.default.dad_transmits            ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
+redhat    ;; net.ipv6.conf.default.max_addresses            ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
+
+# Copyright Evolve Thinking ( www.evolvethinking.com ).

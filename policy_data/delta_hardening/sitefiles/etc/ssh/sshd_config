@@ -1,0 +1,23 @@
+Protocol 2 					# nsa_rhel5 v4.2 sec 3.5.2.1
+AllowUsers neil 			# nsa_rhel5 v4.2 sec 3.5.2.2
+IgnoreRhosts yes 			# nsa_rhel5 v4.2 sec 3.5.2.4
+IgnoreUserKnownHosts no # nsa_rhel5 v4.2 sec 3.5.2.5
+PermitRootLogin yes 		# nsa_rhel5 v4.2 sec 3.5.2.7
+
+SyslogFacility AUTHPRIV
+PasswordAuthentication yes
+
+ChallengeResponseAuthentication no
+
+UsePAM yes
+
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+
+X11Forwarding yes
+UseDNS no
+
+# override default of no subsystems
+Subsystem	sftp	/usr/libexec/openssh/sftp-server
