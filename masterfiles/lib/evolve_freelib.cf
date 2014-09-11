@@ -71,248 +71,6 @@ bundle agent efl_skeleton ( ref )
 # Call the above variable as ${${class[${f}]}} 
 }
 
-bundle common efl_c
-{
-   meta:
-      "purpose" string => "Common variables used by this library";
-
-   vars:
-      "cache"
-         comment => "Location for agent to cache template and other temp files",
-         string  => "/var/cache/cfengine";
-
-      amd_com::
-         "policy_servers"
-            comment => "Policy servers for remote copies",
-            slist   => { "@{ps.policy_servers}" };
-
-      !amd_com::
-         "policy_servers"
-            comment => "Policy servers for remote copies",
-            slist   => { "${sys.policy_hub}" };
-
-      any::
-      "localhost"
-         comment => "Use when policy server is localhost",
-         slist => { "localhost" };
-
-      "class"
-         comment => "Regex to extract class name from parameter file name.",
-         string  => ".*?-(\w+)\.txt";
-
-      "comment"
-         comment => "Comment string in data file.",
-         string  => "\s*#[^\n]*";
-
-      "array_delimiter"
-         comment => "Field delimiter for CSV data files read by readstringarrayidx",
-         string  => "\s*;;\s*";
-
-      "slist_delimiter"
-         comment => "Field delimiter for CSV data files read by readstringlist",
-         string  => "\s";
-
-      "max_num"
-         comment => "Maximum number of lines to read from data file",
-         int     => "500";
-
-      "max_bytes"
-         comment => "Maximum number of bytes to read from data file.",
-         string  => "1M";
-
-      "logdir"
-         comment => "Log dir for Delta Reporting logs",
-         string => "${sys.workdir}/delta_reporting/log";
-
-      "promise_log"
-         comment => "Location for experimental promise outcome log.",
-         string  => "${logdir}/promises";
-
-      "udate"
-         comment => "Date stamp to match agent output",
-         string  => strftime( "localtime", "%Y-%m-%dT%H:%M:%S%z", now() );
-
-      "efl_server_txt"
-            comment => "Server access rules parameter file",
-# NOTE Access file must be hardcoded because server bundles do not accept arguments.
-            string => "${sys.workdir}/inputs/efl_data/bundle_params/efl_server.txt";
-}
-
-bundle agent efl_main( ref )
-{
-   meta:
-      "meta_purpose" string => "All policies are called via methods iteration from this bundle.";
-
-      "method_field_0" string => "Context when method is called";
-      "method_field_1" string => "Method promiser name";
-      "method_field_2" string => "Bundle name";
-      "method_field_3" string => "Ifelapsed";
-      "method_field_4" string => "Bundle parameter";
-      "method_field_5" string => "Promisee";
-
-   vars:
-      "dim_methods"
-         comment => "Read data to be used in method promises.",
-         int     => readstringarrayidx(
-            "meth_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-            );
-
-      use_ordered_index::
-      "i" 
-         comment => "Convert module list to local list for bug work-around",
-         slist   => { @{return_index_pl.efl_main} };
-
-      "i2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5" };
- 
-      "meth[${i}][${i2}]"
-         comment => "Work around for bug 2333",
-         string => "${meth_o[${i}][${i2}]}";
-
-      "class[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][0]";
-      "promiser[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][1]";
-      "bundle[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][2]";
-      "ifelapsed[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][3]";
-      "parameter[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][4]";
-      "promisee[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][5]";
-
-   classes:
-      !use_ordered_index::
-         "use_ordered_index"
-            comment    => "Created ordered index for method calls",
-            expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
-
-      any::
-         "run_methods_loop"
-            comment    => "Delays method loop until index is ready",
-            expression => isvariable( "i" );
-
-   methods:
-      run_methods_loop::
-         "methods loop wrapper"
-            comment    => "Call wrapper bundle to workaround naked variable bug.",
-            handle     => "efl_main_methods_efl_bug2638",
-            ifvarclass => "${${class[${i}]}}",
-            action     => if_elapsed( "${${ifelapsed[${i}]}}" ),
-            usebundle  => efl_bug2638(
-               "${${promiser[${i}]}}_${i}",
-               "${${promisee[${i}]}}",
-               "${${bundle[${i}]}}",
-               "${${parameter[${i}]}}"
-            );
-}
-
-bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
-{
-   meta:
-      "meta_purpose" string => "Workaround for naked variable bug 2638.";
-      "bug"          string => "https://cfengine.com/dev/issues/2638";
-
-   methods:
-      "${promiser_name}" -> { "${promisee_name}" }
-         comment    => "Methods promises described in methods.txt",
-         handle     => "efl_bug2638_methods_loop",
-         usebundle  => ${bundle_name}( "${parameter}" );
-}
-
-bundle agent efl_class_returnszero( ref )
-{
-   meta:
-      "purpose" string => "Skeleton bundle for new bundle authoring";
-      "field_0" string => "Context";
-      "field_1" string => "Class to set";
-      "field_2" string => "Command to run";
-      "field_3" string => "useshell/noshell";
-      "field_4" string => "Set class if returns zero (yes) or non-zero (no)";
-      "field_5" string => "Promisee";
-
-   vars:
-      "dim_rz"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_returnszero_vars_files",
-         int     => readstringarrayidx(
-            "rz_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_returnszero_vars_f",
-         slist   => getindices( "rz_o" );
-
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6" };
- 
-      "rz[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${rz_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][0]";
-      "class_to_set[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][1]";
-      "command[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][2]";
-      "shell[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][3]";
-      "negate[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][4]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][5]";
-
-   classes:
-      "${${class_to_set[${f}]}}_non_zero" -> { "${${promisee[${f}]}}" }
-         comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "no" );
-
-      "${${class_to_set[${f}]}}_zero" -> { "${${promisee[${f}]}}" }
-         comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "yes" );
-
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
-         comment    => "Set class if expression returns non zero",
-         ifvarclass => "${${class_to_set[${f}]}}_non_zero",
-         scope      => "namespace",
-         not        => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
-
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
-         comment    => "Set class if expression returns zero",
-         ifvarclass => "${${class_to_set[${f}]}}_zero",
-         scope      => "namespace",
-         expression => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
-}
-
 bundle agent efl_sysctl_live( ref )
 {   
    meta:
@@ -390,7 +148,7 @@ bundle agent efl_sysctl_live( ref )
          classes    => efl_rkn( "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "efl_sysctl_live_commands_sysctl_w" ),
          action     => efl_delta_reporting( "efl_sysctl_live_commands_sysctl_w", "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "${${promisee[${x}]}}", "1" ),
 # This and statement is due to CFEngine bug 3577. When the bug is fixed remove {class}.
-         ifvarclass => and( "${${class[${x}]}}",  canonify( "set_live_sysctl_${${sysctl_name[${x}]}}" ) ), 
+         ifvarclass => canonify( "set_live_sysctl_${${sysctl_name[${x}]}}" ), 
          contain    => in_shell_and_silent;
 
    reports:
@@ -663,7 +421,11 @@ bundle agent efl_delete_files ( ref )
 
       "files[${f}][${f2}]"
          comment => "Work around for bug 2333",
-         string => "${files_o[${f}][${f2}]}";
+         string  => "${files_o[${f}][${f2}]}";
+
+      "files[${f}][file_canon]"
+         comment    => "Canonify file name fo later use",
+         string     => canonify( "${files[${f}][1]}" );
 
       "class[${f}]"
          comment => "Turn into reference for simpler reading.",
@@ -671,6 +433,9 @@ bundle agent efl_delete_files ( ref )
       "file[${f}]"
          comment => "Turn into reference for simpler reading.",
          string  => "files[${f}][1]";
+      "file_canon[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][file_canon]";
       "recurse[${f}]"
          comment => "Turn into reference for simpler reading.",
          string  => "files[${f}][2]";
@@ -688,15 +453,37 @@ bundle agent efl_delete_files ( ref )
          string  => "files[${f}][6]";
 
    classes:
-         "${${file[${f}]}}_isdir_${f}" -> { "${${promisee[${f}]}}" }
-            comment    => "Determine if promiser is a directory",
+# TODO test this
+# These classes are defined in order to simply ifvarclass usage later. Ifvarclass
+# can be buggy when used in conjunction with functions.
+
+        "${${file_canon[${f}]}}_${f}_positive_match"
+            ifvarclass => "${${class[${f}]}}",
+            expression => strcmp( "no", "${${negate[${f}]}}" );
+
+        "${${file_canon[${f}]}}_${f}_negative_match"
+            ifvarclass => "${${class[${f}]}}",
+            expression => strcmp( "yes", "${${negate[${f}]}}" );
+
+        "${${file_canon[${f}]}}_${f}_is_file"
+            ifvarclass => "${${class[${f}]}}",
+            or         => { isplain( "${${file[${f}]}}" ), islink( "${${file[${f}]}}" ) };
+
+        "${${file_canon[${f}]}}_${f}_is_dir"
             ifvarclass => "${${class[${f}]}}",
             expression => isdir( "${${file[${f}]}}" );
 
-         "${${file[${f}]}}_negative_match_${f}" -> { "${${promisee[${f}]}}" }
-            comment    => "Determine if negated match is desired.",
-            ifvarclass => "${${class[${f}]}}",
-            expression => strcmp( "yes", "${${negate[${f}]}}" );
+        "${${file_canon[${f}]}}_${f}_is_file_and_positive_match"
+            and => { "${${file_canon[${f}]}}_${f}_is_file", "${${file_canon[${f}]}}_${f}_positive_match" };
+
+        "${${file_canon[${f}]}}_${f}_is_file_and_negative_match"
+            and => { "${${file_canon[${f}]}}_${f}_is_file", "${${file_canon[${f}]}}_${f}_negative_match" };
+
+        "${${file_canon[${f}]}}_${f}_is_dir_and_positive_match"
+            and => { "${${file_canon[${f}]}}_${f}_is_dir", "${${file_canon[${f}]}}_${f}_positive_match" };
+
+        "${${file_canon[${f}]}}_${f}_is_dir_and_negative_match"
+            and => { "${${file_canon[${f}]}}_${f}_is_dir", "${${file_canon[${f}]}}_${f}_negative_match" };
 
    files:
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
@@ -704,9 +491,7 @@ bundle agent efl_delete_files ( ref )
          handle       => "efl_delete_files_files_isdir",
          classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_isdir" ),
          action       => efl_delta_reporting( "efl_delete_files_files_isdir", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => and(
-            canonify( "${${file[${f}]}}_isdir_${f}" ),
-            not( canonify( "${${file[${f}]}}_negative_match_${f}" ))),
+         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_dir_and_positive_match",
          depth_search => recurse( "${${recurse[${f}]}}" ),
          file_select  => name_age( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
@@ -716,10 +501,7 @@ bundle agent efl_delete_files ( ref )
          handle       => "efl_delete_files_files_single",
          classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_single" ),
          action       => efl_delta_reporting( "efl_delete_files_files_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => and(
-            canonify( "${${class[${f}]}}" ),
-            not( canonify( "${${file[${f}]}}_isdir_${f}" )),
-            not( canonify( "${${file[${f}]}}_negative_match_${f}" ))),
+         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_file_and_positive_match",
          file_select  => name_age( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
 
@@ -728,9 +510,7 @@ bundle agent efl_delete_files ( ref )
          handle       => "efl_delete_files_files_isdir_negative",
          classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_isdir_negative" ),
          action       => efl_delta_reporting( "efl_delete_files_files_isdir_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => and(
-            canonify( "${${file[${f}]}}_isdir_${f}" ),
-            canonify( "${${file[${f}]}}_negative_match_${f}" )),
+         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_dir_and_negative_match",
          depth_search => recurse( "${${recurse[${f}]}}" ),
          file_select  => name_age_negate( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
@@ -740,9 +520,7 @@ bundle agent efl_delete_files ( ref )
          handle       => "efl_delete_files_files_single_negative",
          classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_single_negative" ),
          action       => efl_delta_reporting( "efl_delete_files_files_single_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => and(
-            not( canonify( "${${file[${f}]}}_isdir_${f}" )),
-            canonify( "${${file[${f}]}}_negative_match_${f}" )),
+         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_file_and_negative_match",
          file_select  => name_age_negate( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
          delete       => tidy;
 }
@@ -752,438 +530,6 @@ body file_select name_age_negate(name,days)
 leaf_name   => { "$(name)" };
 mtime       => irange(0,ago(0,0,"$(days)",0,0,0));
 file_result => "mtime.!leaf_name";
-}
-
-bundle agent efl_global_slists( ref )
-{
-   meta:
-      "purpose" string => "Set slist type variable when class is true.";
-      "field_0" string => "Context";
-      "field_1" string => "Variable name";
-      "field_2" string => "csv inline list or path to external file where file format is one list element per line.";
-		"field_4" string => "random shuffle list (r), or determistic shuffle (d), or normal (n)";
-      "field_3" string => "Promisee";
-
-   vars:
-      "dim_slist"
-         comment => "Read data file for parsing.",
-         handle  => "efl_global_slists_vars_files",
-         int     => readstringarrayidx(
-            "slist_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "s"
-         comment => "Get index array loaded above.",
-         handle  => "efl_global_slists_vars_s",
-         slist   => getindices( "slist_o" );
-
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4" };
-
-      "slist[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string  => "${slist_o[${s}][${s2}]}";
-
-      "class[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][0]";
-      "name[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][1]";
-      "list_data[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][2]";
-      "shuffle[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][3]";
-      "promisee[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][4]";
-
-		"seed" int => randomint( "1", "999999" );
-
-		"pre_shuffle_${${name[${s}]}}"
-			comment => "Get list from external file",
-			ifvarclass => and( "parse_list_file_${s}", "${${class[${s}]}}"),
-			slist => readstringlist(
-				"${${list_data[${s}]}}",
-				"\s*#[^\n]*",
-				"\n",
-				"500",
-				"1M"
-				);
-
-		"pre_shuffle_${${name[${s}]}}"
-			comment    => "Get list from external file",
-			ifvarclass => and( "parse_csv_list_${s}" , "${${class[${s}]}}"),
-			slist      => splitstring( "${${list_data[${s}]}}", "\s*,\s*", "500" );
-
-		"${${name[${s}]}}"
-			comment    => "no shuffle list",
-			ifvarclass => "n_shuffle_${s}",
-			slist      => { "@{pre_shuffle_${${name[${s}]}}}" };
-
-		"${${name[${s}]}}"
-			comment    => "random shuffle list",
-			ifvarclass => "r_shuffle_${s}",
-			slist      => shuffle( "pre_shuffle_${${name[${s}]}}", "${seed}" );
-
-		"${${name[${s}]}}"
-			comment    => "deterministic shuffle list",
-			ifvarclass => "d_shuffle_${s}",
-			slist      => shuffle( "pre_shuffle_${${name[${s}]}}", "${sys.uqhost}" );
-
-	classes:
-		"parse_list_file_${s}"
-			comment    => "Determine if list_data points to a file",
-			ifvarclass => "${${class[${s}]}}",
-			expression => fileexists( "${${list_data[${s}]}}" );
-
-		"parse_csv_list_${s}"
-			comment    => "If no file then assume data is inline csv",
-			ifvarclass => "${${class[${s}]}}",
-			not        => fileexists( "${${list_data[${s}]}}" );
-
-	  "d_shuffle_${s}"
-			comment    => "Determnistically random list.",
-			ifvarclass => "${${class[${s}]}}",
-			expression => strcmp( "${${shuffle[${s}]}}", "d" );
-
-	  "r_shuffle_${s}"
-			comment    => "Random list.",
-			ifvarclass => "${${class[${s}]}}",
-			expression => strcmp( "${${shuffle[${s}]}}", "r" );
-
-	  "n_shuffle_${s}"
-			comment    => "Normal list without random.",
-			ifvarclass => "${${class[${s}]}}",
-			expression => strcmp( "${${shuffle[${s}]}}", "n" );
-
-}
-
-bundle agent efl_global_strings ( ref )
-{
-   meta:
-      "purpose" string => "Set string type variable when class is true.";
-      "field_0" string => "Context";
-      "field_1" string => "Variable name";
-      "field_2" string => "Variable value";
-      "field_3" string => "Promisee";
-
-   vars:
-      "dim_string"
-         comment => "Read data file for parsing.",
-         handle  => "efl_global_strings_vars_files",
-         int     => readstringarrayidx(
-            "string_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "s"
-         comment => "Get index array loaded above.",
-         handle  => "efl_global_strings_vars_s",
-         slist   => getindices( "string_o" );
-
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3" };
-
-      "string[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string => "${string_o[${s}][${s2}]}";
-
-      "class[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][0]";
-      "name[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][1]";
-      "value[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][2]";
-      "promisee[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][3]";
-
-      "${${name[${s}]}}" -> { "${${promisee[${s}]}}" }
-         comment    => "Define variable if class is true",
-         ifvarclass => "${${class[${s}]}}",
-         string     => "${${value[${s}]}}";
-}
-
-bundle agent efl_class_cmd_regcmp( ref )
-{
-   meta:
-      "purpose" string => "Set global class if the given command output matches regex.";
-      "wanring" string => "Commands in classes and variables are expensive";
-      "field_0" string => "Context";
-      "field_1" string => "Class promiser to set";
-      "field_2" string => "Class expression is 'not' rather than 'expression'";
-      "field_3" string => "command to run";
-      "field_4" string => "useshell or noshell";
-      "field_5" string => "anchored regex to match command output";
-      "field_6" string => "Promisee";
-
-   vars:
-      "dim_class"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_cmd_regcmp_vars_files",
-         int     => readstringarrayidx(
-            "class_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_cmd_regcmp_vars_c",
-         slist   => getindices( "class_o" );
-
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6" };
-
-      "class[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${class_o[${c}][${c2}]}";
-
-      "context[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][0]";
-      "class_to_set[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][1]";
-      "not[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][2]";
-      "command[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][3]";
-      "useshell[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][4]";
-      "regex[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][5]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][6]";
-
-      "cmd_output_${c}" -> { "${${promisee[${c}]}}" }
-         comment    => "Capture commmand output",
-         ifvarclass => "${${context[${c}]}}",
-         string     => execresult( "${${command[${c}]}}", "${${useshell[${c}]}}" );
-
-   classes:
-      "${${class_to_set[${c}]}}_not" -> { "${${promisee[${c}]}}" }
-         comment    => "Use not rather than expression",
-         ifvarclass => "${${context[${c}]}}",
-         expression => strcmp( "${${not[${c}]}}", "yes" );
-
-      "${${class_to_set[${c}]}}_exp" -> { "${${promisee[${c}]}}" }
-         comment    => "Use expression",
-         ifvarclass => "${${context[${c}]}}",
-         expression => strcmp( "${${not[${c}]}}", "no" );
-
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
-         comment    => "Set class if command output matches the anchored regex.",
-         scope      => "namespace",
-         ifvarclass => "${${class_to_set[${c}]}}_exp",
-         expression => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
-
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
-         comment    => "Set class if command output does not match the anchored regex.",
-         scope      => "namespace",
-         ifvarclass => "${${class_to_set[${c}]}}_not",
-         not        => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
-}
-
-bundle agent efl_class_expression( ref )
-{
-   meta:
-      "purpose" string => "Set global class if the given class expression is true.";
-      "field_0" string => "Class promiser";
-      "field_1" string => "Class expression";
-      "field_2" string => "Promisee";
-
-   vars:
-      "dim_class"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_expression_vars_files",
-         int     => readstringarrayidx(
-            "class_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_expression_vars_c",
-         slist   => getindices( "class_o" );
-
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2" };
-
-      "class[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${class_o[${c}][${c2}]}";
-
-      "class_to_set[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][0]";
-      "class_expression[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][1]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][2]";
-
-   classes:
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
-         comment    => "Set class if expression is true.",
-         scope      => "namespace",
-         expression => "${${class_expression[${c}]}}";
-}
-
-bundle agent efl_class_classmatch( ref )
-{
-   meta:
-      "purpose" string => "Set global class if the given regex matches a defined class";
-      "field_0" string => "Class promiser";
-      "field_1" string => "Regex for the function classmatch";
-      "field_2" string => "Promisee";
-
-   vars:
-      "dim_class"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_classmatch_vars_files",
-         int     => readstringarrayidx(
-            "class_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_classmatch_vars_c",
-         slist   => getindices( "class_o" );
-
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2" };
-
-      "class[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${class_o[${c}][${c2}]}";
-
-      "class_to_set[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][0]";
-      "regex[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][1]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][2]";
-
-   classes:
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
-         comment    => "Set class if classmatch function returns true.",
-         scope      => "namespace",
-         expression => classmatch( "${${regex[${c}]}}" );
-}
-
-bundle agent efl_class_iprange( ref )
-{
-   meta:
-      "purpose" string => "Set global class if host IP is within the given range";
-      "field_0" string => "Class promiser";
-      "field_1" string => "IP address range in the format of the iprange function.";
-      "field_2" string => "Promisee";
-
-   vars:
-      "dim_class"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_iprange_vars_files",
-         int     => readstringarrayidx(
-            "class_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_iprange_vars_c",
-         slist   => getindices( "class_o" );
-
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2" };
-
-      "class[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${class_o[${c}][${c2}]}";
-
-      "class_to_set[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][0]";
-      "ip_range[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][1]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][2]";
-
-   classes:
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
-         comment    => "Set class if iprange function returns true.",
-         scope      => "namespace",
-         expression => iprange( "${${ip_range[${c}]}}" );
-}
-
-bundle agent efl_class_hostname( ref )
-#
-# Reads parameter file in the form of <name>-<class>.txt.
-# the file contains a list of unqualified hostnames separated by white space.
-# If ${sys.uqhost} matches any name in the list <class> is defined.
-{
-   meta:
-      "purpose" string => "Set global class if list item matches hostname";
-      "field_0" string => "unqualified hostname";
-
-   classes:
-      "check_hostnames_${ref}"
-         comment    => "Get class name from filename",
-         expression => regextract( "${efl_c.class}", "${ref}", "class" );
-      
-      "${class[1]}"
-         comment    => "Set class if unqualified hostname matches any list element.",
-         scope      => "namespace",
-         ifvarclass => canonify( "check_hostnames_${ref}" ),
-         expression => regline( "${sys.uqhost}", "${ref}" );
 }
 
 bundle agent efl_copy_files ( ref )
@@ -1227,9 +573,16 @@ bundle agent efl_copy_files ( ref )
          comment => "Work around for bug 2333",
          string => "${files_o[${f}][${f2}]}";
 
+      "files[${f}][file_canon]"
+         comment    => "Canonify file name fo later use",
+         string     => canonify( "${files[${f}][1]}" );
+
       "class[${f}]"
          comment => "Turn into reference for simpler reading.",
          string  => "files[${f}][0]";
+      "file_canon[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][file_canon]";
       "file[${f}]"
          comment => "Turn into reference for simpler reading.",
          string  => "files[${f}][1]";
@@ -1259,33 +612,38 @@ bundle agent efl_copy_files ( ref )
          string  => "files[${f}][9]";
 
    classes:
-      "recurse_${${file[${f}]}}_${f}"
+      "recurse_${${file_canon[${f}]}}_${f}"
          comment    => "Set if promiser is a directory",
          ifvarclass => "${${class[${f}]}}",
          expression => regcmp( ".+/\.", "${${file[${f}]}}" );
+
+      "no_recurse_${${file_canon[${f}]}}_${f}"
+         comment    => "Set if promiser is a directory",
+         ifvarclass => "${${class[${f}]}}",
+         not        => regcmp( ".+/\.", "${${file[${f}]}}" );
       
    files:
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Create promiser directory",
-         ifvarclass => canonify( "recurse_${${file[${f}]}}_${f}" ),
+         ifvarclass => "recurse_${${file_canon[${f}]}}_${f}",
          create     => 'true';
 
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Copy a single file",
-         handle     => "efl_copy_files_remote_single",
+         handle     => "efl_copy_files_single",
          create     => 'true',
+         ifvarclass => "not_recurse_${${file_canon[${f}]}}_${f}",
          classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remote_single" ),
          action     => efl_delta_reporting( "efl_copy_files_remote_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => and( "${${class[${f}]}}", not(  canonify( "recurse_${${file[${f}]}}_${f}" ) ) ),
          copy_from  => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
 
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment      => "Copy and recurse",
-         handle       => "efl_copy_files_remove_recurse",
+         handle       => "efl_copy_files_recurse",
          create       => 'true',
          classes      => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remove_recurse" ),
          action       => efl_delta_reporting( "efl_copy_files_remove_recurse", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => and( "${${class[${f}]}}", canonify( "recurse_${${file[${f}]}}_${f}" ) ),
+         ifvarclass   => "recurse_${${file_canon[${f}]}}_${f}",
          depth_search => recurse( "inf" ),
          file_select  => by_name( "${${leaf[${f}]}}" ),
          copy_from    => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
@@ -1295,7 +653,7 @@ bundle agent efl_copy_files ( ref )
          handle     => "efl_copy_files_single_perms",
          classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_single_perms" ),
          action     => efl_delta_reporting( "efl_copy_files_single_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => and( "${${class[${f}]}}", not( canonify( "recurse_${${file[${f}]}}_${f}" ) ) ),
+         ifvarclass => "not_recurse_${${file_canon[${f}]}}_${f}",
          perms      => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
 
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
@@ -1303,7 +661,7 @@ bundle agent efl_copy_files ( ref )
          handle       => "efl_copy_files_recurse_perms",
          classes      => efl_rkn( "${${file[${f}]}}", "efl_copy_files_recurse_perms" ),
          action       => efl_delta_reporting( "efl_copy_files_recurse_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => and( "${${class[${f}]}}", canonify( "recurse_${${file[${f}]}}_${f}" ) ),
+         ifvarclass   => "recurse_${${file_canon[${f}]}}_${f}",
          depth_search => recurse( "inf" ),
          file_select  => by_name( "${${leaf[${f}]}}" ),
          perms        => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
@@ -1375,9 +733,13 @@ bundle agent efl_packages( ref )
          string  => "pkg[${p}][5]";
 
    classes:
-      "do not specify version ${${name[${p}]}}_${${version[${p}]}}"
+      "do not specify version ${${name[${p}]}}_${${version[${p}]}}_${p}"
          comment    => "If version is '0' then do not specify version string",
          expression => strcmp( "${${version[${p}]}}", "0" );
+
+      "specify version ${${name[${p}]}}_${${version[${p}]}}_${p}"
+         comment    => "If version is not '0' then specify version string",
+         not        => strcmp( "${${version[${p}]}}", "0" );
 
    packages:
       "${${name[${p}]}}" -> { "${${promisee[${p}]}}" }
@@ -1385,10 +747,7 @@ bundle agent efl_packages( ref )
          handle                => "efl_packages_packages_generic_no_version",
          classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_no_version" ),
          action                => efl_delta_reporting( "efl_packages_packages_generic_no_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
-         ifvarclass            => and(
-            canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}" ),
-            "${${class[${p}]}}"
-         ),
+         ifvarclass            => canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}_${f}" ),
          package_policy        => "${${policy[${p}]}}",
          package_method        => generic,
          package_architectures => { "${${arch[${p}]}}" };
@@ -1398,10 +757,7 @@ bundle agent efl_packages( ref )
          handle                => "efl_packages_packages_generic_version",
          classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_version" ),
          action                => efl_delta_reporting( "efl_packages_packages_generic_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
-         ifvarclass            => and(
-            not( canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}" ) ),
-            "${${class[${p}]}}"
-         ),
+         ifvarclass            => canonify( "specify version ${${name[${p}]}}_${${version[${p}]}}_${p}" ),
          package_policy        => "${${policy[${p}]}}",
          package_method        => generic,
          package_version       => "${${version[${p}]}}",
@@ -1464,7 +820,7 @@ bundle agent efl_start_service ( ref )
          classes        => efl_rkn( "${${process[${s}]}}", "efl_start_service_processes_proc" ),
          action         => efl_delta_reporting( "efl_start_service_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
          ifvarclass     => "${${class[${s}]}}",
-         restart_class  => canonify( "efl_start_service_command_${${process[${s}]}}" );
+         restart_class  => canonify( "efl_start_service_command_${${process[${s}]}}_${s}" );
 
    commands:
       "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
@@ -1473,7 +829,7 @@ bundle agent efl_start_service ( ref )
          classes    => efl_rkn( "${${command[${s}]}}", "efl_start_service_commands_restart" ),
          action     => efl_delta_reporting( "efl_start_service_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
          contain    => in_shell_and_silent,
-         ifvarclass => canonify( "efl_start_service_command_${${process[${s}]}}" );
+         ifvarclass => canonify( "efl_start_service_command_${${process[${s}]}}_${s}" );
 }
 
 bundle agent efl_service ( ref )
@@ -1557,13 +913,13 @@ bundle agent efl_service ( ref )
          string  => "svc[${s}][11]";
 
    classes:
-      "${${source_file[${s}]}}_is_not_a_template" 
-         comment    => "Is configuration file a template?",
+      "copy_config_${${source_file[${s}]}}_${s}" 
+         comment    => "If configuration file is a straight copy",
          ifvarclass => "${${class[${s}]}}",
          expression => strcmp( "${${template[${s}]}}", "no" );
 
-      "${${source_file[${s}]}}_is_a_template"
-         comment    => "Is configuration file a template?",
+      "build_from_template_${${source_file[${s}]}}_${s}"
+         comment    => "If configuration file is a template",
          ifvarclass => "${${class[${s}]}}",
          expression => strcmp( "${${template[${s}]}}", "yes" );
 
@@ -1575,19 +931,22 @@ bundle agent efl_service ( ref )
          action     => efl_delta_reporting( "efl_service_svc_cache", "${efl_c.cache}/${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
          ifvarclass => "${${class[${s}]}}",
          create     => "true",
-         perms      => mog(
-            "${${mode[${s}]}}",
-            "${${user[${s}]}}",
-            "${${group[${s}]}}"   
-            ),
          copy_from  => efl_cpf( "${${source_file[${s}]}}", "@{${${server[${s}]}}}", "${${encrypt[${s}]}}" );
+
+      "${efl_c.cache}/${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment    => "Perms for cache of source file",
+         handle     => "efl_service_files_cache_perms",
+         classes    => efl_rkn( "${efl_c.cache}/${${config_file[${s}]}}", "efl_service_svc_cache_perms" ),
+         action     => efl_delta_reporting( "efl_service_svc_cache_perms", "${efl_c.cache}/${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         ifvarclass => "${${class[${s}]}}",
+         perms      => mog( "${${mode[${s}]}}", "${${user[${s}]}}", "${${group[${s}]}}" );
 
       "${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Promise contents of configuration file",
          handle     => "efl_service_files_config",
          classes    => efl_rkn( "${${config_file[${s}]}}", "efl_service_files_config" ),
          action     => efl_delta_reporting( "efl_service_files_config", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
-         ifvarclass => canonify( "${${source_file[${s}]}}_is_not_a_template" ),
+         ifvarclass => canonify( "copy_config_${${source_file[${s}]}}_${s}" ),
          create     => "true",
          copy_from  => efl_cpf( "${efl_c.cache}/${${config_file[${s}]}}", "localhost", "${${encrypt[${s}]}}" );
 
@@ -1598,7 +957,7 @@ bundle agent efl_service ( ref )
          action        => efl_delta_reporting( "efl_service_files_config_template", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
          create        => "true",
          edit_defaults => empty,
-         ifvarclass    => canonify( "${${source_file[${s}]}}_is_a_template" ),
+         ifvarclass    => canonify( "build_from_template_${${source_file[${s}]}}_${s}" ),
          edit_template => "${efl_c.cache}/${${config_file[${s}]}}";
 
       "${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
@@ -1607,11 +966,7 @@ bundle agent efl_service ( ref )
          classes    => efl_rkn( "${${config_file[${s}]}}", "efl_service_files_config_template_permissions" ),
          action     => efl_delta_reporting( "efl_service_files_config_template_permissions", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
          ifvarclass => "${${class[${s}]}}",
-         perms      => mog(
-            "${${mode[${s}]}}",
-            "${${user[${s}]}}",
-            "${${group[${s}]}}"   
-            );
+         perms      => mog( "${${mode[${s}]}}", "${${user[${s}]}}", "${${group[${s}]}}" );
 
    processes:
       "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
@@ -1630,7 +985,7 @@ bundle agent efl_service ( ref )
          classes    => efl_rkn( "${${command[${s}]}}", "efl_service_commands_restart" ),
          action     => efl_delta_reporting( "efl_service_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
          contain    => in_shell_and_silent,
-         ifvarclass => or (
+         ifvarclass => or(
                canonify( "efl_service_command_${${command[${s}]}}" ),
                canonify( "${${config_file[${s}]}}_handle_efl_service_files_config_repaired" ),
                canonify( "${${config_file[${s}]}}_handle_efl_service_files_config_template_repaired" )
@@ -1864,12 +1219,19 @@ bundle agent efl_file_perms ( ref )
          comment => "Work around for bug 2333",
          string => "${files_o[${f}][${f2}]}";
 
+      "files[${f}][file_canon]"
+         comment    => "Canonify file name fo later use",
+         string     => canonify( "${files[${f}][1]}" );
+
       "class[${f}]"
          comment => "Turn into reference for simpler reading.",
          string  => "files[${f}][0]";
       "file[${f}]"
          comment => "Turn into reference for simpler reading.",
          string  => "files[${f}][1]";
+      "file_canon[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "files[${f}][file_canon]";
       "recurse[${f}]"
          comment => "Turn into reference for simpler reading.",
          string  => "files[${f}][2]";
@@ -1893,32 +1255,43 @@ bundle agent efl_file_perms ( ref )
          string  => "files[${f}][8]";
 
       classes:
-         "efl_no_recurse_${${file[${f}]}}"
+         "recurse_${${file_canon[${f}]}}_${f}"
             comment    => "Is recursion desired?",
-            handle     => "efl_file_perms_classes_recurse",
+            ifvarclass => "${${class[${f}]}}",
+            expression => strcmp( "yes", "${${recurse[${f}]}}" );
+         
+         "do_not_recurse_${${file_canon[${f}]}}_${f}"
+            comment    => "Is recursion desired?",
             ifvarclass => "${${class[${f}]}}",
             expression => strcmp( "no", "${${recurse[${f}]}}" );
          
-         "efl_negative_match_${${file[${f}]}}"
+         "negative_match_${${file_canon[${f}]}}_${f}"
             comment => "Is negative match desired?",
-            handle => "efl_file_perms_classes_negate",
             ifvarclass => "${${class[${f}]}}",
             expression => strcmp( "yes", "${${negative[${f}]}}" );
 
-         "efl_positive_match_${${file[${f}]}}"
+         "positive_match_${${file_canon[${f}]}}_${f}"
             comment => "Is positive match desired?",
-            handle => "efl_file_perms_classes_positive",
             ifvarclass => "${${class[${f}]}}",
             expression => strcmp( "no", "${${negative[${f}]}}" );
+
+         "recurse_and_negative_match_${${file_canon[${f}]}}_${f}"
+            and => { "recurse_${${file_canon[${f}]}}_${f}", "negative_match_${${file_canon[${f}]}}_${f}" };
+
+         "recurse_and_positive_match_${${file_canon[${f}]}}_${f}"
+            and => { "recurse_${${file_canon[${f}]}}_${f}", "positive_match_${${file_canon[${f}]}}_${f}" };
+
+         "do_not_recurse_and_negative_match_${${file_canon[${f}]}}_${f}"
+            and => { "do_not_recurse_${${file_canon[${f}]}}_${f}", "negative_match_${${file_canon[${f}]}}_${f}" };
+
+         "do_not_recurse_and_positive_match_${${file_canon[${f}]}}_${f}"
+            and => { "do_not_recurse_${${file_canon[${f}]}}_${f}", "positive_match_${${file_canon[${f}]}}_${f}" };
 
       files:
          "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions of file recurse_with_base and positive match",
             handle       => "efl_file_perms_files_recurse_with_base_postive",
-            ifvarclass   => and(
-               not( canonify( "efl_no_recurse_${${file[${f}]}}" ) ),
-               canonify( "efl_positive_match_${${file[${f}]}}")
-               ),
+            ifvarclass   => "recurse_and_positive_match_${${file_canon[${f}]}}_${f}",
             classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_recurse_with_base_postive" ),
             action       => efl_delta_reporting( "efl_file_perms_files_recurse_with_base_postive", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
             depth_search => recurse_with_base( "${${recurse[${f}]}}" ),
@@ -1928,10 +1301,7 @@ bundle agent efl_file_perms ( ref )
          "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions of file recurse_with_base and negative leaf match",
             handle       => "efl_file_perms_files_recurse_with_base_negative",
-            ifvarclass   => and(
-               not( canonify( "efl_no_recurse_${${file[${f}]}}" ) ),
-               canonify( "efl_negative_match_${${file[${f}]}}")
-               ),
+            ifvarclass   => "recurse_and_positive_match_${${file_canon[${f}]}}_${f}",
             classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_recurse_with_base_negative" ),
             action       => efl_delta_reporting( "efl_file_perms_files_recurse_with_base_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
             depth_search => recurse_with_base( "${${recurse[${f}]}}" ),
@@ -1941,10 +1311,7 @@ bundle agent efl_file_perms ( ref )
          "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions using positive match",
             handle       => "efl_file_perms_files_positive",
-            ifvarclass   => and(
-               canonify( "efl_no_recurse_${${file[${f}]}}" ),
-               canonify( "efl_positive_match_${${file[${f}]}}")
-               ),
+            ifvarclass   => "do_not_recurse_and_negative_match_${${file_canon[${f}]}}_${f}",
             classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_positive" ),
             action       => efl_delta_reporting( "efl_file_perms_files_positive", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
             file_select  => by_name( "${${leaf[${f}]}}" ),
@@ -1953,10 +1320,7 @@ bundle agent efl_file_perms ( ref )
          "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
             comment      => "Promise permissions using negative leaf match",
             handle       => "efl_file_perms_files_negative",
-            ifvarclass   => and(
-               canonify( "efl_no_recurse_${${file[${f}]}}" ),
-               canonify( "efl_negative_match_${${file[${f}]}}")
-               ),
+            ifvarclass   => "do_not_recurse_and_positive_match_${${file_canon[${f}]}}_${f}",
             classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_negative" ),
             action       => efl_delta_reporting( "efl_file_perms_files_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
             file_select  => negate_by_name( "${${leaf[${f}]}}" ),
@@ -2037,8 +1401,15 @@ bundle agent efl_edit_template ( ref )
          action     => efl_delta_reporting( "efl_edit_template_cache_template", "${efl_c.cache}/${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
          ifvarclass => "${${class[${f}]}}",
          create     => "true",
-         perms      => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" ),
-         copy_from  => remote_dcp( "${${source[${f}]}}", "@{efl_c.policy_servers}" );
+         copy_from  => remote_dcp( "${${source[${f}]}}", "@{efl_global_slists.policy_servers}" );
+
+      "${efl_c.cache}/${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+         comment    => "Perms for locally cache template file.",
+         handle     => "efl_edit_template_cache_template_perms",
+         classes    => efl_rkn( "${efl_c.cache}/${${file[${f}]}}", "efl_edit_template_cache_template_perms" ),
+         action     => efl_delta_reporting( "efl_edit_template_cache_template_perms", "${efl_c.cache}/${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass => "${${class[${f}]}}",
+         perms      => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
 
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment       => "Promise contents of file",
@@ -2340,6 +1711,16 @@ bundle agent efl_rcs_pull( ref )
          comment => "Turn into reference for simpler reading.",
          string  => "rcs[${f}][7]";
 
+      classes:
+         "promise_permissions_${f}"
+            comment => "Fix perms if update or checkout was made",
+            or => {
+               "${${update[${f}]}}_handle_efl_rcs_pull_commands_update_repaired",
+               "${${update[${f}]}}_handle_efl_rcs_pull_commands_checkout_repaired",
+               "${${update[${f}]}}_handle_efl_rcs_pull_commands_update_kept",
+               "${${update[${f}]}}_handle_efl_rcs_pull_commands_checkout_kept"
+            };
+
    files:
       "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
          comment    => "Create destination directory",
@@ -2350,12 +1731,22 @@ bundle agent efl_rcs_pull( ref )
          create     => 'true';
 
       "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
-         comment    => "promise perms on destination directory",
+         comment    => "promise directory perms",
          handle     => "efl_rcs_pull_files_dir_perms",
          ifvarclass => "${${class[${f}]}}",
          classes    => efl_rkn( "${${dir[${f}]}}", "efl_rcs_pull_files_dir_perms" ),
          action     => efl_delta_reporting( "efl_rcs_pull_files_dir_perms", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
          perms      => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
+
+      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+         comment      => "promise perms on contents",
+         handle       => "efl_rcs_pull_files_perms",
+         ifvarclass   => "promise_permissions_${f}",
+         classes      => efl_rkn( "${${dir[${f}]}}", "efl_rcs_pull_files_perms" ),
+         action       => efl_delta_reporting( "efl_rcs_pull_files_perms", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         depth_search => recurse( "inf" ),
+         file_select  => by_name( ".*" ),
+         perms        => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
 
       "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
          comment      => "purge destination directory if update command failed",
