@@ -1776,3 +1776,83 @@ bundle agent efl_rcs_pull( ref )
          classes    => efl_rkn( "${${checkout[${f}]}}", "efl_rcs_pull_commands_checkout" ),
          action     => efl_delta_reporting( "efl_rcs_pull_commands_checkout", "${${checkout[${f}]}}", "${${promisee[${f}]}}", "1" );
 }
+
+bundle agent efl_test_simple( ref )
+{
+   meta:
+      "purpose" string => "Skeleton bundle for new bundle authoring";
+      "field_0" string => "Context expression";
+      "field_1" string => "Class regex to test";
+      "field_2" string => "pass test whether test class 'is' true or 'isnt' true";
+      "field_3" string => "Test name, free form like promisee";
+
+   vars:
+      "dim_test"
+         comment => "Read data file for parsing.",
+         handle  => "efl_test_simple_vars_files",
+         int     => readstringarrayidx(
+            "test_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+      "i"
+         comment => "Get index array loaded above.",
+         handle  => "efl_test_simple_vars_i",
+         slist   => getindices( "test_o" );
+
+      "i2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3" };
+ 
+      "test[${i}][${i2}]"
+         comment => "Work around for bug 2333",
+         string => "${test_o[${i}][${i2}]}";
+
+      "class[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][0]";
+      "test_class[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][1]";
+      "is_or_isnt[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][2]";
+      "test_name[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][3]";
+
+   classes:
+      "class_isnt_${i}"
+        ifvarclass => "${${class[${i}]}}",
+        expression => strcmp( "isnt", "${${is_or_isnt[${i}]}}" );
+      "class_is_${i}"
+        ifvarclass => "${${class[${i}]}}",
+        expression => strcmp( "is", "${${is_or_isnt[${i}]}}" );
+
+      "pass_${i}"
+         ifvarclass => "class_isnt_${i}",
+         not        => classmatch( "${${test_class[${i}]}}" );
+      "fail_${i}"
+         ifvarclass => "class_isnt_${i}",
+         expression => classmatch( "${${test_class[${i}]}}" );
+      "pass_${i}"
+         ifvarclass => "class_is_${i}",
+         expression => classmatch( "${${test_class[${i}]}}" );
+      "fail_${i}"
+         ifvarclass => "class_is_${i}",
+         not        => classmatch( "${${test_class[${i}]}}" );
+
+   reports:
+      "PASS, ${${test_class[${i}]}}, ${${test_name[${i}]}}"
+         ifvarclass => "pass_${i}";
+      "FAIL, ${${test_class[${i}]}}, ${${test_name[${i}]}}"
+         ifvarclass => "fail_${i}";
+
+      efl_test_simple_debug::
+         "${${class[${i}]}}, ${${test_class[${i}]}}, ${${is_or_isnt[${i}]}}, ${${test_name[${i}]}}";
+}
+
