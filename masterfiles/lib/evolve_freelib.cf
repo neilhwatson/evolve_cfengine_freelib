@@ -962,9 +962,9 @@ bundle agent efl_service ( ref )
 
       "${${config_file[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment    => "Promise permissions of configuration file",
-         handle     => "efl_service_files_config_template_permissions",
-         classes    => efl_rkn( "${${config_file[${s}]}}", "efl_service_files_config_template_permissions" ),
-         action     => efl_delta_reporting( "efl_service_files_config_template_permissions", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         handle     => "efl_service_files_config_permissions",
+         classes    => efl_rkn( "${${config_file[${s}]}}", "efl_service_files_config_permissions" ),
+         action     => efl_delta_reporting( "efl_service_files_config_permissions", "${${config_file[${s}]}}", "${${promisee[${s}]}}", "1" ),
          ifvarclass => "${${class[${s}]}}",
          perms      => mog( "${${mode[${s}]}}", "${${user[${s}]}}", "${${group[${s}]}}" );
 
@@ -1711,14 +1711,18 @@ bundle agent efl_rcs_pull( ref )
          comment => "Turn into reference for simpler reading.",
          string  => "rcs[${f}][7]";
 
+      "canonify[${f}]"
+         comment => "Canonify for later use",
+         string  => canonify( "${${update[${f}]}}" );
+
       classes:
          "promise_permissions_${f}"
             comment => "Fix perms if update or checkout was made",
             or => {
-               "${${update[${f}]}}_handle_efl_rcs_pull_commands_update_repaired",
-               "${${update[${f}]}}_handle_efl_rcs_pull_commands_checkout_repaired",
-               "${${update[${f}]}}_handle_efl_rcs_pull_commands_update_kept",
-               "${${update[${f}]}}_handle_efl_rcs_pull_commands_checkout_kept"
+               "${canonify[${f}]}_handle_efl_rcs_pull_commands_update_repaired",
+               "${canonify[${f}]}_handle_efl_rcs_pull_commands_checkout_repaired",
+               "${canonify[${f}]}_handle_efl_rcs_pull_commands_update_kept",
+               "${canonify[${f}]}_handle_efl_rcs_pull_commands_checkout_kept"
             };
 
    files:
@@ -1856,3 +1860,73 @@ bundle agent efl_test_simple( ref )
          "${${class[${i}]}}, ${${test_class[${i}]}}, ${${is_or_isnt[${i}]}}, ${${test_name[${i}]}}";
 }
 
+bundle agent efl_test_count( ref )
+{
+   meta:
+      "purpose" string => "Skeleton bundle for new bundle authoring";
+      "field_0" string => "Context expression";
+      "field_1" string => "Class regex to test";
+      "field_2" string => "Expected number classes that match the regex";
+      "field_3" string => "Test name, free form like promisee";
+
+   vars:
+      "dim_test"
+         comment => "Read data file for parsing.",
+         handle  => "efl_test_count_vars_files",
+         int     => readstringarrayidx(
+            "test_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+      "i"
+         comment => "Get index array loaded above.",
+         handle  => "efl_test_count_vars_i",
+         slist   => getindices( "test_o" );
+
+      "i2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3" };
+ 
+      "test[${i}][${i2}]"
+         comment => "Work around for bug 2333",
+         string => "${test_o[${i}][${i2}]}";
+
+      "class[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][0]";
+      "test_class[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][1]";
+      "count[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][2]";
+      "test_name[${i}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "test[${i}][3]";
+
+      "count_${i}"
+         comment    => "Count number of classes matching regex test_class",
+         ifvarclass => "${${class[${i}]}}",
+         int        => countclassesmatching( "${${test_class[${i}]}}" );
+
+   classes:
+      "pass_${i}"
+         ifvarclass => "${${class[${i}]}}",
+         expression => strcmp( "${count_${i}}", "${${count[${i}]}}" );
+      "fail_${i}"
+         ifvarclass => "${${class[${i}]}}",
+         not        => strcmp( "${count_${i}}", "${${count[${i}]}}" );
+
+   reports:
+      "PASS, [${${test_class[${i}]}}], [${${test_name[${i}]}}]"
+         ifvarclass => "pass_${i}";
+      "FAIL, [${${test_class[${i}]}}], [${${test_name[${i}]}}], expected [${${count[${i}]}}], got [${count_${i}}]"
+         ifvarclass => "fail_${i}";
+
+      efl_test_count_debug::
+         "[${${class[${i}]}}], [${${test_class[${i}]}}], [${${count[${i}]}}], [${${test_name[${i}]}}]";
+}
