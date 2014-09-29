@@ -624,6 +624,7 @@ bundle agent efl_copy_files ( ref )
       
    files:
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+         handle     => "efl_copy_files_create_dir",
          comment    => "Create promiser directory",
          ifvarclass => "recurse_${${file_canon[${f}]}}_${f}",
          create     => 'true';
@@ -632,7 +633,7 @@ bundle agent efl_copy_files ( ref )
          comment    => "Copy a single file",
          handle     => "efl_copy_files_single",
          create     => 'true',
-         ifvarclass => "not_recurse_${${file_canon[${f}]}}_${f}",
+         ifvarclass => "no_recurse_${${file_canon[${f}]}}_${f}",
          classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remote_single" ),
          action     => efl_delta_reporting( "efl_copy_files_remote_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
          copy_from  => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
@@ -653,7 +654,7 @@ bundle agent efl_copy_files ( ref )
          handle     => "efl_copy_files_single_perms",
          classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_single_perms" ),
          action     => efl_delta_reporting( "efl_copy_files_single_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => "not_recurse_${${file_canon[${f}]}}_${f}",
+         ifvarclass => "no_recurse_${${file_canon[${f}]}}_${f}",
          perms      => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
 
       "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
@@ -733,12 +734,14 @@ bundle agent efl_packages( ref )
          string  => "pkg[${p}][5]";
 
    classes:
-      "do not specify version ${${name[${p}]}}_${${version[${p}]}}_${p}"
+      "do_not_specify_version_${p}"
          comment    => "If version is '0' then do not specify version string",
+         ifvarclass => "${${class[${p}]}}",
          expression => strcmp( "${${version[${p}]}}", "0" );
 
-      "specify version ${${name[${p}]}}_${${version[${p}]}}_${p}"
+      "specify_version_${p}"
          comment    => "If version is not '0' then specify version string",
+         ifvarclass => "${${class[${p}]}}",
          not        => strcmp( "${${version[${p}]}}", "0" );
 
    packages:
@@ -747,7 +750,7 @@ bundle agent efl_packages( ref )
          handle                => "efl_packages_packages_generic_no_version",
          classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_no_version" ),
          action                => efl_delta_reporting( "efl_packages_packages_generic_no_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
-         ifvarclass            => canonify( "do not specify version ${${name[${p}]}}_${${version[${p}]}}_${f}" ),
+         ifvarclass            => "do_not_specify_version_${p}",
          package_policy        => "${${policy[${p}]}}",
          package_method        => generic,
          package_architectures => { "${${arch[${p}]}}" };
@@ -757,7 +760,7 @@ bundle agent efl_packages( ref )
          handle                => "efl_packages_packages_generic_version",
          classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_version" ),
          action                => efl_delta_reporting( "efl_packages_packages_generic_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
-         ifvarclass            => canonify( "specify version ${${name[${p}]}}_${${version[${p}]}}_${p}" ),
+         ifvarclass            => "specify_version_${p}",
          package_policy        => "${${policy[${p}]}}",
          package_method        => generic,
          package_version       => "${${version[${p}]}}",
@@ -1713,7 +1716,7 @@ bundle agent efl_rcs_pull( ref )
 
       "canonify[${f}]"
          comment => "Canonify for later use",
-         string  => canonify( "${${update[${f}]}}" );
+         string  => canonify( "PROMISER=${f} ${${update[${f}]}}" );
 
       classes:
          "promise_permissions_${f}"
@@ -1750,12 +1753,12 @@ bundle agent efl_rcs_pull( ref )
          action       => efl_delta_reporting( "efl_rcs_pull_files_perms", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
          depth_search => recurse( "inf" ),
          file_select  => by_name( ".*" ),
-         perms        => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
+         perms        => og( "${${owner[${f}]}}", "${${group[${f}]}}" );
 
-      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+      "${${dir[${f}]}}/" -> { "${${promisee[${f}]}}" }
          comment      => "purge destination directory if update command failed",
          handle       => "efl_rcs_files_purge_dir",
-         ifvarclass   => canonify( "${${update[${f}]}}_handle_efl_rcs_pull_commands_update_notkept" ),
+         ifvarclass   => canonify( "PROMISER=${f} ${${update[${f}]}}_handle_efl_rcs_pull_commands_update_notkept" ),
          delete       => tidy,
          depth_search => recurse( "inf" ),
          file_select  => by_name( ".*" ),
@@ -1763,22 +1766,21 @@ bundle agent efl_rcs_pull( ref )
          action       => efl_delta_reporting( "efl_rcs_files_purge_dir", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" );
 
    commands:
-      "${${update[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "PROMISER=${f} ${${checkout[${f}]}} ${${dir[${f}]}}" -> { "${${promisee[${f}]}}" }
+         comment    => "Pull checkout",
+         handle     => "efl_rcs_pull_commands_checkout",
+         ifvarclass => canonify( "PROMISER=${f} ${${update[${f}]}}_handle_efl_rcs_pull_commands_update_notkept" ),
+         contain    => in_dir_shell_and_silent( "${${dir[${f}]}}" ),
+         classes    => efl_rkn( "PROMISER=${f} ${${checkout[${f}]}}", "efl_rcs_pull_commands_checkout" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_commands_checkout", "PROMISER=${f} ${${checkout[${f}]}}", "${${promisee[${f}]}}", "1" );
+
+      "PROMISER=${f} ${${update[${f}]}}" -> { "${${promisee[${f}]}}" }
          comment    => "Pull update",
          handle     => "efl_rcs_pull_commands_update",
          ifvarclass => "${${class[${f}]}}",
          contain    => in_dir_shell_and_silent( "${${dir[${f}]}}" ),
-         classes    => efl_rkn( "${${update[${f}]}}", "efl_rcs_pull_commands_update" ),
-         action     => efl_delta_reporting( "efl_rcs_pull_commands_update", "${${update[${f}]}}", "${${promisee[${f}]}}", "1" );
-
-      "${${checkout[${f}]}} ${${dir[${f}]}}" -> { "${${promisee[${f}]}}" }
-         comment    => "Pull checkout",
-         handle     => "efl_rcs_pull_commands_checkout",
-         depends_on => { "efl_rcs_files_purge_dir" },
-         ifvarclass => "${${class[${f}]}}",
-         contain    => in_dir_shell_and_silent( "${${dir[${f}]}}" ),
-         classes    => efl_rkn( "${${checkout[${f}]}}", "efl_rcs_pull_commands_checkout" ),
-         action     => efl_delta_reporting( "efl_rcs_pull_commands_checkout", "${${checkout[${f}]}}", "${${promisee[${f}]}}", "1" );
+         classes    => efl_rkn( "PROMISER=${f} ${${update[${f}]}}", "efl_rcs_pull_commands_update" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_commands_update", "PROMISER=${f} ${${update[${f}]}}", "${${promisee[${f}]}}", "1" );
 }
 
 bundle agent efl_test_simple( ref )
