@@ -676,6 +676,115 @@ body copy_from efl_cpf(from, server, encrypt)
    compare     => "digest";
 }
 
+bundle agent efl_packages_via_cmd( ref )
+{
+   meta:
+      'Purpose' string => "promise packages using commands promises";
+      "field_0" string => "Context";
+      "field_1" string => "Package policy";
+      "field_2" string => "Package name regex";
+      'field_3' string => "Full version string or '0' for latest";
+      "field_4" string => "arch, '*' seems to work to imply any arch";
+      "field_5" string => "promisee";
+
+   vars:
+      "dim_packages"
+         comment => "Read data to be used in method promises.",
+         int     => readstringarrayidx(
+            "pack_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+            );
+
+      "i" slist => getindices( "pack_o" );
+
+      "i2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5" };
+
+      "pack[${i}][${i2}]"
+         comment => "Work around for bug 2333",
+         string => "${pack_o[${i}][${i2}]}";
+
+## Make refernces for simpler reading
+      "class[${i}]"    string => "pack[${i}][0]";
+      "policy[${i}]"   string => "pack[${i}][1]";
+      "name[${i}]"     string => "pack[${i}][2]";
+      "version[${i}]"  string => "pack[${i}][3]";
+      "arch[${i}]"     string => "pack[${i}][4]";
+      "promisee[${i}]" string => "pack[${i}][5]";
+
+      debian::
+         "package_mgr" string => "/usr/bin/apt-get";
+         "install"     string => "install";
+         "remove"      string => "remove";
+         "switches"    string => "-y";
+         "name_spec[${i}]" string  => "'${${name[${i}]}}=${${version[${i}]}}'";
+ 
+      redhat::
+         "package_mgr" string => "/usr/bin/yum";
+         "install"     string => "install";
+         "remove"      string => "remove";
+         "switches"    string => "-y";
+         "name_spec[${i}]" string  => "'${${name[${i}]}}-${${version[${i}]}}'";
+ 
+   classes:
+      "without_version_${i}"
+         ifvarclass => "${${class[${i}]}}",
+         expression => strcmp( "0", "${${version[${i}]}}" );
+
+      "with_version_${i}"
+         ifvarclass => "${${class[${i}]}}",
+         not        => strcmp( "0", "${${version[${i}]}}" );
+
+      "install_package_${i}"
+         ifvarclass => "${${class[${i}]}}",
+         expression => regcmp( "install|add|addupdate", "${${policy[${i}]}}" );
+
+      "remove_package_${i}"
+         ifvarclass => "${${class[${i}]}}",
+         expression => regcmp( "remove|delete", "${${policy[${i}]}}" );
+
+# Cannot specify version regex. So, must specify exact version or no version.
+# If no version then install must not have '=ver'.
+   commands:
+      "${package_mgr} ${install} ${switches} '${name_spec[${i}]}'" -> { '${${promisee[${i}]}}' }
+         comment    => 'Install package',
+         handle     => 'efl_packages_via_cmd_commands_install_version',
+         ifvarclass => 'install_package_${i}.with_version_${i}',
+         classes    => efl_rkn(
+            "${package_mgr} ${install} ${switches} '${name_spec[${i}]}'",
+            'efl_packages_via_cmd_commands_install_version' ),
+         action     => efl_delta_reporting( 'efl_packages_via_cmd_commands_install_version',
+            "${package_mgr} ${install} ${switches} '${name_spec[${i}]}'",
+            '${${promisee[${i}]}}', '1' );
+
+      "${package_mgr} ${install} ${switches} '${${name[${i}]}}'" -> { '${${promisee[${i}]}}' }
+         comment    => 'Install package',
+         handle     => 'efl_packages_via_cmd_commands_install_no_version',
+         ifvarclass => 'install_package_${i}.without_version_${i}',
+         classes    => efl_rkn(
+            "${package_mgr} ${install} ${switches} '${${name[${i}]}}'",
+            'efl_packages_via_cmd_commands_install_no_version' ),
+         action     => efl_delta_reporting( 'efl_packages_via_cmd_commands_install_no_version',
+            "${package_mgr} ${install} ${switches} '${${name[${i}]}}'",
+            '${${promisee[${i}]}}', '1' );
+
+      "${package_mgr} ${remove} ${switches} '${${name[${i}]}}'" -> { '${${promisee[${i}]}}' }
+         comment    => 'Remove package',
+         handle     => 'efl_packages_via_cmd_commands_remove',
+         ifvarclass => 'remove_package_${i}',
+         classes    => efl_rkn(
+            "${package_mgr} ${remove} ${switches} '${${name[${i}]}}'",
+            'efl_packages_via_cmd_commands_remove' ),
+         action     => efl_delta_reporting( 'efl_packages_via_cmd_commands_remove',
+            "${package_mgr} ${remove} ${switches} '${${name[${i}]}}'",
+            '${${promisee[${i}]}}', '1' );
+}
+
 bundle agent efl_packages( ref )
 {
    meta:
@@ -835,6 +944,157 @@ bundle agent efl_start_service ( ref )
          ifvarclass => canonify( "efl_start_service_command_${${process[${s}]}}_${s}" );
 }
 
+bundle agent efl_service_recurse ( ref )
+{
+   meta:
+      "purpose"  string => "Promise serivce with recursive file, process, and restart command.";
+      "field_0"  string => "Context";
+      "field_1"  string => "Process regex";
+      "field_2"  string => "Promiser directory";
+      "field_3"  string => "Source directory";
+      "field_4"  string => "Source server, as list without syntax: efl_c.policy_servers";
+      "field_5"  string => "Encrypted copy yes/now";
+      "field_6"  string => "Configuration file mode";
+      "field_7"  string => "Configuration file owner";
+      "field_8"  string => "Configuration file group";
+      "field_9"  string => "Restart command";
+      "field_10" string => "Promisee";
+
+   vars:
+      "dim_svc"
+         comment => "Read data file for parsing.",
+         int     => readstringarrayidx(
+            "svc_o",
+            "${ref}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
+
+      "s"
+         comment => "Get index array loaded above.",
+         handle  => "efl_service_vars_s",
+         slist   => getindices( "svc_o" );
+
+      "s2"
+         comment => "Work around for bug 2333",
+         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+
+      "svc[${s}][${s2}]"
+         comment => "Work around for bug 2333",
+         string => "${svc_o[${s}][${s2}]}";
+
+      ## Use references for simpler reading.",
+      "class[${s}]"              string  => "svc[${s}][0]";
+      "process[${s}]"            string  => "svc[${s}][1]";
+      "promiser_directory[${s}]" string  => "svc[${s}][2]";
+      "source_directory[${s}]"   string  => "svc[${s}][3]";
+      "server[${s}]"             string  => "svc[${s}][4]";
+      "encrypt[${s}]"            string  => "svc[${s}][5]";
+      "mode[${s}]"               string  => "svc[${s}][6]";
+      "user[${s}]"               string  => "svc[${s}][7]";
+      "group[${s}]"              string  => "svc[${s}][8]";
+      "command[${s}]"            string  => "svc[${s}][9]";
+      "promisee[${s}]"           string  => "svc[${s}][10]";
+
+   files:
+      "${efl_c.cache}/${${promiser_directory[${s}]}}/." -> { "${${promisee[${s}]}}" }
+         comment    => "Create cache dir",
+         handle     => "efl_service_recurse_cache_dir",
+         ifvarclass => "${${class[${s}]}}",
+         create     => "true",
+         classes    => efl_rkn( "${efl_c.cache}/${${promiser_directory[${s}]}}/.",
+            "efl_service_recurse_cache_dir" ),
+         action     => efl_delta_reporting( "efl_service_recurse_cache_dir",
+            "${efl_c.cache}/${${promiser_directory[${s}]}}/.", "${${promisee[${s}]}}", "1"
+         );
+
+      "${efl_c.cache}/${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment      => "Copy cache",
+         handle       => "efl_service_recurse_copy_cache",
+         ifvarclass   => "${${class[${s}]}}",
+         classes      => efl_rkn( "${efl_c.cache}/${${promiser_directory[${s}]}}",
+            "efl_service_recurse_copy_cache" ),
+         action       => efl_delta_reporting( "efl_service_recurse_copy_cache",
+            "${efl_c.cache}/${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+         ),
+         depth_search => recurse( "inf" ),
+         copy_from    => efl_cpf( "${${source_directory[${s}]}}", "@{${${server[${s}]}}}", "${${encrypt[${s}]}}" );
+
+      "${efl_c.cache}/${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment      => "Perms for cache of source file",
+         handle       => "efl_service_recurse_cache_perms",
+         ifvarclass   => "${${class[${s}]}}",
+         classes      => efl_rkn( "${efl_c.cache}/${${promiser_directory[${s}]}}",
+            "efl_service_recurse_cache_perms" ),
+         action       => efl_delta_reporting( "efl_service_recurse_cache_perms",
+            "${efl_c.cache}/${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+         ),
+         depth_search => recurse( "inf" ),
+         perms        => mog( "${${mode[${s}]}}", "${${user[${s}]}}", "${${group[${s}]}}" );
+
+      "${${promiser_directory[${s}]}}/." -> { "${${promisee[${s}]}}" }
+         comment    => "Create dir",
+         handle     => "efl_service_recurse_dir",
+         ifvarclass => "${${class[${s}]}}",
+         create     => "true",
+         classes    => efl_rkn( "${${promiser_directory[${s}]}}/.",
+            "efl_service_recurse_dir" ),
+         action     => efl_delta_reporting( "efl_service_recurse_dir",
+            "${${promiser_directory[${s}]}}/.", "${${promisee[${s}]}}", "1"
+         );
+
+      "${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment      => "Copy to final destination",
+         handle       => "efl_service_recurse_copy",
+         ifvarclass   => "${${class[${s}]}}",
+         classes      => efl_rkn( "${${promiser_directory[${s}]}}",
+            "efl_service_recurse_copy" ),
+         action       => efl_delta_reporting( "efl_service_recurse_copy",
+            "${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+         ),
+         depth_search => recurse( "inf" ),
+         copy_from    => efl_cpf(
+            "${efl_c.cache}/${${promiser_directory[${s}]}}",
+            "localhost", "${${encrypt[${s}]}}"
+         );
+
+      "${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment      => "Perms for destination files",
+         handle       => "efl_service_recurse_files_perms",
+         ifvarclass   => "${${class[${s}]}}",
+         classes      => efl_rkn( "${${promiser_directory[${s}]}}",
+            "efl_service_recurse_perms" ),
+         action       => efl_delta_reporting( "efl_service_recurse_perms",
+            "${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+         ),
+         depth_search => recurse( "inf" ),
+         perms        => mog( "${${mode[${s}]}}", "${${user[${s}]}}", "${${group[${s}]}}" );
+
+   processes:
+      "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment        => "Promise process is running",
+         handle         => "efl_service_recurse_processes_proc",
+         classes        => efl_rkn( "${${process[${s}]}}", "efl_service_recurse_processes_proc" ),
+         action         => efl_delta_reporting( "efl_service_recurse_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         process_select => by_command( "${${process[${s}]}}" ),
+         ifvarclass     => "${${class[${s}]}}",
+         restart_class  => canonify( "efl_service_recurse_command_${${command[${s}]}}" );
+
+   commands:
+      "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
+         comment    => "Restart service is required.",
+         handle     => "efl_service_recurse_commands_restart",
+         classes    => efl_rkn( "${${command[${s}]}}", "efl_service_recurse_commands_restart" ),
+         action     => efl_delta_reporting( "efl_service_recurse_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         contain    => in_shell_and_silent,
+         ifvarclass => or(
+               canonify( "efl_service_recurse_command_${${command[${s}]}}" ),
+               canonify( "${${config_file[${s}]}}_handle_efl_service_recurse_copy_repaired" )
+         );
+}
+
 bundle agent efl_service ( ref )
 {
    meta:
@@ -855,7 +1115,6 @@ bundle agent efl_service ( ref )
    vars:
       "dim_svc"
          comment => "Read data file for parsing.",
-         handle  => "efl_service_vars_files",
          int     => readstringarrayidx(
             "svc_o",
             "${ref}",
@@ -867,7 +1126,6 @@ bundle agent efl_service ( ref )
 
       "s"
          comment => "Get index array loaded above.",
-         handle  => "efl_service_vars_s",
          slist   => getindices( "svc_o" );
 
       "s2"
