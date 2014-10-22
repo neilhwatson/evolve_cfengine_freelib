@@ -18,9 +18,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ## Version notice
 
-We recommend that you use the 3.5 branch of EFL with CFEngine version 3.5.2.
-CFEngine 3.6 has outstanding bugs that prevent EFL, and possibly your own
-policies, from being reliable.
+We recommend that you use the 3.5 branch of EFL with CFEngine version 3.5.2,
+but CFEngine 3.6 should work with the 3.5 EFL branch too. The master branch
+will support 3.6 in time, but not yet.
 
 ## Introduction
 
