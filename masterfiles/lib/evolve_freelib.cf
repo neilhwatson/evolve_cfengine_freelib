@@ -1080,7 +1080,7 @@ bundle agent efl_service_recurse ( ref )
          action         => efl_delta_reporting( "efl_service_recurse_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
          process_select => by_command( "${${process[${s}]}}" ),
          ifvarclass     => "${${class[${s}]}}",
-         restart_class  => canonify( "efl_service_recurse_command_${${command[${s}]}}" );
+         restart_class  => "restart_proc_${s}";
 
    commands:
       "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
@@ -1090,8 +1090,8 @@ bundle agent efl_service_recurse ( ref )
          action     => efl_delta_reporting( "efl_service_recurse_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
          contain    => in_shell_and_silent,
          ifvarclass => or(
-               canonify( "efl_service_recurse_command_${${command[${s}]}}" ),
-               canonify( "${${config_file[${s}]}}_handle_efl_service_recurse_copy_repaired" )
+            "restart_proc_${s}",
+            canonify( "${${promiser_directory[${s}]}}_handle_efl_service_recurse_copy_repaired" )
          );
 }
 
