@@ -13,7 +13,7 @@ my $dir  = '/var/cfengine/masterfiles';
 my $file = '/var/cfengine/masterfiles/efl_manifest.txt';
 my %manifest;
 
-my $allowed_input_files = qr/\.(cf|tmp|txt)$/;
+my $allowed_input_files = qr/\.(cf|tmp|txt|json)$/;
 
 # Get command options and switches
 GetOptions (

@@ -28,8 +28,8 @@ update.cf.
 
 ### Notes
 
-* Only .txt, .tmp, and .cf inputs files are considered. If you wish to change
-this you'll have to edit cf-manifest and efl_update.cf.
+* Only .txt, .tmp, .json and .cf inputs files are considered. If you wish to
+change this you'll have to edit cf-manifest and efl_update.cf.
 * WARNING, This affects how inputs are updated. If something goes wrong you
 may have to update inputs on all clients by hand. Test very, very carefully.
 
