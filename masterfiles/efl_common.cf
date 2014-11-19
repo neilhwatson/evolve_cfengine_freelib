@@ -418,7 +418,7 @@ bundle agent efl_class_cmd_regcmp( ref )
       "wanring" string => "Commands in classes and variables are expensive";
       "field_0" string => "Context";
       "field_1" string => "Class promiser to set";
-      "field_2" string => "Class expression is 'not' rather than 'expression'";
+      "field_2" string => "Use 'expression' or 'not' in class promise";
       "field_3" string => "command to run";
       "field_4" string => "useshell or noshell";
       "field_5" string => "anchored regex to match command output";
@@ -456,7 +456,7 @@ bundle agent efl_class_cmd_regcmp( ref )
       "class_to_set[${c}]"
          comment => "Turn into reference for simpler reading.",
          string  => "class[${c}][1]";
-      "not[${c}]"
+      "exp_or_not[${c}]"
          comment => "Turn into reference for simpler reading.",
          string  => "class[${c}][2]";
       "command[${c}]"
@@ -478,26 +478,26 @@ bundle agent efl_class_cmd_regcmp( ref )
          string     => execresult( "${${command[${c}]}}", "${${useshell[${c}]}}" );
 
    classes:
-      "${${class_to_set[${c}]}}_not" -> { "${${promisee[${c}]}}" }
+      "use_not_for_${c}" -> { "${${promisee[${c}]}}" }
          comment    => "Use not rather than expression",
          ifvarclass => "${${context[${c}]}}",
-         expression => strcmp( "${${not[${c}]}}", "yes" );
+         expression => strcmp( "${${exp_or_not[${c}]}}", "yes" );
 
-      "${${class_to_set[${c}]}}_exp" -> { "${${promisee[${c}]}}" }
+      "use_expression_for_${c}" -> { "${${promisee[${c}]}}" }
          comment    => "Use expression",
          ifvarclass => "${${context[${c}]}}",
-         expression => strcmp( "${${not[${c}]}}", "no" );
+         expression => strcmp( "${${exp_or_not[${c}]}}", "no" );
 
       "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if command output matches the anchored regex.",
          scope      => "namespace",
-         ifvarclass => "${${class_to_set[${c}]}}_exp",
+         ifvarclass => "use_expression_for_${c}",
          expression => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
 
       "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
          comment    => "Set class if command output does not match the anchored regex.",
          scope      => "namespace",
-         ifvarclass => "${${class_to_set[${c}]}}_not",
+         ifvarclass => "use_not_for_${c}",
          not        => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
 }
 
