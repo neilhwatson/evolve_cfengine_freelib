@@ -1,0 +1,215 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use feature qw/say/;
+use Pod::Usage;
+
+use Data::Dumper; # TODO safe to remove after testing.
+
+my $VERSION = 0.01;
+my %tags = (
+   start => qr(<efl),
+   end   => qr(efl/>)
+);
+
+=head1 NAME
+
+eflmaker - Build the Evolve Free Library from source.
+
+=head1 SYNOPSIS
+
+eflmaker --target masterfiles/evolve_freelib.cf --tag param_parser
+   -i src/includes/param_parser.cf
+
+Search target file and replace tags with the contents of include file.
+
+=head2 OPTIONS
+
+=over 4
+
+=item
+[-t|--test]
+Run test suite for developing this application
+
+[--tar|--target
+The target file.
+
+[--tag]
+Name of tag to search for.
+
+[-i|--include]
+The contents of the include file will replace the tag in the target file.
+
+=back
+
+=head1 EXAMPLES
+
+=head1 AUTHOR
+
+Neil H. Watson, http://watson-wilson.ca, C<< <neil@watson-wilson.ca> >>
+
+=head1 COPYRIGHT
+
+The MIT License (MIT)
+
+Copyright (c) 2014 Neil H Watson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=cut
+
+#
+# Subs
+#
+sub _get_cli_args
+{
+   use Getopt::Long qw/GetOptionsFromArray/;
+
+   # Set default CLI args here. Getopts will override.
+   my %arg = (); 
+   my @args = @_;
+
+   GetOptionsFromArray
+   (
+      \@args,
+      \%arg,
+      'help|?',
+      'version',
+      'examples',
+      'src:s',
+      'target:s',
+      'include:s',
+      'tag:s',
+      'dumpargs',
+   )
+   or eval
+   {
+      usage( 'USAGE' );
+      exit 1;
+   };
+   return \%arg;
+}
+
+sub usage
+{
+   my $msg = shift;
+   my $section;
+   if ( $msg =~ m/\AEXAMPLES\Z/ )
+   {
+      $section = $msg;
+   }
+   else
+   {
+      $section = "SYNOPSIS";
+   }
+   pod2usage(
+      -verbose  => 99,
+      -sections => "$section",
+      -msg      => $msg
+   );
+}
+
+sub replace_tag_with_file
+{
+   my %args = @_;
+   my $temp_file = $args{target}.$$;
+   
+   open( my $temp, '>', $temp_file ) or
+      die "Cannot open [$temp_file] for writing";
+   open( my $target, '<', $args{target} ) or
+      die "Cannot open [$args{target}] for reading";
+   open( my $include, '<', $args{include} ) or
+      die "Cannot open [$args{include}] for reading";
+
+   my $include_contents = do { local $/; <$include> };
+   close $include;
+
+   while (<$target>)
+   {
+      s/\s*$tags{start}\s*$args{tag}\s*$tags{end}\s*/$include_contents/;
+      print $temp $_;
+   }
+   close $target;
+   close $temp;
+   rename( $temp_file, $args{target} )
+      or die "Cannot rename [$temp_file] to [$args{target}], $!";
+}
+
+#
+# Testing
+#
+sub _run_tests
+{
+   my %tests = (
+      # Name test 't\d\d' to ensure order
+      t01 =>
+      {
+         name => \&_test_doc_help,
+         arg  => '',
+      },
+      t02 =>
+      {
+         name => \&_test_doc_examples,
+         arg  => '',
+      }
+   );
+
+   my $number_of_tests = keys %tests;
+   eval q( use Test::More tests => $number_of_tests );
+
+   # Run tests in order
+   for my $test ( sort keys %tests )
+   {
+      $tests{$test}->{name}->( $tests{$test}->{arg} );
+   }
+}
+
+sub _test_doc_help
+{
+   my $help = qx/ $0 -? /;
+   like( $help, qr/Usage:.*?Options:/ms,  "[$0] -h, for usage" );
+}
+
+sub _test_doc_examples
+{
+   my $examples = qx/ $0 -e /;
+   like( $examples, qr/EXAMPLES/, "[$0] -e, for usage examples." );
+}
+
+#
+# Main matter
+#
+my $argref = _get_cli_args( @ARGV );
+
+# TODO arg validation here
+say '%args = '. Dumper( $argref ) if ( $argref->{dumpargs} );
+
+# Perhaps a dispatch table?
+_run_tests          if ( $argref->{test} );
+usage( 'HELP' )     if ( $argref->{help} );
+usage( 'EXAMPLES' ) if ( $argref->{examples} );
+say $VERSION        if ( $argref->{version} );
+
+replace_tag_with_file(
+   target => $argref->{target},
+   include => $argref->{include},
+   tag => $argref->{tag},
+);
+

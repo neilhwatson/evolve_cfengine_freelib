@@ -1,0 +1,37 @@
+body common control
+{
+	bundlesequence => { "main", };
+   inputs => { "@{cfengine_stdlib.inputs}", "evolve_freelib.cf" };
+}
+
+bundle common cfengine_stdlib
+{
+  vars:
+      "inputs" slist => {
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/paths.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/common.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/commands.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/packages.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/files.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/services.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/processes.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/storage.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/databases.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/monitor.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/guest_environments.cf",
+           "$(sys.cf_version_major).$(sys.cf_version_minor)/bundles.cf",
+      };
+}
+bundle agent main
+{
+	methods:
+
+		"any" usebundle => test;
+}
+
+bundle agent test
+{
+   reports:
+      "PASS";
+
+}
