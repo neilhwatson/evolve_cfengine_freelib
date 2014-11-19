@@ -1,0 +1,22 @@
+# context ;; promiser file      ;; recurse ;; leaf regex ;; negate ;; mode   ;; owner ;; group ;; promisee
+redhat    ;; /etc/passwd        ;; no      ;; .*         ;; no     ;; 0644   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.1
+redhat    ;; /etc/group         ;; no      ;; .*         ;; no     ;; 0644   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.1
+redhat    ;; /etc/shadow        ;; no      ;; .*         ;; no     ;; 0400   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.1
+redhat    ;; /etc/gshadow       ;; no      ;; .*         ;; no     ;; 0400   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.1
+redhat    ;; /tmp/.             ;; no      ;; .*         ;; no     ;; 1777   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.2 
+redhat    ;; /var/tmp/.         ;; no      ;; .*         ;; no     ;; 1777   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.2 
+redhat    ;; /etc/crontab       ;; no      ;; .*         ;; no     ;; 0600   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+redhat    ;; /etc/anacrontab    ;; no      ;; .*         ;; no     ;; 0600   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+redhat    ;; /etc/cron.hourly/. ;; inf     ;; .*         ;; no     ;; go-rwx ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+redhat    ;; /etc/cron.daily    ;; inf     ;; .*         ;; no     ;; go-rwx ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+redhat    ;; /etc/cron.weekly   ;; inf     ;; .*         ;; no     ;; go-rwx ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+redhat    ;; /etc/cron.monthly  ;; inf     ;; .*         ;; no     ;; go-rwx ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+redhat    ;; /etc/cron.d        ;; inf     ;; .*         ;; no     ;; go-rwx ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+redhat    ;; /var/spool/cron    ;; no      ;; .*         ;; no     ;; go-rwx ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
+
+#TOOD how to lave user/group as is  
+#redhat    ;; /home/            ;; 1       ;; .*         ;; no     ;; o-w  ;; nsa_rhel5 v4.2 sec 2.3.4.2 
+#redhat    ;; /home/            ;; 2       ;; \.\w*      ;; no     ;; o-w  ;; nsa_rhel5 v4.2 sec 2.3.4.3 
+#redhat    ;; /var/spool/cron/  ;; inf     ;; .*         ;; no     ;; go-rwx ;; nsa_rhel5 v4.2 sec 3.4.2
+
+# Copyright Evolve Thinking ( www.evolvethinking.com ).

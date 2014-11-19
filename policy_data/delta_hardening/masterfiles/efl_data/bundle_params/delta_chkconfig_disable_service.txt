@@ -1,0 +1,43 @@
+# context ;; service promiser ;; promisee
+redhat    ;; snmpd            ;; nsa_rhel5 v4.2 sec 3.20.1, nist sp 800-123 sec 4.2.1
+redhat    ;; squid            ;; nsa_rhel5 v4.2 sec 3.19.1, nist sp 800-123 sec 4.2.1
+redhat    ;; smb              ;; nsa_rhel5 v4.2 sec 3.18.1, nist sp 800-123 sec 4.2.1
+redhat    ;; dovecot          ;; nsa_rhel5 v4.2 sec 3.17.1, nist sp 800-123 sec 4.2.1
+redhat    ;; httpd            ;; nsa_rhel5 v4.2 sec 3.16.1, nist sp 800-123 sec 4.2.1
+redhat    ;; vsftpd           ;; nsa_rhel5 v4.2 sec 3.15.1, nist sp 800-123 sec 4.2.1
+redhat    ;; named            ;; nsa_rhel5 v4.2 sec 3.14.1, nist sp 800-123 sec 4.2.1
+redhat    ;; atd              ;; nsa_rhel5 v4.2 sec 3.4.3, nist sp 800-123 sec 4.2.1
+redhat    ;; dhcpd            ;; nsa_rhel5 v4.2 sec 3.9.3, nist sp 800-123 sec 4.2.1
+redhat    ;; autofs           ;; nsa_rhel5 v4.2 sec 2.2.2.3, nist sp 800-123 sec 4.2.1
+redhat    ;; avahi-daemon     ;; nsa_rhel5 v4.2 sec 3.7, nist sp 800-123 sec 4.2.1
+redhat    ;; bluetooth        ;; nsa_rhel5 v4.2 sec 3.3.14, nist sp 800-123 sec 4.2.1
+redhat    ;; cups             ;; nsa_rhel5 v4.2 sec 3.8, nist sp 800-123 sec 4.2.1
+redhat    ;; firstboot        ;; nsa_rhel5 v4.2 sec 3.3.1, nist sp 800-123 sec 4.2.1
+redhat    ;; gpm              ;; nsa_rhel5 v4.2 sec 3.3.2, nist sp 800-123 sec 4.2.1
+redhat    ;; haldaemon        ;; nsa_rhel5 v4.2 sec 3.3.13.2, nist sp 800-123 sec 4.2.1
+redhat    ;; hidd             ;; nsa_rhel5 v4.2 sec 3.3.14.2, nist sp 800-123 sec 4.2.1
+redhat    ;; hplip            ;; nsa_rhel5 v4.2 sec 3.8.4.1, nist sp 800-123 sec 4.2.1
+redhat    ;; irda             ;; nsa_rhel5 v4.2 sec 3.3.16.1, nist sp 800-123 sec 4.2.1
+redhat    ;; isdn             ;; nsa_rhel5 v4.2 sec 3.3.4, nist sp 800-123 sec 4.2.1
+redhat    ;; kdump            ;; nsa_rhel5 v4.2 sec 2.1.1.6, 3.3.5, nist sp 800-123 sec 4.2.1
+redhat    ;; kudzu            ;; nsa_rhel5 v4.2 sec 3.3.6, nist sp 800-123 sec 4.2.1
+redhat    ;; mcstrans         ;; nsa_rhel5 v4.2 sec 2.4.3.2, nist sp 800-123 sec 4.2.1
+redhat    ;; mdmonitor        ;; nsa_rhel5 v4.2 sec 3.3.7, nist sp 800-123 sec 4.2.1
+redhat    ;; messagebus       ;; nsa_rhel5 v4.2 sec 3.3.13.1, nist sp 800-123 sec 4.2.1
+redhat    ;; netfs            ;; nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1
+redhat    ;; nfslock          ;; nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1
+redhat    ;; pcscd            ;; nsa_rhel5 v4.2 sec 3.3.10, nist sp 800-123 sec 4.2.1
+redhat    ;; portmap          ;; nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1
+redhat    ;; rcpidmapd        ;; nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1
+redhat    ;; readahead_early  ;; nsa_rhel5 v4.2 sec 3.3.12, nist sp 800-123 sec 4.2.1
+redhat    ;; readahead_later  ;; nsa_rhel5 v4.2 sec 3.3.12, nist sp 800-123 sec 4.2.1
+redhat    ;; rhnsd            ;; nsa_rhel5 v4.2 sec 2.1.2.2, nist sp 800-123 sec 4.2.1
+redhat    ;; rpcgssd          ;; nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1
+redhat    ;; xfs              ;; nsa_rhel5 v4.2 sec 3.6, nist sp 800-123 sec 4.2.1
+redhat    ;; ypbind           ;; nsa_rhel5 v4.2 sec 3.2.4, nist sp 800-123 sec 4.2.1
+redhat    ;; yum-updatesd     ;; nsa_rhel5 v4.2 sec 2.1.2.3.2, nist sp 800-123 sec 4.2.1
+redhat    ;; rawdevices       ;; nsa_rhel5 v4.2 sec 3.3.17.1, nist sp 800-123 sec 4.2.1
+redhat_5  ;; sendmail         ;; nist sp 800-123 sec 4.2.1
+redhat_6  ;; postfix          ;; nist sp 800-123 sec 4.2.1
+
+# Copyright Evolve Thinking ( www.evolvethinking.com ).

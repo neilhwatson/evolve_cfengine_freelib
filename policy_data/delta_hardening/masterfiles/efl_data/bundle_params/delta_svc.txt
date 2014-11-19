@@ -1,0 +1,15 @@
+# Data for simple services
+
+# context ;; proc regex ;; config file ;; config src ;; src server ;; template ;; encrypt ;; mode ;; owner ;; group ;; promisee
+# 
+# NTP
+#
+redhat_6|centos_6       ;; ntpd -u ntp:ntp -p /var/run/ntpd\.pid -g ;; /etc/ntp.conf ;; /var/cfengine/sitefiles/etc/ntp.conf ;; efl.policy_servers ;; no ;; no ;; 644 ;; root ;; root ;; /etc/init.d/ntpd restart ;;  nsa_rhel5 v4.2 sec 3.10
+redhat_5|centos_5       ;; ntpd -x -u ntp:ntp -p /var/run/ntpd.pid -g ;; /etc/ntp.conf ;; /var/cfengine/sitefiles/etc/ntp.conf ;; efl.policy_servers ;; no ;; no ;; 644 ;; root ;; root ;; /etc/init.d/ntpd restart ;;  nsa_rhel5 v4.2 sec 3.10
+
+#
+# SSH
+#
+redhat   ;; /usr/sbin/sshd ;; /etc/ssh/sshd_config ;; /var/cfengine/sitefiles/etc/ssh/sshd_config ;; efl.policy_servers ;; yes ;; yes ;; 640 ;; root ;; root ;; /etc/init.d/sshd restart ;;  nsa_rhel5 v4.2 sec 3.5.2
+
+# Copyright Evolve Thinking ( www.evolvethinking.com ).

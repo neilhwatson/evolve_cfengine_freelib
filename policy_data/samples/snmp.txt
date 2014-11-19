@@ -1,0 +1,87 @@
+### For elf_service bundle: ###
+
+snmp_nodes ;; /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid ;; /etc/default/snmpd  ;; /var/cfengine/sitefiles/snmp/debian-defaults-snmpd ;; efl_global_slists.policy_servers ;; yes ;; no ;; 644 ;; root ;; root ;; ${paths.path[service]} snmpd restart ;; snmp and monitoring
+
+snmp_nodes ;; /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid ;; /etc/snmp/snmpd.conf  ;; /var/cfengine/sitefiles/snmp/snmpd.conf ;; efl_global_slists.policy_servers ;; yes ;; yes ;; 644 ;; root ;; root ;; ${paths.path[service]} snmpd restart ;; snmp and monitoring
+
+### debian-defaults-snmpd ###
+
+# This file controls the activity of snmpd and snmptrapd
+
+# Don't load any MIBs by default.
+# You might comment this lines once you have the MIBs downloaded.
+export MIBDIRS=/usr/share/mibs/netsnmp:/usr/share/mibs/iana:/usr/share/mibs/ietf
+export MIBS=+NET-SNMP-EXTEND-MIB:LM-SENSORS-MIB:UCD-SNMP-MIB:NET-SNMP-VACM-MIB:UCD-DISKIO-MIB:GNOME-SMI:NET-SNMP-AGENT-MIB:UCD-DEMO-MIB:UCD-DLMOD-MIB:NET-SNMP-MONITOR-MIB:NET-SNMP-PASS-MIB:NET-SNMP-SYSTEM-MIB:NET-SNMP-EXAMPLES-MIB:NET-SNMP-MIB:UCD-IPFWACC-MIB:NET-SNMP-TC
+
+# snmpd control (yes means start daemon).
+SNMPDRUN=yes
+
+# snmpd options (use syslog, close stdin/out/err).
+SNMPDOPTS='-Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid'
+
+# snmptrapd control (yes means start daemon).  As of net-snmp version
+# 5.0, master agentx support must be enabled in snmpd before snmptrapd
+# can be run.  See snmpd.conf(5) for how to do this.
+TRAPDRUN=no
+
+# snmptrapd options (use syslog).
+TRAPDOPTS='-Lsd -p /var/run/snmptrapd.pid'
+
+# create symlink on Debian legacy location to official RFC path
+SNMPDCOMPAT=yes
+
+# EFO
+
+### snmpd.conf ###
+
+# Managed by Cfengine. Do not edit on target system.
+#
+agentAddress  udp6:161
+
+# SECTION: System Information Setup
+#
+#   This section defines some of the information reported in
+#   the "system" mib group in the mibII tree.
+
+# syslocation: The [typically physical] location of the system.
+#   Note that setting this value here means that when trying to
+#   perform an snmp SET operation to the sysLocation.0 variable will make
+#   the agent return the "notWritable" error code.  IE, including
+#   this token in the snmpd.conf file will disable write access to
+#   the variable.
+#   arguments:  location_string
+
+syslocation  home
+
+# syscontact: The contact information for the administrator
+#   Note that setting this value here means that when trying to
+#   perform an snmp SET operation to the sysContact.0 variable will make
+#   the agent return the "notWritable" error code.  IE, including
+#   this token in the snmpd.conf file will disable write access to
+#   the variable.
+#   arguments:  contact_string
+
+syscontact  neil@example.com
+
+###########################################################################
+# SECTION: Access Control Setup
+#
+#   This section defines who is allowed to talk to your running
+#   snmp agent.
+
+# rouser: a SNMPv3 read-only user
+#   arguments:  user [noauth|auth|priv] [restriction_oid]
+
+rouser  opennms priv 
+createUser opennms SHA "<password here>" AES
+
+disk / 300000
+disk /var 300000
+
+#proc cf-execd 1 5
+#procfix cf-execd /var/cfengine/bin/cf-execd -O
+
+# Don't log allowed connections. Monitors can flood the logs.
+dontLogTCPWrappersConnects 1
+
+# EOF
