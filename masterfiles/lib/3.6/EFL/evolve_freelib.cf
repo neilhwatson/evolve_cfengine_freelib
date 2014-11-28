@@ -1900,12 +1900,6 @@ bundle agent efl_bug3430 (ref)
          "TCDB corruption detected. Repair was attempted.";
 }
 
-body process_select by_pid( pid )
-{
-   pid            => irange( "${pid}", "${pid}" );
-   process_result => "pid";
-}
-
 bundle agent efl_rcs_pull( ref )
 {
    meta:
