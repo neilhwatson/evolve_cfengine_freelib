@@ -2,7 +2,8 @@ body common control
 {
 	bundlesequence => { "main", };
    inputs => { "@{cfengine_stdlib.inputs}",
-      "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/EFL/evolve_freelib.cf"
+      "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/EFL/evolve_freelib.cf",
+      "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/EFL/efl_common.cf"
    };
 }
 
@@ -28,12 +29,5 @@ bundle agent main
 {
 	methods:
 
-		"any" usebundle => test;
-}
-
-bundle agent test
-{
-   reports:
-      "PASS";
-
+		"any" usebundle => efl_main( "../efl_main.txt" );
 }

@@ -35,6 +35,13 @@ bundle common efl_c
          comment => "Maximum number of bytes to read from data file.",
          string  => "1M";
 
+      "json_file"
+         comment => "How to determine if param file is json",
+         string  => ".*\.(json|dat|jsn)";
+
+      "csv_file"
+         comment => "How to determine if param file is csv",
+         string  => ".*\.(txt|csv)";
 #
 # Delta Reporting configs
 #
@@ -88,10 +95,12 @@ bundle agent efl_main( ref )
             "${efl_c.max_bytes}"
             );
 
-      use_ordered_index::
-      "i" 
-         comment => "Convert module list to local list for bug work-around",
-         slist   => { @{return_index_pl.efl_main} };
+      "i_unsorted" 
+         comment => "index from csv file may not be the correct order",
+         slist   => getindices( "meth_o" );
+
+      "i"
+         slist => sort( "i_unsorted", "int" );
 
       "i2"
          comment => "Work around for bug 2333",
@@ -121,29 +130,20 @@ bundle agent efl_main( ref )
          string  => "meth[${i}][5]";
 
    classes:
-      !use_ordered_index::
-         "use_ordered_index"
-            comment    => "Created ordered index for method calls",
-            expression => usemodule( "return_index.pl", "efl_main ${dim_methods}" );
-
-      any::
-         "run_methods_loop"
-            comment    => "Delays method loop until index is ready",
-            expression => isvariable( "i" );
+   <efl param_file_picker efl/>
 
    methods:
-      run_methods_loop::
-         "methods loop wrapper"
-            comment    => "Call wrapper bundle to workaround naked variable bug.",
-            handle     => "efl_main_methods_efl_bug2638",
-            ifvarclass => "${${class[${i}]}}",
-            action     => efl_if_elapsed( "${${ifelapsed[${i}]}}" ),
-            usebundle  => efl_bug2638(
-               "${${promiser[${i}]}}_${i}",
-               "${${promisee[${i}]}}",
-               "${${bundle[${i}]}}",
-               "${${parameter[${i}]}}"
-            );
+      "methods loop wrapper"
+         comment    => "Call wrapper bundle to workaround naked variable bug.",
+         handle     => "efl_main_methods_efl_bug2638",
+         ifvarclass => "${${class[${i}]}}",
+         action     => efl_if_elapsed( "${${ifelapsed[${i}]}}" ),
+         usebundle  => efl_bug2638(
+            "${${promiser[${i}]}}_${i}",
+            "${${promisee[${i}]}}",
+            "${${bundle[${i}]}}",
+            "${${parameter[${i}]}}"
+         );
 }
 
 bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)

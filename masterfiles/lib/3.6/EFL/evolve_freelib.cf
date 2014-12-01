@@ -2038,7 +2038,7 @@ bundle agent efl_rcs_pull( ref )
 bundle agent efl_test_simple( ref )
 {
    meta:
-      "purpose" string => "Skeleton bundle for new bundle authoring";
+      "purpose" string => "A testing bundle inspired by Perl's Test::Simple";
       "field_0" string => "Context expression";
       "field_1" string => "Class regex to test";
       "field_2" string => "pass test whether test class 'is' true or 'isnt' true";

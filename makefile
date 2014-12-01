@@ -1,8 +1,14 @@
 CF_PROMISES = cf-promises
+CF_AGENT    = cf-agent
 VERSION     = 3.6
 LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
+
+EFL_FILES   = \
+	$(EFL_LIB)/efl_common.cf \
+	$(EFL_LIB)/evolve_freelib.cf
+
 eflmaker    = ./bin/eflmaker
 cfstdlib    = \
 	test/$(LIB)/commands.cf \
@@ -26,8 +32,17 @@ cfstdlib    = \
 	test/$(LIB)/monitor.cf \
 	test/$(LIB)/stdlib.cf
 
-$(EFL_LIB)/evolve_freelib.cf: src/includes/param_parser.cf src/includes/param_file_picker.cf src/$(EFL_LIB)/evolve_freelib.cf $(EFL_LIB)
-	cp src/$(EFL_LIB)/evolve_freelib.cf $@
+tests       =    \
+	version       \
+	syntax        \
+	001_efl_test
+
+	
+.PHONY: all
+all: $(EFL_FILES)
+
+$(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_picker.cf src/$@
+	cp src/$@ $@
 	$(eflmaker) --tar $@ \
 		--tag param_parser -i src/includes/param_parser.cf
 	$(eflmaker) --tar $@ \
@@ -37,16 +52,31 @@ $(EFL_LIB):
 	mkdir -p $@
 
 .PHONY: check
-check: test/$(EFL_LIB) $(cfstdlib) $(EFL_LIB)/evolve_freelib.cf
-	printf "Checking...\n"
-	$(CF_PROMISES) -V | grep $(VERSION) && echo PASS
-	cp $(EFL_LIB)/evolve_freelib.cf test/$(EFL_LIB)/
-	cd test/masterfiles; $(CF_PROMISES) -cf ./promises.cf && echo PASS
+check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
 
+.PHONY: version
+version:
+	$(CF_PROMISES) -V | grep $(VERSION) && echo PASS: $@
+
+.PHONY: syntax
+syntax:
+	cd test/masterfiles; $(CF_PROMISES) -cf ./promises.cf && echo PASS: $@
+
+.PHONY: 001_efl_test
+001_efl_test: 
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ | \
+		pcregrep --quiet --multiline 'R: PASS, any, efl_main order 1\
+R: PASS, any, efl_main order 2\
+R: PASS, any, efl_main order 3\
+R: PASS, any, efl_main order 4\
+R: PASS, any, efl_main order 5' && echo PASS: $@
+
+# TODO create macros or vars to duplicate test for csv and json input?
+# TODO build csv of json automatically using the other?
 test/$(EFL_LIB):
 	mkdir -p $@
+	cp -r $(EFL_LIB)/* test/$(EFL_LIB)/
 
-# TODO this is not working
 $(cfstdlib): .stdlib
 
 .stdlib:
