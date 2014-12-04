@@ -4,6 +4,7 @@ VERSION     = 3.6
 LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
+CSVTOJSON   = ./bin/csvtojson
 
 EFL_FILES   = \
 	$(EFL_LIB)/efl_common.cf \
@@ -35,8 +36,21 @@ cfstdlib    = \
 tests       =    \
 	version       \
 	syntax        \
-	001_efl_test
+	001_efl_test  \
+	002_efl_test
 
+# $(call 001_efl_test,target_class)
+define 001_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1 | \
+	pcregrep --multiline \
+	'R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5' \
+	&& echo PASS
+endef
+
+# $(call search_and_replace,search_regex replace_string target_file)
+define search_and_replace
+	perl -pi -e 's/$1/$2/' $3
+endef
 	
 .PHONY: all
 all: $(EFL_FILES)
@@ -54,25 +68,6 @@ $(EFL_LIB):
 .PHONY: check
 check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
 
-.PHONY: version
-version:
-	$(CF_PROMISES) -V | grep $(VERSION) && echo PASS: $@
-
-.PHONY: syntax
-syntax:
-	cd test/masterfiles; $(CF_PROMISES) -cf ./promises.cf && echo PASS: $@
-
-.PHONY: 001_efl_test
-001_efl_test: 
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ | \
-		pcregrep --quiet --multiline 'R: PASS, any, efl_main order 1\
-R: PASS, any, efl_main order 2\
-R: PASS, any, efl_main order 3\
-R: PASS, any, efl_main order 4\
-R: PASS, any, efl_main order 5' && echo PASS: $@
-
-# TODO create macros or vars to duplicate test for csv and json input?
-# TODO build csv of json automatically using the other?
 test/$(EFL_LIB):
 	mkdir -p $@
 	cp -r $(EFL_LIB)/* test/$(EFL_LIB)/
@@ -83,11 +78,48 @@ $(cfstdlib): .stdlib
 	cd test/masterfiles/lib; svn export --force $(CF_REPO)/masterfiles/trunk/lib/$(VERSION)
 	touch $@
 
+.PHONY: version
+version:
+	$(CF_PROMISES) -V | grep $(VERSION) && echo PASS: $@
+
+.PHONY: syntax
+syntax:
+	OUTPUT=$$($(CF_PROMISES) -cf ./test/masterfiles/promises.cf 2>&1) ;\
+	if [ -z "$$OUTPUT" ] ;\
+	then                  \
+		echo PASS: $@     ;\
+	else                  \
+		echo FAIL: $@     ;\
+		echo $$OUTPUT     ;\
+		exit 1            ;\
+	fi                    
+
+.PHONY: 001_efl_test
+001_efl_test: 
+	$(call 001_efl_test, $@)
+
+.PHONY: 002_efl_test
+001_csv_test_files  = $(wildcard test/001/*.csv)
+002_csv_test_files  = $(patsubst test/001%,test/002%,$(001_csv_test_files))
+002_json_test_files = $(patsubst %.csv,%.json,$(002_csv_test_files))
+002_efl_test: test/002/efl_main.json $(002_json_test_files)
+	$(call 001_efl_test, $@)
+
+test/002/efl_main.json: test/001/efl_main.txt
+	$(CSVTOJSON) -b efl_main < $< > $@
+	$(call search_and_replace,001,002,$@) 
+	$(call search_and_replace,\.csv,\.json,$@) 
+
+test/002/%_efl_test_simple.json: test/001/%_efl_test_simple.csv
+	echo 002_json_test_files $@
+	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
+	rm -f  test/002/*.json
 
 .PHONY: help
 help:

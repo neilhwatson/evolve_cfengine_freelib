@@ -2039,79 +2039,110 @@ bundle agent efl_test_simple( ref )
 {
    meta:
       "purpose" string => "A testing bundle inspired by Perl's Test::Simple";
-      "field_0" string => "Context expression";
-      "field_1" string => "Class regex to test";
-      "field_2" string => "pass test whether test class 'is' true or 'isnt' true";
-      "field_3" string => "Test name, free form like promisee";
+      "field_0" string => "Context expression"; # class
+      "field_1" string => "Class regex to test"; # class_to_test
+      "field_2" string => "pass test whether test class 'is' true or 'isnt' true"; # is_or_isnt
+      "field_3" string => "Test name, free form like promisee"; # name
 
    vars:
-      "dim_test"
-         comment => "Read data file for parsing.",
-         handle  => "efl_test_simple_vars_files",
-         int     => readstringarrayidx(
-            "test_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "class_to_test",
+            "2" : "is_or_isnt",
+            "3" : "name",
+         }');
 
-      "i"
-         comment => "Get index array loaded above.",
-         handle  => "efl_test_simple_vars_i",
-         slist   => getindices( "test_o" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      "i2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3" };
- 
-      "test[${i}][${i2}]"
-         comment => "Work around for bug 2333",
-         string => "${test_o[${i}][${i2}]}";
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
 
-      "class[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "test[${i}][0]";
-      "test_class[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "test[${i}][1]";
-      "is_or_isnt[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "test[${i}][2]";
-      "test_name[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "test[${i}][3]";
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
+
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
 
    classes:
-      "class_isnt_${i}"
-        ifvarclass => "${${class[${i}]}}",
-        expression => strcmp( "isnt", "${${is_or_isnt[${i}]}}" );
-      "class_is_${i}"
-        ifvarclass => "${${class[${i}]}}",
-        expression => strcmp( "is", "${${is_or_isnt[${i}]}}" );
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
 
-      "pass_${i}"
-         ifvarclass => "class_isnt_${i}",
-         not        => classmatch( "${${test_class[${i}]}}" );
-      "fail_${i}"
-         ifvarclass => "class_isnt_${i}",
-         expression => classmatch( "${${test_class[${i}]}}" );
-      "pass_${i}"
-         ifvarclass => "class_is_${i}",
-         expression => classmatch( "${${test_class[${i}]}}" );
-      "fail_${i}"
-         ifvarclass => "class_is_${i}",
-         not        => classmatch( "${${test_class[${i}]}}" );
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "class_isnt_${d[${i}][class_to_test]}"
+        ifvarclass => "${d[${i}][class]}",
+        expression => strcmp( "isnt", "${d[${i}][is_or_isnt]}" );
+      "class_is_${d[${i}][class_to_test]}"
+        ifvarclass => "${d[${i}][class]}",
+        expression => strcmp( "is", "${d[${i}][is_or_isnt]}" );
+
+      "pass_${d[${i}][class_to_test]}"
+         ifvarclass => "class_isnt_${d[${i}][class_to_test]}",
+         not        => classmatch( "${d[${i}][class_to_test]}" );
+      "fail_${d[${i}][class_to_test]}"
+         ifvarclass => "class_isnt_${d[${i}][class_to_test]}",
+         expression => classmatch( "${d[${i}][class_to_test]}" );
+      "pass_${d[${i}][class_to_test]}"
+         ifvarclass => "class_is_${d[${i}][class_to_test]}",
+         expression => classmatch( "${d[${i}][class_to_test]}" );
+      "fail_${d[${i}][class_to_test]}"
+         ifvarclass => "class_is_${d[${i}][class_to_test]}",
+         not        => classmatch( "${d[${i}][class_to_test]}" );
 
    reports:
-      "PASS, ${${test_class[${i}]}}, ${${test_name[${i}]}}"
-         ifvarclass => "pass_${i}";
-      "FAIL, ${${test_class[${i}]}}, ${${test_name[${i}]}}"
-         ifvarclass => "fail_${i}";
+      "PASS, ${d[${i}][class_to_test]}, ${d[${i}][name]}"
+         ifvarclass => "pass_${d[${i}][class_to_test]}";
+      "FAIL, ${d[${i}][class_to_test]}, ${d[${i}][name]}"
+         ifvarclass => "fail_${d[${i}][class_to_test]}";
 
       efl_test_simple_debug::
-         "${${class[${i}]}}, ${${test_class[${i}]}}, ${${is_or_isnt[${i}]}}, ${${test_name[${i}]}}";
+         "${d[${i}][class]}, ${d[${i}][class_to_test]}, ${d[${i}][is_or_isnt]}, ${d[${i}][name]}";
 }
 
 bundle agent efl_test_count( ref )

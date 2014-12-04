@@ -10,7 +10,7 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use JSON;
-# use Data::Dumper; TODO remove for prod
+# use Data::Dumper; # TODO remove for prod
 
 # Sample data
 my %sample;
@@ -25,7 +25,8 @@ my %headers = (
    'efl_main'    => [ qw/ class promiser bundle ifelapsed parameter promisee / ],
    'efl_command' => [ qw/ class command useshell module ifelapsed promisee / ],
    'efl_server'  => [ qw/ class path admit admit_ips  admit_hostnames admit_keys promisee / ],
-   'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ]
+   'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ],
+   'efl_test_simple' => [ qw/ class class_to_test is_or_isnt name / ],
 );
 
 # Get command options and switches
@@ -44,10 +45,16 @@ GetOptions (
 
 # Prints usage and exits
 sub usage {
-   my $msg = shift;
-   pod2usage(-verbose=>99,
-      -sections=>"SYNOPSIS",
-      -msg => $msg
+   my %args = (
+      exit => 0,
+      @_,
+   );
+
+   pod2usage(
+      -verbose  => 99,
+      -exitval  => $args{exit},
+      -sections =>"SYNOPSIS",
+      -msg      => $args{msg},
    );
 }
 
@@ -72,8 +79,7 @@ sub trim_whitespace
 # Validate
 if ( $opt{sample} && ! $sample{$opt{sample}} )
 {
-   usage( "Wrong sample arg: $opt{sample}" );
-   exit 1;
+   usage( msg => "Wrong sample arg: $opt{sample}", exit => 2 );
 }
 
 if ( $opt{bundle} && $opt{bundle} eq 'all' )
@@ -84,8 +90,7 @@ if ( $opt{bundle} && $opt{bundle} eq 'all' )
 
 if ( $opt{bundle}  && ! grep m/^$opt{bundle}$/, keys %headers )
 {
-   usage( "Wrong or missing bundle name: $opt{bundle}" );
-   exit 2
+   usage( msg => "Wrong or missing bundle name: $opt{bundle}", exit => 3 );
 }
 
 ##########################

@@ -1,3 +1,5 @@
+      "param_file" string => canonifyuniquely( "${ref}" );
+
       "p"
          comment    => "Index params",
          slist      => getindices( "params" );
@@ -14,10 +16,15 @@
                "${efl_c.max_bytes}"
             );
 
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_csv",
-            slist      => getindices( "csv_data" );
+            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",

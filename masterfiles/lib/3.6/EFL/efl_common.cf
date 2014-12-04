@@ -84,50 +84,66 @@ bundle agent efl_main( ref )
       "method_field_5" string => "Promisee";
 
    vars:
-      "dim_methods"
-         comment => "Read data to be used in method promises.",
-         int     => readstringarrayidx(
-            "meth_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
+      "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "promiser",
+            "2" : "bundle",
+            "3" : "ifelapsed",
+            "4" : "parameter",
+            "5" : "promisee"
+         }');
+
+      "param_file" string => canonifyuniquely( "${ref}" );
+
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
+
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
             );
 
-      "i_unsorted" 
-         comment => "index from csv file may not be the correct order",
-         slist   => getindices( "meth_o" );
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
 
-      "i"
-         slist => sort( "i_unsorted", "int" );
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
 
-      "i2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5" };
- 
-      "meth[${i}][${i2}]"
-         comment => "Work around for bug 2333",
-         string => "${meth_o[${i}][${i2}]}";
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
 
-      "class[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][0]";
-      "promiser[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][1]";
-      "bundle[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][2]";
-      "ifelapsed[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][3]";
-      "parameter[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][4]";
-      "promisee[${i}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "meth[${i}][5]";
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -144,13 +160,13 @@ bundle agent efl_main( ref )
       "methods loop wrapper"
          comment    => "Call wrapper bundle to workaround naked variable bug.",
          handle     => "efl_main_methods_efl_bug2638",
-         ifvarclass => "${${class[${i}]}}",
-         action     => efl_if_elapsed( "${${ifelapsed[${i}]}}" ),
+         ifvarclass => "${d[${i}][class]}",
+         action     => efl_if_elapsed( "${d[${i}][ifelapsed]}" ),
          usebundle  => efl_bug2638(
-            "${${promiser[${i}]}}_${i}",
-            "${${promisee[${i}]}}",
-            "${${bundle[${i}]}}",
-            "${${parameter[${i}]}}"
+            "${d[${i}][promiser]}_${i}",
+            "${d[${i}][promisee]}",
+            "${d[${i}][bundle]}",
+            "${d[${i}][parameter]}"
          );
 }
 
@@ -159,6 +175,22 @@ bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
    meta:
       "meta_purpose" string => "Workaround for naked variable bug 2638.";
       "bug"          string => "https://cfengine.com/dev/issues/2638";
+
+   vars:
+      "param_file" string => canonifyuniquely( "${parameter}" );
+
+   classes:
+## These classes are used by the bundle called in the methods. Declaring the
+## class at this level saves a pass in the called bundle
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         scope      => 'namespace',
+         expression => regcmp( ${efl_c.json_file}, ${parameter} );
+
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         scope      => 'namespace',
+         expression => regcmp( ${efl_c.csv_file}, ${parameter} );
 
    methods:
       "${promiser_name}" -> { "${promisee_name}" }

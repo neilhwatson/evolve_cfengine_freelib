@@ -25,9 +25,13 @@ bundle common cfengine_stdlib
            "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/bundles.cf",
       };
 }
+
 bundle agent main
 {
 	methods:
 
-		"any" usebundle => efl_main( "../efl_main.txt" );
+   001_efl_test::
+		"any" usebundle => efl_main( "../001/efl_main.txt" );
+   002_efl_test::
+		"any" usebundle => efl_main( "../002/efl_main.json" );
 }
