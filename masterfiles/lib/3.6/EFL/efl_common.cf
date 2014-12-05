@@ -211,72 +211,99 @@ bundle agent efl_class_returnszero( ref )
       "field_5" string => "Promisee";
 
    vars:
-      "dim_rz"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_returnszero_vars_files",
-         int     => readstringarrayidx(
-            "rz_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "class_to_set",
+            "2" : "command",
+            "3" : "shell",
+            "4" : "zero",
+            "5" : "promisee"
+         }');
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_returnszero_vars_f",
-         slist   => getindices( "rz_o" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6" };
- 
-      "rz[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${rz_o[${f}][${f2}]}";
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
 
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][0]";
-      "class_to_set[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][1]";
-      "command[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][2]";
-      "shell[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][3]";
-      "negate[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][4]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][5]";
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
+
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
 
    classes:
-      "${${class_to_set[${f}]}}_non_zero" -> { "${${promisee[${f}]}}" }
-         comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "no" );
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
 
-      "${${class_to_set[${f}]}}_zero" -> { "${${promisee[${f}]}}" }
-         comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "yes" );
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
 
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][class_to_set]}_non_zero" -> { "${d[${i}][promisee]}" }
+         comment    => "Does class to set result from zero or non zero return value",
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][zero]}", "no" );
+
+      "${d[${i}][class_to_set]}_zero" -> { "${d[${i}][promisee]}" }
+         comment    => "Does class to set result from zero or non zero return value",
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][zero]}", "yes" );
+
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if expression returns non zero",
-         ifvarclass => "${${class_to_set[${f}]}}_non_zero",
+         ifvarclass => "${d[${i}][class_to_set]}_non_zero",
          scope      => "namespace",
-         not        => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+         not        => returnszero( "${d[${i}][command]}", "${d[${i}][shell]}" );
 
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if expression returns zero",
-         ifvarclass => "${${class_to_set[${f}]}}_zero",
+         ifvarclass => "${d[${i}][class_to_set]}_zero",
          scope      => "namespace",
-         expression => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+         expression => returnszero( "${d[${i}][command]}", "${d[${i}][shell]}" );
 }
 
 bundle agent efl_global_slists( ref )

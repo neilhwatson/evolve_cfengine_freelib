@@ -156,72 +156,44 @@ bundle agent efl_class_returnszero( ref )
       "field_5" string => "Promisee";
 
    vars:
-      "dim_rz"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_returnszero_vars_files",
-         int     => readstringarrayidx(
-            "rz_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "class_to_set",
+            "2" : "command",
+            "3" : "shell",
+            "4" : "zero",
+            "5" : "promisee"
+         }');
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_returnszero_vars_f",
-         slist   => getindices( "rz_o" );
-
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6" };
- 
-      "rz[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${rz_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][0]";
-      "class_to_set[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][1]";
-      "command[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][2]";
-      "shell[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][3]";
-      "negate[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][4]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rz[${f}][5]";
+      <efl param_parser efl/>
 
    classes:
-      "${${class_to_set[${f}]}}_non_zero" -> { "${${promisee[${f}]}}" }
-         comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "no" );
+      <efl param_file_picker efl/>
 
-      "${${class_to_set[${f}]}}_zero" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][class_to_set]}_non_zero" -> { "${d[${i}][promisee]}" }
          comment    => "Does class to set result from zero or non zero return value",
-         ifvarclass => "${${class[${f}]}}",
-         expression => strcmp( "${${negate[${f}]}}", "yes" );
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][zero]}", "no" );
 
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][class_to_set]}_zero" -> { "${d[${i}][promisee]}" }
+         comment    => "Does class to set result from zero or non zero return value",
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][zero]}", "yes" );
+
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if expression returns non zero",
-         ifvarclass => "${${class_to_set[${f}]}}_non_zero",
+         ifvarclass => "${d[${i}][class_to_set]}_non_zero",
          scope      => "namespace",
-         not        => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+         not        => returnszero( "${d[${i}][command]}", "${d[${i}][shell]}" );
 
-      "${${class_to_set[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if expression returns zero",
-         ifvarclass => "${${class_to_set[${f}]}}_zero",
+         ifvarclass => "${d[${i}][class_to_set]}_zero",
          scope      => "namespace",
-         expression => returnszero( "${${command[${f}]}}", "${${shell[${f}]}}" );
+         expression => returnszero( "${d[${i}][command]}", "${d[${i}][shell]}" );
 }
 
 bundle agent efl_global_slists( ref )

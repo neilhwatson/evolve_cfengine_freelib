@@ -1,0 +1,4 @@
+any ;; 003_true_true   ;; is   ;; Class if /bin/true
+any ;; 003_true_false  ;; is   ;; Class if /bin/false
+any ;; 003_false_false ;; isnt ;; Is not true
+

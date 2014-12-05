@@ -37,15 +37,24 @@ tests       =    \
 	version       \
 	syntax        \
 	001_efl_test  \
-	002_efl_test
+	002_efl_test  \
+	003_efl_test  \
+	004_efl_test  
 
-# $(call 001_efl_test,target_class)
-define 001_efl_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1 | \
-	pcregrep --multiline \
-	'R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5' \
-	&& echo PASS
+# $(call cf_agent_grep_test ,target_class,result_string)
+define cf_agent_grep_test 
+ 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1 | \
+	perl -e '                            \
+	while (<STDIN>) { $$OUTPUT .= $$_  } \
+		if ( $$OUTPUT =~ m|\A$2\Z| )      \
+			{ print "PASS: $@\n" }         \
+		else                              \
+			{ die "FAIL: $@" }'
 endef
+# define cf_agent_grep_test 
+# 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1 | \
+# 	pcregrep --multiline '$2' && echo PASS
+# endef
 
 # $(call search_and_replace,search_regex replace_string target_file)
 define search_and_replace
@@ -94,18 +103,14 @@ syntax:
 		exit 1            ;\
 	fi                    
 
-.PHONY: 001_efl_test
-001_efl_test: 
-	$(call 001_efl_test, $@)
-
 .PHONY: 002_efl_test
 001_csv_test_files  = $(wildcard test/001/*.csv)
 002_csv_test_files  = $(patsubst test/001%,test/002%,$(001_csv_test_files))
 002_json_test_files = $(patsubst %.csv,%.json,$(002_csv_test_files))
-002_efl_test: test/002/efl_main.json $(002_json_test_files)
-	$(call 001_efl_test, $@)
+002_efl_test: 001_efl_test test/002/efl_main.json $(002_json_test_files)
+	$(call cf_agent_grep_test, $@,$(001_efl_test_result))
 
-test/002/efl_main.json: test/001/efl_main.txt
+test/002/efl_main.json: test/001/efl_main.csv
 	$(CSVTOJSON) -b efl_main < $< > $@
 	$(call search_and_replace,001,002,$@) 
 	$(call search_and_replace,\.csv,\.json,$@) 
@@ -114,12 +119,42 @@ test/002/%_efl_test_simple.json: test/001/%_efl_test_simple.csv
 	echo 002_json_test_files $@
 	$(CSVTOJSON) -b efl_test_simple < $^ > $@
 
+.PHONY: 001_efl_test
+001_efl_test_result = R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5
+001_efl_test: 
+	$(call cf_agent_grep_test, $@,$(001_efl_test_result))
+
+.PHONY: 004_efl_test
+004_efl_test_result = R: PASS, 004_true_true, Class if /bin/true\nR: PASS, 004_true_false, Class if /bin/false\nR: PASS, 004_false_false, Is not true
+004_efl_test: 003_efl_test test/004/efl_main.json test/004/01_efl_returnszero.json test/004/02_efl_test_simple.json
+	$(call cf_agent_grep_test, $@,$(004_efl_test_result))
+
+test/004/efl_main.json: test/003/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	$(call search_and_replace,003,004,$@) 
+	$(call search_and_replace,\.csv,\.json,$@)
+
+test/004/01_efl_returnszero.json: test/003/01_efl_returnszero.csv
+	$(CSVTOJSON) -b efl_class_returnszero < $^ > $@
+	$(call search_and_replace,003,004,$@) 
+
+test/004/02_efl_test_simple.json: test/003/02_efl_test_simple.csv
+	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+	$(call search_and_replace,003,004,$@) 
+
+.PHONY: 003_efl_test
+003_efl_test_result = R: PASS, 003_true_true, Class if /bin/true\nR: PASS, 003_true_false, Class if /bin/false\nR: PASS, 003_false_false, Is not true
+003_efl_test:
+	$(call cf_agent_grep_test, $@,$(003_efl_test_result))
+
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
+# TODO use rm -f test/0../*.json ?
 	rm -f  test/002/*.json
+	rm -f  test/004/*.json
 
 .PHONY: help
 help:

@@ -31,7 +31,11 @@ bundle agent main
 	methods:
 
    001_efl_test::
-		"any" usebundle => efl_main( "../001/efl_main.txt" );
+		"any" usebundle => efl_main( "../001/efl_main.csv" );
    002_efl_test::
 		"any" usebundle => efl_main( "../002/efl_main.json" );
+   003_efl_test::
+		"any" usebundle => efl_main( "../003/efl_main.csv" );
+   004_efl_test::
+		"any" usebundle => efl_main( "../004/efl_main.json" );
 }
