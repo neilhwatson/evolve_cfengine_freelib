@@ -2145,6 +2145,99 @@ bundle agent efl_test_simple( ref )
          "${d[${i}][class]}, ${d[${i}][class_to_test]}, ${d[${i}][is_or_isnt]}, ${d[${i}][name]}";
 }
 
+bundle agent efl_dump_strings( ref )
+{
+   meta:
+      "purpose" string => "Dump string variables via reports promises";
+      "field_0" string => "Context expression"; # class
+      "field_1" string => "Name of string to dump"; # name
+      "field_2" string => "promisee"; # promisee
+
+   vars:
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "name",
+            "2" : "promisee",
+         }');
+
+      "param_file" string => canonifyuniquely( "${ref}" );
+
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
+
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
+
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
+
+   classes:
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
+
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+   reports:
+"
+Class    => ${d[${i}][class]}
+Name     => ${d[${i}][name]}
+Value    => ${${d[${i}][name]}}
+Promisee => ${d[${i}][promisee]}"
+         ifvarclass => "${d[${i}][class]}";
+         " DEBUG::
+         Class    => any
+         Name     => efl_global_slists.web_servers
+         Value    => ${efl_global_slists.web_servers}
+         Promisee => efl_development";
+
+}
+
 bundle agent efl_test_count( ref )
 {
    meta:

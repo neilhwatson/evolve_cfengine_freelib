@@ -39,7 +39,9 @@ tests       =    \
 	001_efl_test  \
 	002_efl_test  \
 	003_efl_test  \
-	004_efl_test  
+	004_efl_test  \
+	005_efl_test  \
+	006_efl_test  
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -147,14 +149,40 @@ test/004/02_efl_test_simple.json: test/003/02_efl_test_simple.csv
 003_efl_test:
 	$(call cf_agent_grep_test, $@,$(003_efl_test_result))
 
+.PHONY: 006_efl_test
+006_efl_test: 006_efl_test_result = R: efl_global_lists\.ntp_servers  => \[ntp1\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp2\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp3\.example\.com\]\n(R: efl_global_lists\.name_servers => \[10\.0\.0\.\d{1}\]\n){3}(R: efl_global_lists\.web_servers  => \[\d{1}\.example\.com\]\n{0,1}){3}
+006_efl_test:  005_efl_test test/006/efl_main.json test/006/01_efl_global_slists.json test/006/02_efl_dump_strings.json test/006/name_servers.txt
+	$(call cf_agent_grep_test, $@,$(006_efl_test_result))
+
+test/006/efl_main.json: test/005/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	$(call search_and_replace,005,006,$@) 
+	$(call search_and_replace,\.csv,\.json,$@)
+
+test/006/01_efl_global_slists.json: test/005/01_efl_global_slists.csv
+	$(CSVTOJSON) -b efl_global_slists < $^ > $@
+	$(call search_and_replace,005,006,$@) 
+
+test/006/02_efl_dump_strings.json: test/005/02_efl_dump_strings.csv
+	$(CSVTOJSON) -b efl_dump_strings < $^ > $@
+	$(call search_and_replace,005,006,$@) 
+
+test/006/name_servers.txt: test/005/name_servers.txt
+	cp test/005/name_servers.txt test/006/
+
+.PHONY: 005_efl_test
+005_efl_test: 005_efl_test_result = R: efl_global_lists\.ntp_servers  => \[ntp1\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp2\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp3\.example\.com\]\n(R: efl_global_lists\.name_servers => \[10\.0\.0\.\d{1}\]\n){3}(R: efl_global_lists\.web_servers  => \[\d{1}\.example\.com\]\n{0,1}){3}
+005_efl_test:
+	$(call cf_agent_grep_test, $@,$(005_efl_test_result))
+	#cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ 
+
+
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
-# TODO use rm -f test/0../*.json ?
-	rm -f  test/002/*.json
-	rm -f  test/004/*.json
+	rm -f test/0*/*.json
 
 .PHONY: help
 help:

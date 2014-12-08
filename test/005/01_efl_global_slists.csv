@@ -1,0 +1,3 @@
+any ;; ntp_servers  ;; ntp1.example.com, ntp2.example.com, ntp3.example.com ;; n ;; efl development
+any ;; name_servers ;; ../005/name_servers.txt                              ;; d ;; efl development 
+any ;; web_servers  ;; 1.example.com, 2.example.com, 3.example.com          ;; r ;; efl development

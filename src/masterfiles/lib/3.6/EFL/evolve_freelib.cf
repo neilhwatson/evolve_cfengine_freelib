@@ -2090,6 +2090,44 @@ bundle agent efl_test_simple( ref )
          "${d[${i}][class]}, ${d[${i}][class_to_test]}, ${d[${i}][is_or_isnt]}, ${d[${i}][name]}";
 }
 
+bundle agent efl_dump_strings( ref )
+{
+   meta:
+      "purpose" string => "Dump string variables via reports promises";
+      "field_0" string => "Context expression"; # class
+      "field_1" string => "Name of string to dump"; # name
+      "field_2" string => "promisee"; # promisee
+
+   vars:
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "name",
+            "2" : "promisee",
+         }');
+
+      <efl param_parser efl/>
+
+   classes:
+      <efl param_file_picker efl/>
+
+   reports:
+"
+Class    => ${d[${i}][class]}
+Name     => ${d[${i}][name]}
+Value    => ${${d[${i}][name]}}
+Promisee => ${d[${i}][promisee]}"
+         ifvarclass => "${d[${i}][class]}";
+         " DEBUG::
+         Class    => any
+         Name     => efl_global_slists.web_servers
+         Value    => ${efl_global_slists.web_servers}
+         Promisee => efl_development";
+
+}
+
 bundle agent efl_test_count( ref )
 {
    meta:

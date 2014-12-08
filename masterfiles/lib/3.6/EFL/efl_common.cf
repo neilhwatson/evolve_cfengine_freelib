@@ -317,110 +317,127 @@ bundle agent efl_global_slists( ref )
       "field_3" string => "Promisee";
 
    vars:
-      "dim_slist"
-         comment => "Read data file for parsing.",
-         handle  => "efl_global_slists_vars_files",
-         int     => readstringarrayidx(
-            "slist_o",
-            "${ref}",
+      "params"
+         comment => "Parameter field names and positions to be parsed.",
+         data    => parsejson(
+         '{
+            "0" : "class",
+            "1" : "name",
+            "2" : "contents",
+            "3" : "shuffle",
+            "4" : "promisee"
+         }');
+
+      "param_file" string => canonifyuniquely( "${ref}" );
+
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
+
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
+
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
+
+## processing data
+      "pre_shuffle_${d[${i}][name]}"
+         comment    => "Get slist from csv list inside data container",
+         ifvarclass => "split_csv_list_${d[${i}][name]}",
+         slist      => splitstring( "${d[${i}][contents]}", "\s*,\s*", "500" );
+
+      "pre_shuffle_${d[${i}][name]}"
+         comment    => "Get slist from file referenced inside data contaier",
+         ifvarclass => "read_list_from_file_${d[${i}][name]}",
+         slist      => readstringlist( 
+            "${d[${i}][contents]}",
             "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
+            "\s*\n\s*",
             "${efl_c.max_num}",
             "${efl_c.max_bytes}"
          );
 
-      "s"
-         comment => "Get index array loaded above.",
-         handle  => "efl_global_slists_vars_s",
-         slist   => getindices( "slist_o" );
-
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4" };
-
-      "slist[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string  => "${slist_o[${s}][${s2}]}";
-
-      "class[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][0]";
-      "name[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][1]";
-      "list_data[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][2]";
-      "shuffle[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][3]";
-      "promisee[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "slist[${s}][4]";
+      "${d[${i}][name]}"
+         ifvarclass => "no_shuffle_${d[${i}][name]}",
+         slist      => { "@{pre_shuffle_${d[${i}][name]}}" };
 
 		"seed" int => randomint( "1", "999999" );
 
-		"pre_shuffle_${${name[${s}]}}"
-			comment => "Get list from external file",
-			ifvarclass => and( "parse_list_file_${s}", "${${class[${s}]}}"),
-			slist => readstringlist(
-				"${${list_data[${s}]}}",
-				"\s*#[^\n]*",
-				"\n",
-				"500",
-				"1M"
-				);
+      "${d[${i}][name]}"
+         ifvarclass => "random_shuffle_${d[${i}][name]}",
+         slist      => shuffle( "pre_shuffle_${d[${i}][name]}", ${seed} );
 
-		"pre_shuffle_${${name[${s}]}}"
-			comment    => "Get list from external file",
-			ifvarclass => and( "parse_csv_list_${s}" , "${${class[${s}]}}"),
-         policy     => "free",
-			slist      => splitstring( "${${list_data[${s}]}}", "\s*,\s*", "500" );
-
-		"${${name[${s}]}}"
-			comment    => "no shuffle list",
-			ifvarclass => "n_shuffle_${s}",
-         policy     => "free",
-			slist      => { "@{pre_shuffle_${${name[${s}]}}}" };
-
-		"${${name[${s}]}}"
-			comment    => "random shuffle list",
-			ifvarclass => "r_shuffle_${s}",
-         policy     => "free",
-			slist      => shuffle( "pre_shuffle_${${name[${s}]}}", "${seed}" );
-
-		"${${name[${s}]}}"
-			comment    => "deterministic shuffle list",
-			ifvarclass => "d_shuffle_${s}",
-         policy     => "free",
-			slist      => shuffle( "pre_shuffle_${${name[${s}]}}", "${sys.uqhost}" );
+      "${d[${i}][name]}"
+         ifvarclass => "deterministic_shuffle_${d[${i}][name]}",
+         slist      => shuffle( "pre_shuffle_${d[${i}][name]}", ${sys.uqhost} );
 
 	classes:
-		"parse_list_file_${s}"
-			comment    => "Determine if list_data points to a file",
-			ifvarclass => "${${class[${s}]}}",
-			expression => fileexists( "${${list_data[${s}]}}" );
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
 
-		"parse_csv_list_${s}"
-			comment    => "If no file then assume data is inline csv",
-			ifvarclass => "${${class[${s}]}}",
-			not        => fileexists( "${${list_data[${s}]}}" );
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
 
-	  "d_shuffle_${s}"
-			comment    => "Determnistically random list.",
-			ifvarclass => "${${class[${s}]}}",
-			expression => strcmp( "${${shuffle[${s}]}}", "d" );
+      "no_shuffle_${d[${i}][name]}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][shuffle]}", "n" );
 
-	  "r_shuffle_${s}"
-			comment    => "Random list.",
-			ifvarclass => "${${class[${s}]}}",
-			expression => strcmp( "${${shuffle[${s}]}}", "r" );
+      "random_shuffle_${d[${i}][name]}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][shuffle]}", "r" );
 
-	  "n_shuffle_${s}"
-			comment    => "Normal list without random.",
-			ifvarclass => "${${class[${s}]}}",
-			expression => strcmp( "${${shuffle[${s}]}}", "n" );
+      "deterministic_shuffle_${d[${i}][name]}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][shuffle]}", "d" );
 
+      "read_list_from_file_${d[${i}][name]}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => fileexists( "${d[${i}][contents]}" );
+
+      "split_csv_list_${d[${i}][name]}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => regcmp( "[^,]+,.*", "${d[${i}][contents]}" );
 }
 
 bundle agent efl_global_strings ( ref )

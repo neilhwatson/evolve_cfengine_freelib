@@ -27,6 +27,8 @@ my %headers = (
    'efl_server'  => [ qw/ class path admit admit_ips  admit_hostnames admit_keys promisee / ],
    'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ],
    'efl_test_simple' => [ qw/ class class_to_test is_or_isnt name / ],
+   'efl_global_slists' => [ qw/ class name contents shuffle promisee / ],
+   'efl_dump_strings' => [ qw/ class name promisee / ],
 );
 
 # Get command options and switches
@@ -129,6 +131,10 @@ while (<STDIN>)
 
      for ( my $f = 0; $f <= $#fields; $f++ )
      {
+=pod
+        At this time use delimited lists instead of arrays because there
+        is no isslist function in CF3.
+
         if ( $fields[$f] =~ m/$opt{array_delimiter}/ )
         {
            my @array = split m/$opt{array_delimiter}/, $fields[$f];
@@ -137,8 +143,9 @@ while (<STDIN>)
         }
         else
         {
+=cut
            $pre_json->{$headers[$f]} = $fields[$f];
-        }
+#        }
      }
      push @pre_json, $pre_json;
      undef $pre_json;
