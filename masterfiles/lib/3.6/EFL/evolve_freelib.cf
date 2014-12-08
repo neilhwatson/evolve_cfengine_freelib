@@ -2224,17 +2224,8 @@ bundle agent efl_dump_strings( ref )
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
 
    reports:
-"
-Class    => ${d[${i}][class]}
-Name     => ${d[${i}][name]}
-Value    => ${${d[${i}][name]}}
-Promisee => ${d[${i}][promisee]}"
+      "Name => [${d[${i}][name]}] Value => [${${d[${i}][name]}}] Promisee => [${d[${i}][promisee]}]"
          ifvarclass => "${d[${i}][class]}";
-         " DEBUG::
-         Class    => any
-         Name     => efl_global_slists.web_servers
-         Value    => ${efl_global_slists.web_servers}
-         Promisee => efl_development";
 
 }
 

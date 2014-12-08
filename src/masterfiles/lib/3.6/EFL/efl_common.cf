@@ -285,49 +285,26 @@ bundle agent efl_global_strings ( ref )
       "field_3" string => "Promisee";
 
    vars:
-      "dim_string"
-         comment => "Read data file for parsing.",
-         handle  => "efl_global_strings_vars_files",
-         int     => readstringarrayidx(
-            "string_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "params"
+         comment => "Parameter field names and positions to be parsed.",
+         data    => parsejson(
+         '{
+            "0" : "class",
+            "1" : "name",
+            "2" : "value",
+            "3" : "promisee"
+         }');
 
-      "s"
-         comment => "Get index array loaded above.",
-         handle  => "efl_global_strings_vars_s",
-         slist   => getindices( "string_o" );
+   <efl param_parser efl/>
 
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3" };
-
-      "string[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string => "${string_o[${s}][${s2}]}";
-
-      "class[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][0]";
-      "name[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][1]";
-      "value[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][2]";
-      "promisee[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "string[${s}][3]";
-
-      "${${name[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${d[${i}][name]}" -> { "${d[${i}][promisee]}" }
          comment    => "Define variable if class is true",
          policy     => "free",
-         ifvarclass => "${${class[${s}]}}",
-         string     => "${${value[${s}]}}";
+         ifvarclass => "${d[${i}][class]}",
+         string     => "${d[${i}][value]}";
+
+   classes:
+      <efl param_file_picker efl/>
 }
 
 bundle agent efl_class_cmd_regcmp( ref )

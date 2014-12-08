@@ -41,7 +41,9 @@ tests       =    \
 	003_efl_test  \
 	004_efl_test  \
 	005_efl_test  \
-	006_efl_test  
+	006_efl_test  \
+	007_efl_test  \
+	008_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -78,6 +80,7 @@ $(EFL_LIB):
 
 .PHONY: check
 check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
+	@echo PASSED ALL TESTS
 
 test/$(EFL_LIB):
 	mkdir -p $@
@@ -105,12 +108,13 @@ syntax:
 		exit 1            ;\
 	fi                    
 
+001_002_efl_test_result = R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5
 .PHONY: 002_efl_test
 001_csv_test_files  = $(wildcard test/001/*.csv)
 002_csv_test_files  = $(patsubst test/001%,test/002%,$(001_csv_test_files))
 002_json_test_files = $(patsubst %.csv,%.json,$(002_csv_test_files))
 002_efl_test: 001_efl_test test/002/efl_main.json $(002_json_test_files)
-	$(call cf_agent_grep_test, $@,$(001_efl_test_result))
+	$(call cf_agent_grep_test, $@,$(001_002_efl_test_result))
 
 test/002/efl_main.json: test/001/efl_main.csv
 	$(CSVTOJSON) -b efl_main < $< > $@
@@ -122,9 +126,8 @@ test/002/%_efl_test_simple.json: test/001/%_efl_test_simple.csv
 	$(CSVTOJSON) -b efl_test_simple < $^ > $@
 
 .PHONY: 001_efl_test
-001_efl_test_result = R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5
 001_efl_test: 
-	$(call cf_agent_grep_test, $@,$(001_efl_test_result))
+	$(call cf_agent_grep_test, $@,$(001_002_efl_test_result))
 
 .PHONY: 004_efl_test
 004_efl_test_result = R: PASS, 004_true_true, Class if /bin/true\nR: PASS, 004_true_false, Class if /bin/false\nR: PASS, 004_false_false, Is not true
@@ -149,10 +152,10 @@ test/004/02_efl_test_simple.json: test/003/02_efl_test_simple.csv
 003_efl_test:
 	$(call cf_agent_grep_test, $@,$(003_efl_test_result))
 
+005_006_efl_test_result = R: efl_global_lists\.ntp_servers  => \[ntp1\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp2\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp3\.example\.com\]\n(R: efl_global_lists\.name_servers => \[10\.0\.0\.\d{1}\]\n){3}(R: efl_global_lists\.web_servers  => \[\d{1}\.example\.com\]\n{0,1}){3}
 .PHONY: 006_efl_test
-006_efl_test: 006_efl_test_result = R: efl_global_lists\.ntp_servers  => \[ntp1\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp2\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp3\.example\.com\]\n(R: efl_global_lists\.name_servers => \[10\.0\.0\.\d{1}\]\n){3}(R: efl_global_lists\.web_servers  => \[\d{1}\.example\.com\]\n{0,1}){3}
 006_efl_test:  005_efl_test test/006/efl_main.json test/006/01_efl_global_slists.json test/006/02_efl_dump_strings.json test/006/name_servers.txt
-	$(call cf_agent_grep_test, $@,$(006_efl_test_result))
+	$(call cf_agent_grep_test, $@,$(005_006_efl_test_result))
 
 test/006/efl_main.json: test/005/efl_main.csv
 	$(CSVTOJSON) -b efl_main < $< > $@
@@ -171,11 +174,30 @@ test/006/name_servers.txt: test/005/name_servers.txt
 	cp test/005/name_servers.txt test/006/
 
 .PHONY: 005_efl_test
-005_efl_test: 005_efl_test_result = R: efl_global_lists\.ntp_servers  => \[ntp1\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp2\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp3\.example\.com\]\n(R: efl_global_lists\.name_servers => \[10\.0\.0\.\d{1}\]\n){3}(R: efl_global_lists\.web_servers  => \[\d{1}\.example\.com\]\n{0,1}){3}
 005_efl_test:
-	$(call cf_agent_grep_test, $@,$(005_efl_test_result))
-	#cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ 
+	$(call cf_agent_grep_test, $@,$(005_006_efl_test_result))
 
+007_008_efl_test_result = R: Name => \[efl_global_strings\.main_efl_dev\] Value => \[Neil H\. Watson \(neil\@watson-wilson\.ca\)\] Promisee => \[efl_development\]\nR: Name => \[efl_global_strings\.gateway\] Value => \[2001:DB8::1\] Promisee => \[efl_development\]
+.PHONY: 008_efl_test
+008_efl_test:  007_efl_test test/008/efl_main.json test/008/01_efl_global_strings.json test/008/02_efl_dump_strings.json
+	$(call cf_agent_grep_test, $@,$(007_008_efl_test_result))
+
+test/008/efl_main.json: test/007/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	$(call search_and_replace,007,008,$@) 
+	$(call search_and_replace,\.csv,\.json,$@)
+
+test/008/01_efl_global_strings.json: test/007/01_efl_global_strings.csv
+	$(CSVTOJSON) -b efl_global_strings < $^ > $@
+	$(call search_and_replace,007,008,$@) 
+
+test/008/02_efl_dump_strings.json: test/007/02_efl_dump_strings.csv
+	$(CSVTOJSON) -b efl_dump_strings < $^ > $@
+	$(call search_and_replace,007,008,$@) 
+
+.PHONY: 007_efl_test
+007_efl_test:
+	$(call cf_agent_grep_test, $@,$(007_008_efl_test_result))
 
 .PHONY: clean
 clean:

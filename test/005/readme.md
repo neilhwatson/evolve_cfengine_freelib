@@ -1,1 +1,1 @@
-Test bundle efl\_global\_strings using csv parameter files.
+Test bundle efl\_global\_slists using csv parameter files.

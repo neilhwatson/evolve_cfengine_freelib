@@ -29,6 +29,7 @@ my %headers = (
    'efl_test_simple' => [ qw/ class class_to_test is_or_isnt name / ],
    'efl_global_slists' => [ qw/ class name contents shuffle promisee / ],
    'efl_dump_strings' => [ qw/ class name promisee / ],
+   'efl_global_strings' => [ qw/ class name value promisee / ],
 );
 
 # Get command options and switches
