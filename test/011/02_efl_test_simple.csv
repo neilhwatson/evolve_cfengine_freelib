@@ -1,0 +1,3 @@
+any ;; 011_test_class_01 ;; is   ;; pass if both classes match
+any ;; 011_test_class_02 ;; is   ;; pass if either class matches
+any ;; 011_test_class_03 ;; isnt ;; pass if neither class matches

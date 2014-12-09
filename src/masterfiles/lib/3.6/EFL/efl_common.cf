@@ -371,51 +371,29 @@ bundle agent efl_class_expression( ref )
 {
    meta:
       "purpose" string => "Set global class if the given class expression is true.";
-      "field_0" string => "Class promiser";
+      "field_0" string => "Class to set";
       "field_1" string => "Class expression";
       "field_2" string => "Promisee";
 
    vars:
-      "dim_class"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_expression_vars_files",
-         int     => readstringarrayidx(
-            "class_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+       "params"
+         comment => "Parameter field names and positions to be parsed.",
+         data    => parsejson(
+         '{
+            "0" : "class_to_set",
+            "1" : "expression",
+            "2" : "promisee"
+         }');
 
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_expression_vars_c",
-         slist   => getindices( "class_o" );
-
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2" };
-
-      "class[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${class_o[${c}][${c2}]}";
-
-      "class_to_set[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][0]";
-      "class_expression[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][1]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][2]";
+   <efl param_parser efl/>
 
    classes:
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
+      <efl param_file_picker efl/>
+
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if expression is true.",
          scope      => "namespace",
-         expression => "${${class_expression[${c}]}}";
+         expression => "${d[${i}][expression]}";
 }
 
 bundle agent efl_class_classmatch( ref )

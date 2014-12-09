@@ -50,6 +50,10 @@ bundle agent main
 		"any" usebundle => efl_main( "../009/efl_main.csv" );
    010_efl_test::
 		"any" usebundle => efl_main( "../010/efl_main.json" );
+   011_efl_test::
+		"any" usebundle => efl_main( "../011/efl_main.csv" );
+   012_efl_test::
+		"any" usebundle => efl_main( "../012/efl_main.json" );
 
    reports:
       005_efl_test|006_efl_test::
