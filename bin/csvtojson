@@ -32,6 +32,7 @@ my %headers = (
    'efl_global_strings'    => [ qw/ class name value promisee / ],
    'efl_class_cmd_regcmp'  => [ qw/ class class_to_set expression command useshell regex promisee / ],
    'efl_class_expression'  => [ qw/ class_to_set expression promisee / ],
+   'efl_class_classmatch'  => [ qw/ class_to_set regex promisee / ],
 );
 
 # Get command options and switches
