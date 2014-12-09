@@ -321,80 +321,50 @@ bundle agent efl_class_cmd_regcmp( ref )
       "field_6" string => "Promisee";
 
    vars:
-      "dim_class"
-         comment => "Read data file for parsing.",
-         handle  => "efl_class_cmd_regcmp_vars_files",
-         int     => readstringarrayidx(
-            "class_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "params"
+         comment => "Parameter field names and positions to be parsed.",
+         data    => parsejson(
+         '{
+            "0" : "class",
+            "1" : "class_to_set",
+            "2" : "expression",
+            "3" : "command",
+            "4" : "useshell",
+            "5" : "regex",
+            "6" : "promisee"
+         }');
 
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_class_cmd_regcmp_vars_c",
-         slist   => getindices( "class_o" );
+   <efl param_parser efl/>
 
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6" };
-
-      "class[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${class_o[${c}][${c2}]}";
-
-      "context[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][0]";
-      "class_to_set[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][1]";
-      "exp_or_not[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][2]";
-      "command[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][3]";
-      "useshell[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][4]";
-      "regex[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][5]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "class[${c}][6]";
-
-      "cmd_output_${c}" -> { "${${promisee[${c}]}}" }
+      "cmd_output_${i}" -> { "${d[${i}][promisee]}" }
          comment    => "Capture commmand output",
-         ifvarclass => "${${context[${c}]}}",
-         string     => execresult( "${${command[${c}]}}", "${${useshell[${c}]}}" );
+         ifvarclass => "${d[${i}][class]}",
+         string     => execresult( "${d[${i}][command]}", "${d[${i}][useshell]}" );
 
    classes:
-      "use_not_for_${c}" -> { "${${promisee[${c}]}}" }
+      <efl param_file_picker efl/>
+
+      "use_not_for_${param_file}_${i}" -> { "${d[${i}][promisee]}" }
          comment    => "Use not rather than expression",
-         ifvarclass => "${${context[${c}]}}",
-         expression => strcmp( "${${exp_or_not[${c}]}}", "yes" );
+         ifvarclass => "${d[${i}][class]}",
+         expression => regcmp( "not{0,1}", "${d[${i}][expression]}" );
 
-      "use_expression_for_${c}" -> { "${${promisee[${c}]}}" }
+      "use_expression_for_${param_file}_${i}" -> { "${d[${i}][promisee]}" }
          comment    => "Use expression",
-         ifvarclass => "${${context[${c}]}}",
-         expression => strcmp( "${${exp_or_not[${c}]}}", "no" );
+         ifvarclass => "${d[${i}][class]}",
+         expression => regcmp( "yes|expression", "${d[${i}][expression]}" );
 
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if command output matches the anchored regex.",
          scope      => "namespace",
-         ifvarclass => "use_expression_for_${c}",
-         expression => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
+         ifvarclass => "use_expression_for_${param_file}_${i}",
+         expression => regcmp( "${d[${i}][regex]}", "${cmd_output_${i}}" );
 
-      "${${class_to_set[${c}]}}" -> { "${${promisee[${c}]}}" }
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if command output does not match the anchored regex.",
          scope      => "namespace",
-         ifvarclass => "use_not_for_${c}",
-         not        => regcmp( "${${regex[${c}]}}", "${cmd_output_${c}}" );
+         ifvarclass => "use_not_for_${param_file}_${i}",
+         not        => regcmp( "${d[${i}][regex]}", "${cmd_output_${i}}" );
 }
 
 bundle agent efl_class_expression( ref )

@@ -1,0 +1,4 @@
+any ;; 009_test_class_01 ;; expression ;; /bin/echo set this class ;; noshell  ;; set\s+this\s+class ;; true if output matches
+any ;; 009_test_class_02 ;; not        ;; /bin/uname               ;; noshell  ;; hal9000            ;; true if output does not match
+any ;; 009_test_class_03 ;; expression ;; /bin/hostname            ;; noshell  ;; \@\$foo+bar        ;; should not match
+any ;; 009_test_class_04 ;; expression ;; echo hi there|awk -e '{ print $2}' ;; useshell ;; there    ;; true if output is there

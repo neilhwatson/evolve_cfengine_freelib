@@ -22,14 +22,15 @@ $sample{efl_command} = <<'END';
 END
 
 my %headers = (
-   'efl_main'    => [ qw/ class promiser bundle ifelapsed parameter promisee / ],
-   'efl_command' => [ qw/ class command useshell module ifelapsed promisee / ],
-   'efl_server'  => [ qw/ class path admit admit_ips  admit_hostnames admit_keys promisee / ],
+   'efl_main'              => [ qw/ class promiser bundle ifelapsed parameter promisee / ],
+   'efl_command'           => [ qw/ class command useshell module ifelapsed promisee / ],
+   'efl_server'            => [ qw/ class path admit admit_ips  admit_hostnames admit_keys promisee / ],
    'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ],
-   'efl_test_simple' => [ qw/ class class_to_test is_or_isnt name / ],
-   'efl_global_slists' => [ qw/ class name contents shuffle promisee / ],
-   'efl_dump_strings' => [ qw/ class name promisee / ],
-   'efl_global_strings' => [ qw/ class name value promisee / ],
+   'efl_test_simple'       => [ qw/ class class_to_test is_or_isnt name / ],
+   'efl_global_slists'     => [ qw/ class name contents shuffle promisee / ],
+   'efl_dump_strings'      => [ qw/ class name promisee / ],
+   'efl_global_strings'    => [ qw/ class name value promisee / ],
+   'efl_class_cmd_regcmp'  => [ qw/ class class_to_set expression command useshell regex promisee / ],
 );
 
 # Get command options and switches

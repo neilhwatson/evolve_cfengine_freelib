@@ -43,7 +43,9 @@ tests       =    \
 	005_efl_test  \
 	006_efl_test  \
 	007_efl_test  \
-	008_efl_test
+	008_efl_test \
+	009_efl_test \
+	010_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -198,6 +200,29 @@ test/008/02_efl_dump_strings.json: test/007/02_efl_dump_strings.csv
 .PHONY: 007_efl_test
 007_efl_test:
 	$(call cf_agent_grep_test, $@,$(007_008_efl_test_result))
+
+.PHONY: 010_efl_test
+010_efl_test: 010_efl_test_result = R: PASS, 010_test_class_01, true if output matches\nR: PASS, 010_test_class_02, true if output does not match\nR: PASS, 010_test_class_03, should not match\nR: PASS, 010_test_class_04, true if output is there
+
+010_efl_test: 009_efl_test test/010/01_efl_class_cmd_regcmp.json test/010/02_efl_test_simple.json test/010/efl_main.json
+	$(call cf_agent_grep_test, $@,$(010_efl_test_result))
+
+test/010/efl_main.json: test/009/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	$(call search_and_replace,009,010,$@) 
+	$(call search_and_replace,\.csv,\.json,$@)
+
+test/010/01_efl_class_cmd_regcmp.json: test/009/01_efl_class_cmd_regcmp.csv
+	$(CSVTOJSON) -b efl_class_cmd_regcmp < $^ > $@
+	$(call search_and_replace,009,010,$@) 
+
+test/010/02_efl_test_simple.json: test/009/02_efl_test_simple.csv
+	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+	$(call search_and_replace,009,010,$@) 
+
+009_efl_test: 009_efl_test_result = R: PASS, 009_test_class_01, true if output matches\nR: PASS, 009_test_class_02, true if output does not match\nR: PASS, 009_test_class_03, should not match\nR: PASS, 009_test_class_04, true if output is there
+009_efl_test:
+	$(call cf_agent_grep_test, $@,$(009_efl_test_result))
 
 .PHONY: clean
 clean:
