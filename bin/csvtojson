@@ -33,6 +33,7 @@ my %headers = (
    'efl_class_cmd_regcmp'  => [ qw/ class class_to_set expression command useshell regex promisee / ],
    'efl_class_expression'  => [ qw/ class_to_set expression promisee / ],
    'efl_class_classmatch'  => [ qw/ class_to_set regex promisee / ],
+   'efl_class_iprange'     => [ qw/ class_to_set ip_range promisee / ],
 );
 
 # Get command options and switches
@@ -135,10 +136,6 @@ while (<STDIN>)
 
      for ( my $f = 0; $f <= $#fields; $f++ )
      {
-=pod
-        At this time use delimited lists instead of arrays because there
-        is no isslist function in CF3.
-
         if ( $fields[$f] =~ m/$opt{array_delimiter}/ )
         {
            my @array = split m/$opt{array_delimiter}/, $fields[$f];
@@ -147,9 +144,8 @@ while (<STDIN>)
         }
         else
         {
-=cut
            $pre_json->{$headers[$f]} = $fields[$f];
-#        }
+        }
      }
      push @pre_json, $pre_json;
      undef $pre_json;

@@ -1,0 +1,6 @@
+# class_to_set ;; iprange ;; promisee
+015_test_class_01 ;; 127.0.0.0-254  ;; efl development
+# no ipv6 support, https://dev.cfengine.com/issues/6875
+#015_test_class_02 ;; ::1-7          ;; efl development
+015_test_class_03 ;; 192.0.2.0-100  ;; efl development
+

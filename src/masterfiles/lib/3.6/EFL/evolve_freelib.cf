@@ -2069,16 +2069,16 @@ bundle agent efl_test_simple( ref )
 
       "pass_${d[${i}][class_to_test]}"
          ifvarclass => "class_isnt_${d[${i}][class_to_test]}",
-         not        => classmatch( "${d[${i}][class_to_test]}" );
+         not        => "${d[${i}][class_to_test]}";
       "fail_${d[${i}][class_to_test]}"
          ifvarclass => "class_isnt_${d[${i}][class_to_test]}",
-         expression => classmatch( "${d[${i}][class_to_test]}" );
+         expression => "${d[${i}][class_to_test]}";
       "pass_${d[${i}][class_to_test]}"
          ifvarclass => "class_is_${d[${i}][class_to_test]}",
-         expression => classmatch( "${d[${i}][class_to_test]}" );
+         expression => "${d[${i}][class_to_test]}";
       "fail_${d[${i}][class_to_test]}"
          ifvarclass => "class_is_${d[${i}][class_to_test]}",
-         not        => classmatch( "${d[${i}][class_to_test]}" );
+         not        => "${d[${i}][class_to_test]}";
 
    reports:
       "PASS, ${d[${i}][class_to_test]}, ${d[${i}][name]}"

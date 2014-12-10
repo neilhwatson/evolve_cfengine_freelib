@@ -49,7 +49,9 @@ tests       =    \
 	011_efl_test \
 	012_efl_test \
 	013_efl_test \
-	014_efl_test
+	014_efl_test \
+	015_efl_test \
+	016_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -274,6 +276,33 @@ test/014/02_efl_test_simple.json: test/013/02_efl_test_simple.csv
 013_efl_test: 013_efl_test_result = R: PASS, 013_test_class_01, pass\nR: PASS, 013_test_class_02, pass\nR: PASS, 013_test_class_03, pass if class never matches
 013_efl_test:
 	$(call cf_agent_grep_test, $@,$(013_efl_test_result))
+
+.PHONY: 016_efl_test
+016_efl_test: 016_efl_test_result = R: PASS, 016_test_class_01, pass ipv4\nR: PASS, 016_test_class_03, pass if class never matches
+# For when ipv6 support in iprange is available: https://dev.cfengine.com/issues/6875
+#016_efl_test: 016_efl_test_result = R: PASS, 016_test_class_01, pass ipv4\nR: PASS, 016_test_class_02, pass ipv6\nR: PASS, 016_test_class_03, pass if class never matches
+016_efl_test: 015_efl_test test/016/01_efl_class_iprange.json test/016/02_efl_test_simple.json test/016/efl_main.json
+	$(call cf_agent_grep_test, $@,$(016_efl_test_result))
+
+test/016/efl_main.json: test/015/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	$(call search_and_replace,015,016,$@) 
+	$(call search_and_replace,\.csv,\.json,$@)
+
+test/016/01_efl_class_iprange.json: test/015/01_efl_class_iprange.csv
+	$(CSVTOJSON) -b efl_class_iprange< $^ > $@
+	$(call search_and_replace,015,016,$@) 
+
+test/016/02_efl_test_simple.json: test/015/02_efl_test_simple.csv
+	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+	$(call search_and_replace,015,016,$@) 
+
+.PHONY: 015_efl_test
+015_efl_test: 015_efl_test_result = R: PASS, 015_test_class_01, pass ipv4\nR: PASS, 015_test_class_03, pass if class never matches
+# For when ipv6 support in iprange is available: https://dev.cfengine.com/issues/6875
+#015_efl_test: 015_efl_test_result = R: PASS, 015_test_class_01, pass ipv4\nR: PASS, 015_test_class_02, pass ipv6\nR: PASS, 015_test_class_03, pass if class never matches
+015_efl_test:
+	$(call cf_agent_grep_test, $@,$(015_efl_test_result))
 
 .PHONY: clean
 clean:
