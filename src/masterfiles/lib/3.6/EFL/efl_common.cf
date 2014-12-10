@@ -538,7 +538,7 @@ bundle agent efl_class_hostname2( ref )
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if unqualified hostname matches any list element.",
          scope      => "namespace",
-         expression => strcmp( "${sys.uqhost}", "${d[${i}][hostname]}" );     
+         expression => strcmp( "${sys.uqhost}", "${json_data[${i}][hostname]}" );     
 }
 
 body action efl_if_elapsed(x)

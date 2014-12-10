@@ -52,7 +52,8 @@ tests       =    \
 	014_efl_test \
 	015_efl_test \
 	016_efl_test \
-	017_efl_test
+	017_efl_test \
+	018_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -309,6 +310,11 @@ test/016/02_efl_test_simple.json: test/015/02_efl_test_simple.csv
 017_efl_test: 017_efl_test_result = R: PASS, 017_test_class, pass efl_class_hostname\nR: PASS, never, pass if never defined
 017_efl_test:
 	$(call cf_agent_grep_test, $@,$(017_efl_test_result))
+
+.PHONY: 018_efl_test
+018_efl_test: 018_efl_test_result = R: PASS, 018_test_class_01, pass efl_class_hostname2 01\nR: PASS, 018_test_class_02, pass efl_class_hostname2 02\nR: PASS, never, pass if never defined
+018_efl_test:
+	$(call cf_agent_grep_test, $@,$(018_efl_test_result))
 
 .PHONY: clean
 clean:
