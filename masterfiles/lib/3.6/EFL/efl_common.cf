@@ -911,19 +911,74 @@ bundle agent efl_class_hostname( ref )
 # If ${sys.uqhost} matches any name in the list <class> is defined.
 {
    meta:
-      "purpose" string => "Set global class if list item matches hostname";
+      "purpose" string => "Set global class if list item matches sys.uqhost";
       "field_0" string => "unqualified hostname";
+      "README"  string => "For json support see bundle efl_class_hostname2";
+
+   vars:
+      "basename" string => lastnode( "${ref}", "/" );
+      "c_ref"    string => canonify( "${ref}" );
 
    classes:
-      "check_hostnames_${ref}"
+      "check_hostnames_${c_ref}"
          comment    => "Get class name from filename",
-         expression => regextract( "${efl_c.class}", "${ref}", "class" );
+         expression => regextract( "${efl_c.class}", "${basename}", "class_to_set" );
       
-      "${class[1]}"
+      "${class_to_set[1]}"
          comment    => "Set class if unqualified hostname matches any list element.",
          scope      => "namespace",
-         ifvarclass => canonify( "check_hostnames_${ref}" ),
+         ifvarclass => "check_hostnames_${c_ref}",
          expression => regline( "${sys.uqhost}", "${ref}" );
+}
+
+bundle agent efl_class_hostname2( ref )
+{
+   meta:
+      "purpose" string => "Set global class if list item matches sys.uqhost";
+# Expected json format
+# [
+#    {
+#       "class_to_set" : "your_class_name",
+#       "hostname" : [ "hosta", "hostb", "hostn_plus_1" ],
+#       "promisee" : "my promisee"
+#    },
+#    {
+#       "class_to_set" : "your_other class_name",
+#       "hostname" : [ "hostc", "hostd", "hostn_plus_1" ],
+#       "promisee" : "my other promisee"
+#    }
+# ]
+
+   vars:
+       "params"
+         comment => "Parameter field names and positions to be parsed.",
+         data    => parsejson(
+         '{
+            "0" : "class_to_set",
+            "1" : "hostname"
+         }');
+
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
+
+      "json_data"
+         comment    => "Parse json file",
+         data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+      "i"
+         comment    => "Index data",
+         slist      => getindices( "json_data" );
+
+      "d[${i}][${params[${p}]}]"
+         comment    => "Make final data set and deal with bug 2333",
+         string     => "${json_data[${i}][${params[${p}]}]}";
+ 
+   classes:
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
+         comment    => "Set class if unqualified hostname matches any list element.",
+         scope      => "namespace",
+         expression => strcmp( "${sys.uqhost}", "${d[${i}][hostname]}" );     
 }
 
 body action efl_if_elapsed(x)

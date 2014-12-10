@@ -51,7 +51,8 @@ tests       =    \
 	013_efl_test \
 	014_efl_test \
 	015_efl_test \
-	016_efl_test
+	016_efl_test \
+	017_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -304,12 +305,16 @@ test/016/02_efl_test_simple.json: test/015/02_efl_test_simple.csv
 015_efl_test:
 	$(call cf_agent_grep_test, $@,$(015_efl_test_result))
 
+.PHONY: 017_efl_test
+017_efl_test: 017_efl_test_result = R: PASS, 017_test_class, pass efl_class_hostname\nR: PASS, never, pass if never defined
+017_efl_test:
+	$(call cf_agent_grep_test, $@,$(017_efl_test_result))
+
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
-	rm -f test/0*/*.json
 
 .PHONY: help
 help:
