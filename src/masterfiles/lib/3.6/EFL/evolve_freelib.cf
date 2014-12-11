@@ -81,81 +81,55 @@ bundle agent efl_sysctl_live( ref )
       "field_3" string => "Promisee";
 
    vars:
-      "dim_sysctl"
-         comment => "Read data file for parsing.",
-         handle  => "efl_sysctl_live_vars_sysctl_promiser",
-         int     => readstringarrayidx(
-            "sysctl_promiser_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "variable",
+            "2" : "value",
+            "3" : "promisee"
+         }');
 
-      "x"
-         comment => "Get index array loaded above.",
-         handle  => "efl_sysctl_live_vars_x",
-         slist   => getindices( "sysctl_promiser_o" );
+      <efl param_parser efl/>
 
-      "x2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3" };
-      
-      "sysctl_promiser[${x}][${x2}]"
-         comment => "Work around for bug 2333",
-         string => "${sysctl_promiser_o[${x}][${x2}]}";
-
-      "class[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "sysctl_promiser[${x}][0]";
-      "sysctl_name[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "sysctl_promiser[${x}][1]";
-      "sysctl_value[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "sysctl_promiser[${x}][2]";
-      "promisee[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "sysctl_promiser[${x}][3]";
-
-      "efl_sysctl_live[${${sysctl_name[${x}]}}]"
+      "efl_sysctl_live[${d[${i}][variable]}]"
          comment    => "Get current live value",
-         ifvarclass => "${${class[${x}]}}",
+         ifvarclass => "${d[${i}][class]}",
          string     => execresult(
-            "${paths.path[sysctl]} -n ${${sysctl_name[${x}]}} |${paths.path[tr]} -d '\\n' | ${paths.path[tr]} '[:space:]' ' '",
+            "${paths.path[sysctl]} -n ${d[${i}][variable]} |${paths.path[tr]} -d '\\n' | ${paths.path[tr]} '[:space:]' ' '",
             "useshell"
          );
 
    classes:
-      "set_live_sysctl_${${sysctl_name[${x}]}}"
-         comment    => "Set class if live sysctl variable not equal to promised value",
-# This class may be falsely set due to bug 3577. A work around is in commands below.
-         ifvarclass => "${${class[${x}]}}",
-         not        => strcmp( "${${sysctl_value[${x}]}}", "${efl_sysctl_live[${${sysctl_name[${x}]}}]}" );
+      <efl param_file_picker efl/>
 
-      "${${sysctl_name[${x}]}}=${${sysctl_value[${x}]}}_handle_efl_sysctl_live_classes_ok_kept"
+      "set_live_sysctl_${d[${i}][variable]}"
+         comment    => "Set class if live sysctl variable not equal to promised value",
+         ifvarclass => "${d[${i}][class]}",
+         not        => strcmp( "${d[${i}][value]}", "${efl_sysctl_live[${d[${i}][variable]}]}" );
+
+      "${d[${i}][variable]}=${d[${i}][value]}_handle_efl_sysctl_live_classes_ok_kept"
          comment    => "Set class if live sysctl variable not equal to promised value",
          handle     => "efl_sysctl_live_classes_ok",
          scope      => "namespace",
-         ifvarclass => "${${class[${x}]}}",
-         expression => strcmp( "${${sysctl_value[${x}]}}", "${efl_sysctl_live[${${sysctl_name[${x}]}}]}" );
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][value]}", "${efl_sysctl_live[${d[${i}][variable]}]}" );
 
    commands:
-      "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'" -> { "${${promisee[${x}]}}" }
+      "${paths.path[sysctl]} -w ${d[${i}][variable]}='${d[${i}][value]}'" -> { "${d[${i}][promisee]}" }
          comment    => "Set live sysctl variable",
          handle     => "efl_sysctl_live_commands_sysctl_w",
-         classes    => efl_rkn( "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "efl_sysctl_live_commands_sysctl_w" ),
-         action     => efl_delta_reporting( "efl_sysctl_live_commands_sysctl_w", "${paths.path[sysctl]} -w ${${sysctl_name[${x}]}}='${${sysctl_value[${x}]}}'", "${${promisee[${x}]}}", "1" ),
-# This and statement is due to CFEngine bug 3577. When the bug is fixed remove {class}.
-         ifvarclass => canonify( "set_live_sysctl_${${sysctl_name[${x}]}}" ), 
+         classes    => efl_rkn( "${paths.path[sysctl]} -w ${d[${i}][variable]}='${d[${i}][value]}'", "efl_sysctl_live_commands_sysctl_w" ),
+         action     => efl_delta_reporting( "efl_sysctl_live_commands_sysctl_w", "${paths.path[sysctl]} -w ${d[${i}][variable]}='${d[${i}][value]}'", "${d[${i}][promisee]}", "1" ),
+         ifvarclass => canonify( "set_live_sysctl_${d[${i}][variable]}" ), 
          contain    => in_shell_and_silent;
 
    reports:
       delta_reporting::
-         "efl_sysctl_live_classes_ok ;; ${${sysctl_name[${x}]}}=${${sysctl_value[${x}]}} ;; ${${promisee[${x}]}}" -> { "${${promisee[${x}]}}" }
+         "efl_sysctl_live_classes_ok ;; ${d[${i}][variable]}=${d[${i}][value]} ;; ${d[${i}][promisee]}" -> { "${d[${i}][promisee]}" }
             handle         => "efl_sysctl_live_reports_log_promises",
-            ifvarclass     => canonify( "${${sysctl_name[${x}]}}=${${sysctl_value[${x}]}}_handle_efl_sysctl_live_classes_ok_kept" ),
+            ifvarclass     => canonify( "${d[${i}][variable]}=${d[${i}][value]}_handle_efl_sysctl_live_classes_ok_kept" ),
             report_to_file => "${efl_c.promise_log}";
 }
 

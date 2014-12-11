@@ -66,6 +66,10 @@ bundle agent main
 		"any" usebundle => efl_main( "../017/efl_main.json" );
    018_efl_test::
 		"any" usebundle => efl_main( "../018/efl_main.json" );
+   019_efl_test::
+      "any" usebundle => efl_sysctl_live( "../019/01_efl_sysctl_live.csv" );
+   020_efl_test::
+      "any" usebundle => efl_sysctl_live( "../020/01_efl_sysctl_live.json" );
 
    reports:
       005_efl_test|006_efl_test::

@@ -53,7 +53,9 @@ tests       =    \
 	015_efl_test \
 	016_efl_test \
 	017_efl_test \
-	018_efl_test
+	018_efl_test \
+	019_efl_test \
+	020_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -65,16 +67,19 @@ define cf_agent_grep_test
 		else                              \
 			{ die "FAIL: $@" }'
 endef
-# define cf_agent_grep_test 
-# 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1 | \
-# 	pcregrep --multiline '$2' && echo PASS
-# endef
 
 # $(call search_and_replace,search_regex replace_string target_file)
 define search_and_replace
 	perl -pi -e 's/$1/$2/' $3
 endef
 	
+define test_sysctl_live
+	/sbin/sysctl vm.swappiness='67'
+	cd test/masterfiles; cf-agent -Kf ./promises.cf -D $(1)_efl_test
+	cd test/serverspec; rspec spec/localhost/019_efl_test_spec.rb
+	/sbin/sysctl vm.swappiness='60'
+endef
+
 .PHONY: all
 all: $(EFL_FILES)
 
@@ -315,6 +320,18 @@ test/016/02_efl_test_simple.json: test/015/02_efl_test_simple.csv
 018_efl_test: 018_efl_test_result = R: PASS, 018_test_class_01, pass efl_class_hostname2 01\nR: PASS, 018_test_class_02, pass efl_class_hostname2 02\nR: PASS, never, pass if never defined
 018_efl_test:
 	$(call cf_agent_grep_test, $@,$(018_efl_test_result))
+
+.PHONY: 020_efl_test
+020_efl_test: 019_efl_test test/020/01_efl_sysctl_live.json
+	$(call test_sysctl_live,020)
+
+test/020/01_efl_sysctl_live.json: test/019/01_efl_sysctl_live.csv
+	$(CSVTOJSON) -b efl_sysctl_live < $^ > $@
+	$(call search_and_replace,019,020,$@) 
+
+.PHONY: 019_efl_test
+019_efl_test:
+	$(call test_sysctl_live,019)
 
 .PHONY: clean
 clean:

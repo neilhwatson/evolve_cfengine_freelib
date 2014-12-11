@@ -34,6 +34,7 @@ my %headers = (
    'efl_class_expression'  => [ qw/ class_to_set expression promisee / ],
    'efl_class_classmatch'  => [ qw/ class_to_set regex promisee / ],
    'efl_class_iprange'     => [ qw/ class_to_set ip_range promisee / ],
+   'efl_sysctl_live'       => [ qw/ class variable value promisee / ],
 );
 
 # Get command options and switches
