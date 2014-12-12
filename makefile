@@ -55,7 +55,9 @@ tests       =    \
 	017_efl_test \
 	018_efl_test \
 	019_efl_test \
-	020_efl_test
+	020_efl_test \
+	021_efl_test \
+	022_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -75,9 +77,15 @@ endef
 	
 define test_sysctl_live
 	/sbin/sysctl vm.swappiness='67'
-	cd test/masterfiles; cf-agent -Kf ./promises.cf -D $(1)_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $(1)_efl_test
 	cd test/serverspec; rspec spec/localhost/019_efl_test_spec.rb
 	/sbin/sysctl vm.swappiness='60'
+endef
+
+define test_sysclt_conf
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $(1)_efl_test
+	cd test/serverspec; rspec spec/localhost/021_efl_test_spec.rb
+	echo '07a47f3db13458ebc93b334973cc8720 /etc/sysctl.conf' |md5sum -c 
 endef
 
 .PHONY: all
@@ -332,6 +340,17 @@ test/020/01_efl_sysctl_live.json: test/019/01_efl_sysctl_live.csv
 .PHONY: 019_efl_test
 019_efl_test:
 	$(call test_sysctl_live,019)
+
+.PHONY: 022_efl_test
+022_efl_test: 021_efl_test test/022/01_efl_sysctl_conf_file.json
+	$(call test_sysctl_conf,022)
+
+test/022/01_efl_sysctl_conf_file.json: test/021/01_efl_sysctl_conf_file.csv
+	$(CSVTOJSON) -b efl_sysctl_conf_file < $^ > $@
+
+.PHONY: 021_efl_test
+021_efl_test:
+	$(call test_sysctl_conf,021)
 
 .PHONY: clean
 clean:

@@ -200,76 +200,118 @@ bundle agent efl_sysctl_conf_file( ref )
    vars:
       "sysctl_conf"  string => "/etc/sysctl.conf";
 
-      "dim_sysctl"
-         comment => "Read data file for parsing.",
-         handle  => "efl_sysctl_conf_file_vars_sysctl",
-         int     => readstringarrayidx(
-            "sysctl_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "variable",
+            "2" : "value",
+            "3" : "promisee"
+         }');
 
-      "x"
-         comment => "Get index array loaded above.",
-         handle  => "efl_sysctl_conf_file_vars_x",
-         slist   => getindices( "sysctl_o" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      "x2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3" };
-      
-      "sysctl[${x}][${x2}]"
-         comment => "Work around for bug 2333",
-         string => "${sysctl_o[${x}][${x2}]}";
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
+
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
+
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
+
+   classes:
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
+
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "promise_sysctl_conf_for_${param_file}"
+         comment    => "Ensure files promises are not evaluated prematurely.",
+         expression => "${d[${i}][class]}";
 
    files:
       "${sysctl_conf}" -> { "Provisioning" }
          comment       => "Promise whole contents of sysctl.conf",
          handle        => "efl_sysctl_conf_file_files_contents",
+         ifvarclass    => "promise_sysctl_conf_for_${param_file}",
          classes       => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_contents" ),
          action        => efl_delta_reporting( "efl_sysctl_conf_file_files_contents", "${sysctl_conf}", "Harending", "1" ),
          create        => "true",
          edit_defaults => empty,
-         edit_line     => el_efl_sysctl_conf_file( "efl_sysctl_conf_file.sysctl" );
+         edit_line     => el_efl_sysctl_conf_file( "efl_sysctl_conf_file.d" );
 
       "${sysctl_conf}" -> { "Provisioning" }
-         handle  => "efl_sysctl_conf_file_files_perms",
-         classes => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_perms" ),
-         action  => efl_delta_reporting( "efl_sysctl_conf_file_files_perms", "${sysctl_conf}", "Harending", "1" ),
-         perms   => mog( "644", "root", "root" );
+         handle     => "efl_sysctl_conf_file_files_perms",
+         ifvarclass => "promise_sysctl_conf_for_${param_file}",
+         classes    => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_perms" ),
+         action     => efl_delta_reporting( "efl_sysctl_conf_file_files_perms", "${sysctl_conf}", "Harending", "1" ),
+         perms      => mog( "644", "root", "root" );
 }
 
-bundle edit_line el_efl_sysctl_conf_file( ref )
+bundle edit_line el_efl_sysctl_conf_file( d )
 {   
    vars:
-      "x"
+      "i_unsorted"
          comment => "Get index array loaded above.",
          handle  => "el_efl_sysctl_conf_file_vars_x",
-         slist   => getindices( "${ref}" );
+         slist   => getindices( "${d}" );
 
-      "class[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "${ref}[${x}][0]";
-      "sysctl_name[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "${ref}[${x}][1]";
-      "sysctl_value[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "${ref}[${x}][2]";
-      "promisee[${x}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "${ref}[${x}][3]";
+      "i"
+         comment    => "Index data",
+         slist      => sort( "i_unsorted", "int" );
 
    insert_lines:
-      "${${sysctl_name[${x}]}} = ${${sysctl_value[${x}]}}" -> { "${${promisee[${x}]}}" }
+      "${${d}[${i}][variable]} = ${${d}[${i}][value]}" -> { "${${d}[${i}][promisee]}" }
          handle     => "el_efl_sysctl_conf_file_insert_lines",
 # TODO classes and actions do not seem to work in this bundle type.
-         classes    => efl_rkn( "${${sysctl_name[${x}]}} = ${${sysctl_value[${x}]}}", "el_efl_sysctl_conf_file_insert_lines" ),
-         action     => efl_delta_reporting( "el_efl_sysctl_conf_file_insert_lines", "${${sysctl_name[${x}]}} = ${${sysctl_value[${x}]}}", "${${promisee[${x}]}}", "1" ),
-         ifvarclass => "${${class[${x}]}}";
+         classes    => efl_rkn( "${${d}[${i}][variable]} = ${${d}[${i}][value]}", "el_efl_sysctl_conf_file_insert_lines" ),
+         action     => efl_delta_reporting( "el_efl_sysctl_conf_file_insert_lines", "${${d}[${i}][variable]} = ${${d}[${i}][value]}", "${${d}[${i}][promisee]}", "1" ),
+         ifvarclass => "${${d}[${i}][class]}";
 }
 
 bundle agent efl_command ( ref )
