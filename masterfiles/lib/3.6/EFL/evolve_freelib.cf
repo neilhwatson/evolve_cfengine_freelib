@@ -326,59 +326,87 @@ bundle agent efl_command ( ref )
       "field_5" string => "promisee";
 
    vars:
-      "dim_cmd"
-         comment => "Read data file for parsing.",
-         handle  => "efl_command_vars_files",
-         int     => readstringarrayidx(
-            "cmd_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "command",
+            "2" : "useshell",
+            "3" : "module"
+            "4" : "ifelapsed"
+            "5" : "promisee"
+         }');
 
-      "c"
-         comment => "Get index array loaded above.",
-         handle  => "efl_command_vars_c",
-         slist   => getindices( "cmd_o" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      "c2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5" };
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
 
-      "cmd[${c}][${c2}]"
-         comment => "Work around for bug 2333",
-         string => "${cmd_o[${c}][${c2}]}";
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
 
-      "class[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][0]";
-      "command[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][1]";
-      "useshell[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][2]";
-      "module[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][3]";
-      "ifelapsed[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][4]";
-      "promisee[${c}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "cmd[${c}][5]";
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
+
+   classes:
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
+
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
 
    commands:
-      "${${command[${c}]}}" -> { "${${promisee[${c}]}}" }
+      "${d[${i}][command]}" -> { "${d[${i}][promisee]}" }
          comment    => "Run desired command",
          handle     => "efl_command_commands",
-         ifvarclass => "${${class[${c}]}}",
-         contain    => contain_efl_command( "${${useshell[${c}]}}" ),
-         module     => "${${module[${c}]}}",
-         classes    => efl_rkn( "${${command[${c}]}}", "efl_command_commands" ),
-         action     => efl_delta_reporting( "efl_command_commands", "${${command[${c}]}}", "${${promisee[${c}]}}", "${${ifelapsed[${c}]}}" );
+         ifvarclass => "${d[${i}][class]}",
+         contain    => contain_efl_command( "${d[${i}][useshell]}" ),
+         module     => "${d[${i}][module]}",
+         classes    => efl_rkn( "${d[${i}][command]}", "efl_command_commands" ),
+         action     => efl_delta_reporting( "efl_command_commands", "${d[${i}][command]}", "${d[${i}][promisee]}", "${d[${i}][ifelapsed]}" );
 }
 
 body contain contain_efl_command ( useshell )

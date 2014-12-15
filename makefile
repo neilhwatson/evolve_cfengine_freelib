@@ -57,7 +57,9 @@ tests       =    \
 	019_efl_test \
 	020_efl_test \
 	021_efl_test \
-	022_efl_test
+	022_efl_test \
+	023_efl_test \
+	024_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -86,6 +88,10 @@ define test_sysclt_conf
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $(1)_efl_test
 	cd test/serverspec; rspec spec/localhost/021_efl_test_spec.rb
 	echo '07a47f3db13458ebc93b334973cc8720 /etc/sysctl.conf' |md5sum -c 
+endef
+
+define 023_024_result
+	echo 'a95cee7d8d28c9a1d6f4cd86100d341c /tmp/023_efl_test' |md5sum -c
 endef
 
 .PHONY: all
@@ -352,11 +358,27 @@ test/022/01_efl_sysctl_conf_file.json: test/021/01_efl_sysctl_conf_file.csv
 021_efl_test:
 	$(call test_sysctl_conf,021)
 
+.PHONY: 024_efl_test
+024_efl_test: 023_efl_test test/024/01_efl_command.json
+	rm /tmp/023_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 024_efl_test
+	$(call 023_024_result)
+
+test/024/01_efl_command.json: test/023/01_efl_command.csv
+	$(CSVTOJSON) -b efl_command < $^ > $@
+
+.PHONY: 023_efl_test
+023_efl_test:
+	rm /tmp/023_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 023_efl_test
+	$(call 023_024_result)
+
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
+
 
 .PHONY: help
 help:

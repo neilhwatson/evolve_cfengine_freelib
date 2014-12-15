@@ -1,0 +1,3 @@
+any ;; /bin/echo 'line one'    > /tmp/023_efl_test ;; useshell ;; no ;; 1 ;; efl development
+any ;; /bin/echo 'line two'   >> /tmp/023_efl_test ;; useshell ;; no ;; 1 ;; efl development
+any ;; /bin/echo 'line three' >> /tmp/023_efl_test ;; useshell ;; no ;; 1 ;; efl development
