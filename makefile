@@ -59,7 +59,9 @@ tests       =    \
 	021_efl_test \
 	022_efl_test \
 	023_efl_test \
-	024_efl_test
+	024_efl_test \
+	025_efl_test \
+	026_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -92,6 +94,14 @@ endef
 
 define 023_024_result
 	echo 'a95cee7d8d28c9a1d6f4cd86100d341c /tmp/023_efl_test' |md5sum -c
+endef
+
+define make_link_targets
+	for i in 01 02 03; do echo $$i > /tmp/efl_test_$$i; done
+endef
+
+define del_link_targets
+	for i in 01 02 03; do rm /tmp/efl_test_$$i /var/tmp/efl_test_$${i}_link; done
 endef
 
 .PHONY: all
@@ -372,6 +382,23 @@ test/024/01_efl_command.json: test/023/01_efl_command.csv
 	rm /tmp/023_efl_test
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 023_efl_test
 	$(call 023_024_result)
+
+.PHONY: 026_efl_test
+026_efl_test: 025_efl_test test/026/01_efl_link.json
+	$(call make_link_targets)
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 026_efl_test
+	cd test/serverspec; rspec spec/localhost/025_efl_test_spec.rb
+	$(call del_link_targets)
+
+test/026/01_efl_link.json: test/025/01_efl_link.csv
+	$(CSVTOJSON) -b efl_link < $^ > $@
+
+.PHONY: 025_efl_test
+025_efl_test:
+	$(call make_link_targets)
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 025_efl_test
+	cd test/serverspec; rspec spec/localhost/025_efl_test_spec.rb
+	$(call del_link_targets)
 
 .PHONY: clean
 clean:

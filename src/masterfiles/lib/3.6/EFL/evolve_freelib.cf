@@ -260,56 +260,31 @@ bundle agent efl_link ( ref )
       "field_4" string => "Promisee";
 
    vars:
-      "dim_link"
-         comment => "Read data file for parsing.",
-         handle  => "efl_link_vars_files",
-         int     => readstringarrayidx(
-            "link_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "link_name",
+            "2" : "target",
+            "3" : "link_type"
+            "4" : "promisee"
+         }');
 
-      "l"
-         comment => "Get index array loaded above.",
-         handle  => "efl_link_vars_f",
-         slist   => getindices( "link_o" );
+      <efl param_parser efl/>
 
-      "l2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4" };
-
-      "link[${l}][${l2}]"
-         comment => "Work around for bug 2333",
-         string => "${link_o[${l}][${l2}]}";
-
-      "class[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][0]";
-      "link[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][1]";
-      "target[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][2]";
-      "type[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][3]";
-      "promisee[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][4]";
+   classes:
+      <efl param_file_picker efl/>
 
    files:
-      "${${link[${l}]}}" -> { "${${promisee[${l}]}}" }
+      "${d[${i}][link_name]}" -> { "${d[${i}][promisee]}" }
          comment           => "Make link if class is true",
          handle            => "efl_link_files_target",
-         ifvarclass        => "${${class[${l}]}}",
+         ifvarclass        => "${d[${i}][class]}",
          move_obstructions => 'true',
-         classes           => efl_rkn( "${${link[${l}]}}", "efl_link_files_target" ),
-         action            => efl_delta_reporting( "efl_link_files_target", "${${link[${l}]}}", "${${promisee[${l}]}}", "1" ),
-         link_from         => efl_source_type( "${${target[${l}]}}", "${${type[${l}]}}" );
+         classes           => efl_rkn( "${d[${i}][link_name]}", "efl_link_files_target" ),
+         action            => efl_delta_reporting( "efl_link_files_target", "${d[${i}][link_name]}", "${d[${i}][promisee]}", "1" ),
+         link_from         => efl_source_type( "${d[${i}][target]}", "${d[${i}][link_type]}" );
 }
 
 body link_from efl_source_type ( source, type )

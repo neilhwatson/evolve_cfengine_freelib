@@ -425,56 +425,86 @@ bundle agent efl_link ( ref )
       "field_4" string => "Promisee";
 
    vars:
-      "dim_link"
-         comment => "Read data file for parsing.",
-         handle  => "efl_link_vars_files",
-         int     => readstringarrayidx(
-            "link_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "link_name",
+            "2" : "target",
+            "3" : "link_type"
+            "4" : "promisee"
+         }');
 
-      "l"
-         comment => "Get index array loaded above.",
-         handle  => "efl_link_vars_f",
-         slist   => getindices( "link_o" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      "l2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4" };
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
 
-      "link[${l}][${l2}]"
-         comment => "Work around for bug 2333",
-         string => "${link_o[${l}][${l2}]}";
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
 
-      "class[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][0]";
-      "link[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][1]";
-      "target[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][2]";
-      "type[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][3]";
-      "promisee[${l}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "link[${l}][4]";
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
+
+   classes:
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
+
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
 
    files:
-      "${${link[${l}]}}" -> { "${${promisee[${l}]}}" }
+      "${d[${i}][link_name]}" -> { "${d[${i}][promisee]}" }
          comment           => "Make link if class is true",
          handle            => "efl_link_files_target",
-         ifvarclass        => "${${class[${l}]}}",
+         ifvarclass        => "${d[${i}][class]}",
          move_obstructions => 'true',
-         classes           => efl_rkn( "${${link[${l}]}}", "efl_link_files_target" ),
-         action            => efl_delta_reporting( "efl_link_files_target", "${${link[${l}]}}", "${${promisee[${l}]}}", "1" ),
-         link_from         => efl_source_type( "${${target[${l}]}}", "${${type[${l}]}}" );
+         classes           => efl_rkn( "${d[${i}][link_name]}", "efl_link_files_target" ),
+         action            => efl_delta_reporting( "efl_link_files_target", "${d[${i}][link_name]}", "${d[${i}][promisee]}", "1" ),
+         link_from         => efl_source_type( "${d[${i}][target]}", "${d[${i}][link_type]}" );
 }
 
 body link_from efl_source_type ( source, type )

@@ -36,6 +36,7 @@ my %headers = (
    'efl_class_iprange'     => [ qw/ class_to_set ip_range promisee / ],
    'efl_sysctl_live'       => [ qw/ class variable value promisee / ],
    'efl_sysctl_conf_file'  => [ qw/ class variable value promisee / ],
+   'efl_link'              => [ qw/ class link_name target link_type promisee / ],
 );
 
 # Get command options and switches
