@@ -518,7 +518,7 @@ bundle agent efl_delete_files ( ref )
 {
    meta:
       "purpose" string => "Delete files that match the given criteria.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Files promiser";
       "field_2" string => "Recurse no/#/inf";
       "field_3" string => "Leaf regex";
@@ -527,130 +527,144 @@ bundle agent efl_delete_files ( ref )
       "field_6" string => "Promisee";
 
    vars:
-      "dim_files"
-         comment => "Read data file for parsing.",
-         handle  => "efl_delete_files_vars_files",
-         int     => readstringarrayidx(
-            "files_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "file_promiser",
+            "2" : "recurse_level",
+            "3" : "leaf_regex"
+            "4" : "negate_match"
+            "5" : "file_age"
+            "6" : "promisee"
+         }');
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_delete_files_vars_f",
-         slist   => getindices( "files_o" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6" };
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
 
-      "files[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string  => "${files_o[${f}][${f2}]}";
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
 
-      "files[${f}][file_canon]"
-         comment    => "Canonify file name fo later use",
-         string     => canonify( "${files[${f}][1]}" );
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
 
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][0]";
-      "file[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][1]";
-      "file_canon[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][file_canon]";
-      "recurse[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][2]";
-      "leaf[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][3]";
-      "negate[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][4]";
-      "age[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][5]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][6]";
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
 
    classes:
-# TODO test this
-# These classes are defined in order to simply ifvarclass usage later. Ifvarclass
-# can be buggy when used in conjunction with functions.
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
 
-        "${${file_canon[${f}]}}_${f}_positive_match"
-            ifvarclass => "${${class[${f}]}}",
-            expression => strcmp( "no", "${${negate[${f}]}}" );
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
 
-        "${${file_canon[${f}]}}_${f}_negative_match"
-            ifvarclass => "${${class[${f}]}}",
-            expression => strcmp( "yes", "${${negate[${f}]}}" );
+        "${param_file}_${i}_positive_match"
+            ifvarclass => "${d[${i}][class]}",
+            expression => strcmp( "no", "${d[${i}][negate_match]}" );
 
-        "${${file_canon[${f}]}}_${f}_is_file"
-            ifvarclass => "${${class[${f}]}}",
-            or         => { isplain( "${${file[${f}]}}" ), islink( "${${file[${f}]}}" ) };
+        "${param_file}_${i}_negative_match"
+            ifvarclass => "${d[${i}][class]}",
+            expression => strcmp( "yes", "${d[${i}][negate_match]}" );
 
-        "${${file_canon[${f}]}}_${f}_is_dir"
-            ifvarclass => "${${class[${f}]}}",
-            expression => isdir( "${${file[${f}]}}" );
+        "${param_file}_${i}_is_file"
+            ifvarclass => "${d[${i}][class]}",
+            or         => { isplain( "${d[${i}][file_promiser]}" ), islink( "${d[${i}][file_promiser]}" ) };
 
-        "${${file_canon[${f}]}}_${f}_is_file_and_positive_match"
-            and => { "${${file_canon[${f}]}}_${f}_is_file", "${${file_canon[${f}]}}_${f}_positive_match" };
+        "${param_file}_${i}_is_dir"
+            ifvarclass => "${d[${i}][class]}",
+            expression => isdir( "${d[${i}][file_promiser]}" );
 
-        "${${file_canon[${f}]}}_${f}_is_file_and_negative_match"
-            and => { "${${file_canon[${f}]}}_${f}_is_file", "${${file_canon[${f}]}}_${f}_negative_match" };
+        "${param_file}_${i}_is_file_and_positive_match"
+            and => { "${param_file}_${i}_is_file", "${param_file}_${i}_positive_match" };
 
-        "${${file_canon[${f}]}}_${f}_is_dir_and_positive_match"
-            and => { "${${file_canon[${f}]}}_${f}_is_dir", "${${file_canon[${f}]}}_${f}_positive_match" };
+        "${param_file}_${i}_is_file_and_negative_match"
+            and => { "${param_file}_${i}_is_file", "${param_file}_${i}_negative_match" };
 
-        "${${file_canon[${f}]}}_${f}_is_dir_and_negative_match"
-            and => { "${${file_canon[${f}]}}_${f}_is_dir", "${${file_canon[${f}]}}_${f}_negative_match" };
+        "${param_file}_${i}_is_dir_and_positive_match"
+            and => { "${param_file}_${i}_is_dir", "${param_file}_${i}_positive_match" };
+
+        "${param_file}_${i}_is_dir_and_negative_match"
+            and => { "${param_file}_${i}_is_dir", "${param_file}_${i}_negative_match" };
 
    files:
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment      => "Delete files recursively",
          handle       => "efl_delete_files_files_isdir",
-         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_isdir" ),
-         action       => efl_delta_reporting( "efl_delete_files_files_isdir", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_dir_and_positive_match",
-         depth_search => recurse( "${${recurse[${f}]}}" ),
-         file_select  => name_age( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_delete_files_files_isdir" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_isdir", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass   => "${param_file}_${i}_is_dir_and_positive_match",
+         depth_search => recurse( "${d[${i}][recurse_level]}" ),
+         file_select  => name_age( "${d[${i}][leaf_regex]}", "${d[${i}][file_age]}" ),
          delete       => tidy;
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment      => "Delete files",
          handle       => "efl_delete_files_files_single",
-         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_single" ),
-         action       => efl_delta_reporting( "efl_delete_files_files_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_file_and_positive_match",
-         file_select  => name_age( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_delete_files_files_single" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_single", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass   => "${param_file}_${i}_is_file_and_positive_match",
+         file_select  => name_age( "${d[${i}][leaf_regex]}", "${d[${i}][file_age]}" ),
          delete       => tidy;
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment      => "Delete files recursively excluding leaf name.",
          handle       => "efl_delete_files_files_isdir_negative",
-         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_isdir_negative" ),
-         action       => efl_delta_reporting( "efl_delete_files_files_isdir_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_dir_and_negative_match",
-         depth_search => recurse( "${${recurse[${f}]}}" ),
-         file_select  => name_age_negate( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_delete_files_files_isdir_negative" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_isdir_negative", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass   => "${param_file}_${i}_is_dir_and_negative_match",
+         depth_search => recurse( "${d[${i}][recurse_level]}" ),
+         file_select  => name_age_negate( "${d[${i}][leaf_regex]}", "${d[${i}][file_age]}" ),
          delete       => tidy;
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment      => "Delete files, excluding leaf name",
          handle       => "efl_delete_files_files_single_negative",
-         classes      => efl_rkn( "${${file[${f}]}}", "efl_delete_files_files_single_negative" ),
-         action       => efl_delta_reporting( "efl_delete_files_files_single_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => "${${file_canon[${f}]}}_${f}_is_file_and_negative_match",
-         file_select  => name_age_negate( "${${leaf[${f}]}}", "${${age[${f}]}}" ),
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_delete_files_files_single_negative" ),
+         action       => efl_delta_reporting( "efl_delete_files_files_single_negative", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass   => "${param_file}_${i}_is_file_and_negative_match",
+         file_select  => name_age_negate( "${d[${i}][leaf_regex]}", "${d[${i}][file_age]}" ),
          delete       => tidy;
 }
 

@@ -1,0 +1,12 @@
+# [ qw/ class file_promiser recurse_level leaf_regex negate_match file_age promisee / ],
+# Delete group of files on a single level
+any ;; /tmp/027/01 ;; 0   ;; .*\.txt ;; no  ;; 0 ;; efl development
+
+# Delete files that are not .txt files on a single level
+any ;; /tmp/027/02 ;; 0   ;; .*\.txt ;; yes ;; 0 ;; efl development
+
+# Delete all files using infinite recurse.
+any ;; /tmp/027/03 ;; inf ;; .*      ;; no  ;; 0 ;; efl development
+
+# Delete files on a single level aged 1 day or more
+any ;; /tmp/027/04 ;; 0   ;; .*      ;; no  ;; 1 ;; efl development

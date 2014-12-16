@@ -82,6 +82,10 @@ bundle agent main
       "any" usebundle => efl_link( "../025/01_efl_link.csv" );
    026_efl_test::
       "any" usebundle => efl_link( "../026/01_efl_link.json" );
+   027_efl_test::
+      "any" usebundle => efl_delete_files( "../027/01_efl_delete_files.csv" );
+   028_efl_test::
+      "any" usebundle => efl_delete_files( "../028/01_efl_delete_files.json" );
 
    reports:
       005_efl_test|006_efl_test::

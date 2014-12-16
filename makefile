@@ -61,7 +61,9 @@ tests       =    \
 	023_efl_test \
 	024_efl_test \
 	025_efl_test \
-	026_efl_test
+	026_efl_test \
+	027_efl_test \
+	028_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -102,6 +104,12 @@ endef
 
 define del_link_targets
 	for i in 01 02 03; do rm /tmp/efl_test_$$i /var/tmp/efl_test_$${i}_link; done
+endef
+
+define 027_028_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	cd test/serverspec; rspec spec/localhost/027_efl_test_spec.rb
+	echo PASS: $@
 endef
 
 .PHONY: all
@@ -348,6 +356,7 @@ test/016/02_efl_test_simple.json: test/015/02_efl_test_simple.csv
 .PHONY: 020_efl_test
 020_efl_test: 019_efl_test test/020/01_efl_sysctl_live.json
 	$(call test_sysctl_live,020)
+	echo PASS: $@
 
 test/020/01_efl_sysctl_live.json: test/019/01_efl_sysctl_live.csv
 	$(CSVTOJSON) -b efl_sysctl_live < $^ > $@
@@ -356,10 +365,12 @@ test/020/01_efl_sysctl_live.json: test/019/01_efl_sysctl_live.csv
 .PHONY: 019_efl_test
 019_efl_test:
 	$(call test_sysctl_live,019)
+	echo PASS: $@
 
 .PHONY: 022_efl_test
 022_efl_test: 021_efl_test test/022/01_efl_sysctl_conf_file.json
 	$(call test_sysctl_conf,022)
+	echo PASS: $@
 
 test/022/01_efl_sysctl_conf_file.json: test/021/01_efl_sysctl_conf_file.csv
 	$(CSVTOJSON) -b efl_sysctl_conf_file < $^ > $@
@@ -367,12 +378,14 @@ test/022/01_efl_sysctl_conf_file.json: test/021/01_efl_sysctl_conf_file.csv
 .PHONY: 021_efl_test
 021_efl_test:
 	$(call test_sysctl_conf,021)
+	echo PASS: $@
 
 .PHONY: 024_efl_test
 024_efl_test: 023_efl_test test/024/01_efl_command.json
 	rm /tmp/023_efl_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 024_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	$(call 023_024_result)
+	echo PASS: $@
 
 test/024/01_efl_command.json: test/023/01_efl_command.csv
 	$(CSVTOJSON) -b efl_command < $^ > $@
@@ -380,15 +393,17 @@ test/024/01_efl_command.json: test/023/01_efl_command.csv
 .PHONY: 023_efl_test
 023_efl_test:
 	rm /tmp/023_efl_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 023_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	$(call 023_024_result)
+	echo PASS: $@
 
 .PHONY: 026_efl_test
 026_efl_test: 025_efl_test test/026/01_efl_link.json
 	$(call make_link_targets)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 026_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	cd test/serverspec; rspec spec/localhost/025_efl_test_spec.rb
 	$(call del_link_targets)
+	echo PASS: $@
 
 test/026/01_efl_link.json: test/025/01_efl_link.csv
 	$(CSVTOJSON) -b efl_link < $^ > $@
@@ -396,15 +411,65 @@ test/026/01_efl_link.json: test/025/01_efl_link.csv
 .PHONY: 025_efl_test
 025_efl_test:
 	$(call make_link_targets)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 025_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	cd test/serverspec; rspec spec/localhost/025_efl_test_spec.rb
 	$(call del_link_targets)
+	echo PASS: $@
+
+.PHONY: 028_efl_test
+028_efl_test: 027_efl_test test/028/01_efl_delete_files.json
+	$(call 027_028_test)
+
+test/028/01_efl_delete_files.json: test/027/01_efl_delete_files.csv
+	$(CSVTOJSON) -b efl_delete_files < $^ > $@
+
+027_testdir = /tmp/027
+027_01_files = $(027_testdir)/01/a.txt $(027_testdir)/01/b.txt \
+	$(027_testdir)/01/c.html
+027_02_files = $(027_testdir)/02/a.txt $(027_testdir)/02/b.txt \
+	$(027_testdir)/02/c.html
+027_03_files = $(027_testdir)/03/a.txt $(027_testdir)/03/b.txt \
+	$(027_testdir)/03/c.html $(027_testdir)/03/sub/d.json
+
+.PHONY: 027_efl_test
+027_efl_test: $(027_01_files) $(027_02_files) $(027_03_files) \
+	$(027_testdir)/04/a.txt $(027_testdir)/04/b.json
+	$(call 027_028_test)
+
+$(027_01_files): $(027_testdir)/01/.
+	echo $@ > $@
+
+$(027_02_files): $(027_testdir)/02/.
+	echo $@ > $@
+
+$(027_03_files): $(027_testdir)/03/sub/.
+	echo $@ > $@
+
+$(027_testdir)/04/a.txt: $(027_testdir)/04/.
+	echo $@ > $@
+	touch -t 201301011313 $@
+
+$(027_testdir)/04/b.json: $(027_testdir)/04/.
+	echo $@ > $@
+
+$(027_testdir)/01/.:
+	test -d $(027_testdir)/01 || mkdir -p $(027_testdir)/01
+
+$(027_testdir)/02/.:
+	test -d $(027_testdir)/02 || mkdir -p $(027_testdir)/02
+
+$(027_testdir)/03/sub/.:
+	test -d $(027_testdir)/03/sub || mkdir -p $(027_testdir)/03/sub
+
+$(027_testdir)/04/.:
+	test -d $(027_testdir)/04 || mkdir -p $(027_testdir)/04
 
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
+	rm -fr $(027_testdir)
 
 
 .PHONY: help
