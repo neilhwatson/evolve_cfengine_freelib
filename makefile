@@ -63,7 +63,9 @@ tests       =    \
 	025_efl_test \
 	026_efl_test \
 	027_efl_test \
-	028_efl_test
+	028_efl_test \
+	029_efl_test \
+	030_efl_test
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -81,6 +83,20 @@ define search_and_replace
 	perl -pi -e 's/$1/$2/' $3
 endef
 	
+define md5cmp_two_files
+	ONE=$$(md5sum $1|awk '{print $$1}')  \
+	TWO=$$(md5sum $2|awk '{print $$1}'); \
+	for i in $1 $2; do \
+		if [ ! -f $1 ]; then echo "FAIL $@ $1 does not exist"; exit 1; fi \
+	done; \
+	if [ "0$$ONE" = "0$$TWO" ]; then \
+		echo "PASS $1 ($$ONE) == $2 ($$TWO)"; \
+	else \
+		echo "FAIL $@ $1 ($$ONE) != $2 ($$TWO)"; \
+		exit 1; \
+	fi
+endef
+
 define test_sysctl_live
 	/sbin/sysctl vm.swappiness='67'
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $(1)_efl_test
@@ -94,8 +110,11 @@ define test_sysclt_conf
 	echo '07a47f3db13458ebc93b334973cc8720 /etc/sysctl.conf' |md5sum -c 
 endef
 
-define 023_024_result
+define 023_024_test
+	rm -f /tmp/023_efl_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	echo 'a95cee7d8d28c9a1d6f4cd86100d341c /tmp/023_efl_test' |md5sum -c
+	echo PASS: $@
 endef
 
 define make_link_targets
@@ -110,6 +129,16 @@ define 027_028_test
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	cd test/serverspec; rspec spec/localhost/027_efl_test_spec.rb
 	echo PASS: $@
+endef
+
+define 029_030_test
+	rm -fr /tmp/efl_test/029 /tmp/efl_test/030 /tmp/ssh/
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	cd test/serverspec; rspec spec/localhost/029_efl_test_spec.rb
+	$(call md5cmp_two_files,/etc/ssh/ssh_config,/tmp/ssh/ssh_config)
+	$(call md5cmp_two_files,/tmp/efl_test/029/01/a.txt,/tmp/efl_test/027/02/a.txt)
+	$(call md5cmp_two_files,/tmp/efl_test/029/01/b.txt,/tmp/efl_test/027/02/b.txt)
+	echo PASS $@
 endef
 
 .PHONY: all
@@ -382,20 +411,14 @@ test/022/01_efl_sysctl_conf_file.json: test/021/01_efl_sysctl_conf_file.csv
 
 .PHONY: 024_efl_test
 024_efl_test: 023_efl_test test/024/01_efl_command.json
-	rm /tmp/023_efl_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	$(call 023_024_result)
-	echo PASS: $@
+	$(call 023_024_test)
 
 test/024/01_efl_command.json: test/023/01_efl_command.csv
 	$(CSVTOJSON) -b efl_command < $^ > $@
 
 .PHONY: 023_efl_test
 023_efl_test:
-	rm /tmp/023_efl_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	$(call 023_024_result)
-	echo PASS: $@
+	$(call 023_024_test)
 
 .PHONY: 026_efl_test
 026_efl_test: 025_efl_test test/026/01_efl_link.json
@@ -423,7 +446,7 @@ test/026/01_efl_link.json: test/025/01_efl_link.csv
 test/028/01_efl_delete_files.json: test/027/01_efl_delete_files.csv
 	$(CSVTOJSON) -b efl_delete_files < $^ > $@
 
-027_testdir = /tmp/027
+027_testdir = /tmp/efl_test/027
 027_01_files = $(027_testdir)/01/a.txt $(027_testdir)/01/b.txt \
 	$(027_testdir)/01/c.html
 027_02_files = $(027_testdir)/02/a.txt $(027_testdir)/02/b.txt \
@@ -464,12 +487,24 @@ $(027_testdir)/03/sub/.:
 $(027_testdir)/04/.:
 	test -d $(027_testdir)/04 || mkdir -p $(027_testdir)/04
 
+PHONY: 030_efl_test
+030_efl_test: 029_efl_test test/030/01_efl_copy_files.json
+	$(call 029_030_test)
+
+test/030/01_efl_copy_files.json: test/029/01_efl_copy_files.csv
+	$(CSVTOJSON) -b efl_copy_files < $^ > $@
+
+PHONY: 029_efl_test
+029_efl_test: $(027_02_files)
+	$(call 029_030_test)
+
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
-	rm -fr $(027_testdir)
+	rm -fr /tmp/*efl_test* 
+	rm -f /tmp/ssh/ssh_config
 
 
 .PHONY: help

@@ -223,8 +223,8 @@ bundle agent efl_command ( ref )
             "0" : "class",
             "1" : "command",
             "2" : "useshell",
-            "3" : "module"
-            "4" : "ifelapsed"
+            "3" : "module",
+            "4" : "ifelapsed",
             "5" : "promisee"
          }');
 
@@ -267,7 +267,7 @@ bundle agent efl_link ( ref )
             "0" : "class",
             "1" : "link_name",
             "2" : "target",
-            "3" : "link_type"
+            "3" : "link_type",
             "4" : "promisee"
          }');
 
@@ -314,9 +314,9 @@ bundle agent efl_delete_files ( ref )
             "0" : "class",
             "1" : "file_promiser",
             "2" : "recurse_level",
-            "3" : "leaf_regex"
-            "4" : "negate_match"
-            "5" : "file_age"
+            "3" : "leaf_regex",
+            "4" : "negate_match",
+            "5" : "file_age",
             "6" : "promisee"
          }');
 
@@ -416,124 +416,81 @@ bundle agent efl_copy_files ( ref )
       "field_9" string => "Promisee";
 
    vars:
-      "dim_files"
-         comment => "Read data file for parsing.",
-         handle  => "efl_copy_files_vars_files",
-         int     => readstringarrayidx(
-            "files_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "file_promiser",
+            "2" : "leaf_regex",
+            "3" : "file_source",
+            "4" : "server",
+            "5" : "encrypt",
+            "6" : "mode",
+            "7" : "owner",
+            "8" : "group",
+            "9" : "promisee"
+         }');
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_copy_files_vars_f",
-         slist   => getindices( "files_o" );
-
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-
-      "files[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${files_o[${f}][${f2}]}";
-
-      "files[${f}][file_canon]"
-         comment    => "Canonify file name fo later use",
-         string     => canonify( "${files[${f}][1]}" );
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][0]";
-      "file_canon[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][file_canon]";
-      "file[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][1]";
-      "leaf[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][2]";
-      "source[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][3]";
-      "server[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][4]";
-      "encrypt[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][5]";
-      "mode[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][6]";
-      "owner[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][7]";
-      "group[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][8]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][9]";
+      <efl param_parser efl/>
 
    classes:
-      "recurse_${${file_canon[${f}]}}_${f}"
-         comment    => "Set if promiser is a directory",
-         ifvarclass => "${${class[${f}]}}",
-         expression => regcmp( ".+/\.", "${${file[${f}]}}" );
+      <efl param_file_picker efl/>
 
-      "no_recurse_${${file_canon[${f}]}}_${f}"
+      "recurse_${param_file}_${i}"
          comment    => "Set if promiser is a directory",
-         ifvarclass => "${${class[${f}]}}",
-         not        => regcmp( ".+/\.", "${${file[${f}]}}" );
+         ifvarclass => "${d[${i}][class]}",
+         expression => regcmp( ".+/\.", "${d[${i}][file_promiser]}" );
+
+      "no_recurse_${param_file}_${i}"
+         comment    => "Set if promiser is a directory",
+         ifvarclass => "${d[${i}][class]}",
+         not        => regcmp( ".+/\.", "${d[${i}][file_promiser]}" );
       
    files:
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          handle     => "efl_copy_files_create_dir",
          comment    => "Create promiser directory",
-         ifvarclass => "recurse_${${file_canon[${f}]}}_${f}",
+         ifvarclass => "recurse_${param_file}_${i}",
          create     => 'true';
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment    => "Copy a single file",
          handle     => "efl_copy_files_single",
          create     => 'true',
-         ifvarclass => "no_recurse_${${file_canon[${f}]}}_${f}",
-         classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remote_single" ),
-         action     => efl_delta_reporting( "efl_copy_files_remote_single", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         copy_from  => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
+         ifvarclass => "no_recurse_${param_file}_${i}",
+         classes    => efl_rkn( "${d[${i}][file_promiser]}", "efl_copy_files_remote_single" ),
+         action     => efl_delta_reporting( "efl_copy_files_remote_single", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         copy_from  => efl_cpf( "${d[${i}][file_source]}", "@{${d[${i}][server]}}", "${d[${i}][encrypt]}" );
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment      => "Copy and recurse",
          handle       => "efl_copy_files_recurse",
          create       => 'true',
-         classes      => efl_rkn( "${${file[${f}]}}", "efl_copy_files_remove_recurse" ),
-         action       => efl_delta_reporting( "efl_copy_files_remove_recurse", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => "recurse_${${file_canon[${f}]}}_${f}",
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_copy_files_remove_recurse" ),
+         action       => efl_delta_reporting( "efl_copy_files_remove_recurse", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass   => "recurse_${param_file}_${i}",
          depth_search => recurse( "inf" ),
-         file_select  => by_name( "${${leaf[${f}]}}" ),
-         copy_from    => efl_cpf( "${${source[${f}]}}", "@{${${server[${f}]}}}", "${${encrypt[${f}]}}" );
+         file_select  => by_name( "${d[${i}][leaf_regex]}" ),
+         copy_from    => efl_cpf( "${d[${i}][file_source]}", "@{${d[${i}][server]}}", "${d[${i}][encrypt]}" );
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment    => "Promise permissions and ownership",
          handle     => "efl_copy_files_single_perms",
-         classes    => efl_rkn( "${${file[${f}]}}", "efl_copy_files_single_perms" ),
-         action     => efl_delta_reporting( "efl_copy_files_single_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => "no_recurse_${${file_canon[${f}]}}_${f}",
-         perms      => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
+         classes    => efl_rkn( "${d[${i}][file_promiser]}", "efl_copy_files_single_perms" ),
+         action     => efl_delta_reporting( "efl_copy_files_single_perms", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass => "no_recurse_${param_file}_${i}",
+         perms      => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
          comment      => "Promise permissions and ownership",
          handle       => "efl_copy_files_recurse_perms",
-         classes      => efl_rkn( "${${file[${f}]}}", "efl_copy_files_recurse_perms" ),
-         action       => efl_delta_reporting( "efl_copy_files_recurse_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass   => "recurse_${${file_canon[${f}]}}_${f}",
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_copy_files_recurse_perms" ),
+         action       => efl_delta_reporting( "efl_copy_files_recurse_perms", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass   => "recurse_${param_file}_${i}",
          depth_search => recurse( "inf" ),
-         file_select  => by_name( "${${leaf[${f}]}}" ),
-         perms        => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
+         file_select  => by_name( "${d[${i}][leaf_regex]}" ),
+         perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 }
 
 body copy_from efl_cpf(from, server, encrypt)

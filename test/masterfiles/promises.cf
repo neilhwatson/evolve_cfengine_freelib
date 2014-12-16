@@ -28,6 +28,11 @@ bundle common cfengine_stdlib
 
 bundle agent main
 {
+   vars:
+      "localhost"
+         comment => "Used for server arg in copy_from attributes of EFL",
+         slist   => { 'localhost' };
+
 	methods:
 
    001_efl_test::
@@ -86,6 +91,10 @@ bundle agent main
       "any" usebundle => efl_delete_files( "../027/01_efl_delete_files.csv" );
    028_efl_test::
       "any" usebundle => efl_delete_files( "../028/01_efl_delete_files.json" );
+   029_efl_test::
+      "any" usebundle => efl_copy_files( "../029/01_efl_copy_files.csv" );
+   030_efl_test::
+      "any" usebundle => efl_copy_files( "../030/01_efl_copy_files.json" );
 
    reports:
       005_efl_test|006_efl_test::

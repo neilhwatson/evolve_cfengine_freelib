@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-testdir = '/tmp/027'
+testdir = '/tmp/efl_test/027'
 
 for i in ['a','b']
    describe file ( "#{testdir}/01/#{i}.txt" ) do

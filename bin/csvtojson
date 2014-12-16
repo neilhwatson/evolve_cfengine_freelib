@@ -38,6 +38,7 @@ my %headers = (
    'efl_sysctl_conf_file'  => [ qw/ class variable value promisee / ],
    'efl_link'              => [ qw/ class link_name target link_type promisee / ],
    'efl_delete_files'      => [ qw/ class file_promiser recurse_level leaf_regex negate_match file_age promisee / ],
+   'efl_copy_files'        => [ qw/ class file_promiser leaf_regex file_source server encrypt mode owner group promisee / ],
 );
 
 # Get command options and switches

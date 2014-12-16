@@ -1,0 +1,5 @@
+# copy single file
+any ;; /tmp/ssh/ssh_config ;; .* ;; /etc/ssh/ssh_config ;; main.localhost ;; no ;; 644 ;; root ;; root ;; efl development
+
+# copy recursive files
+any ;; /tmp/efl_test/029/01/. ;; .*\.txt ;; /tmp/efl_test/027/02 ;; main.localhost ;; no ;; 644 ;; root ;; root ;; efl development
