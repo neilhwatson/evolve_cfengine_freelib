@@ -5,6 +5,7 @@ LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
 CSVTOJSON   = ./bin/csvtojson
+APT_GET     = /usr/bin/apt-get --quiet --yes
 
 EFL_FILES   = \
 	$(EFL_LIB)/efl_common.cf \
@@ -65,7 +66,11 @@ tests       =    \
 	027_efl_test \
 	028_efl_test \
 	029_efl_test \
-	030_efl_test
+	030_efl_test \
+	031_efl_test \
+	032_efl_test \
+	033_efl_test \
+	034_efl_test 
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -138,6 +143,16 @@ define 029_030_test
 	$(call md5cmp_two_files,/etc/ssh/ssh_config,/tmp/ssh/ssh_config)
 	$(call md5cmp_two_files,/tmp/efl_test/029/01/a.txt,/tmp/efl_test/027/02/a.txt)
 	$(call md5cmp_two_files,/tmp/efl_test/029/01/b.txt,/tmp/efl_test/027/02/b.txt)
+	echo PASS $@
+endef
+
+define packages_test
+	$(APT_GET) install nano
+	$(APT_GET) remove e3
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	cd test/serverspec; rspec spec/localhost/031.elf_test_spec.rb
+	$(APT_GET) remove nano e3
+	cd test/serverspec; rspec spec/localhost/031.elf_post_test_spec.rb
 	echo PASS $@
 endef
 
@@ -497,6 +512,25 @@ test/030/01_efl_copy_files.json: test/029/01_efl_copy_files.csv
 PHONY: 029_efl_test
 029_efl_test: $(027_02_files)
 	$(call 029_030_test)
+
+PHONY: 032_efl_test
+032_efl_test: 031_efl_test test/032/01_packages.json
+	$(packages_test)
+
+PHONY: 031_efl_test
+031_efl_test:
+	$(packages_test)
+
+PHONY: 034_efl_test
+034_efl_test: 033_efl_test test/032/01_packages.json
+	$(packages_test)
+
+PHONY: 033_efl_test
+033_efl_test:
+	$(packages_test)
+
+test/032/01_packages.json: test/031/01_packages.csv
+	$(CSVTOJSON) -b efl_packages < $^ > $@
 
 .PHONY: clean
 clean:

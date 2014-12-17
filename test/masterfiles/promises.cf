@@ -95,6 +95,14 @@ bundle agent main
       "any" usebundle => efl_copy_files( "../029/01_efl_copy_files.csv" );
    030_efl_test::
       "any" usebundle => efl_copy_files( "../030/01_efl_copy_files.json" );
+   031_efl_test::
+      "any" usebundle => efl_packages_via_cmd( "../031/01_packages.csv" );
+   032_efl_test::
+      "any" usebundle => efl_packages_via_cmd( "../032/01_packages.json" );
+   033_efl_test::
+      "any" usebundle => efl_packages( "../031/01_packages.csv" );
+   034_efl_test::
+      "any" usebundle => efl_packages( "../032/01_packages.json" );
 
    reports:
       005_efl_test|006_efl_test::

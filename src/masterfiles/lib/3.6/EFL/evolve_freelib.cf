@@ -513,101 +513,90 @@ bundle agent efl_packages_via_cmd( ref )
       "field_5" string => "promisee";
 
    vars:
-      "dim_packages"
-         comment => "Read data to be used in method promises.",
-         int     => readstringarrayidx(
-            "pack_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-            );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "package_policy",
+            "2" : "package_name",
+            "3" : "package_version",
+            "4" : "architecture",
+            "5" : "promisee"
+         }');
 
-      "i" slist => getindices( "pack_o" );
-
-      "i2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5" };
-
-      "pack[${i}][${i2}]"
-         comment => "Work around for bug 2333",
-         string => "${pack_o[${i}][${i2}]}";
-
-## Make refernces for simpler reading
-      "class[${i}]"    string => "pack[${i}][0]";
-      "policy[${i}]"   string => "pack[${i}][1]";
-      "name[${i}]"     string => "pack[${i}][2]";
-      "version[${i}]"  string => "pack[${i}][3]";
-      "arch[${i}]"     string => "pack[${i}][4]";
-      "promisee[${i}]" string => "pack[${i}][5]";
+      <efl param_parser efl/>
 
       debian::
          "package_mgr" string => "/usr/bin/apt-get";
          "install"     string => "install";
          "remove"      string => "remove";
-         "switches"    string => "-y";
-         "name_spec[${i}]" string  => "'${${name[${i}]}}=${${version[${i}]}}'";
+         "switches"    string => "--yes --quiet";
+         "name_spec[${i}]"
+            string  => "'${d[${i}][package_name]}=${d[${i}][package_version]}'";
  
       redhat::
          "package_mgr" string => "/usr/bin/yum";
          "install"     string => "install";
          "remove"      string => "remove";
          "switches"    string => "-y";
-         "name_spec[${i}]" string  => "'${${name[${i}]}}-${${version[${i}]}}'";
+         "name_spec[${i}]"
+            string  => "'${d[${i}][package_name]}-${d[${i}][package_version]}'";
  
    classes:
-      "without_version_${i}"
-         ifvarclass => "${${class[${i}]}}",
-         expression => strcmp( "0", "${${version[${i}]}}" );
+      <efl param_file_picker efl/>
 
-      "with_version_${i}"
-         ifvarclass => "${${class[${i}]}}",
-         not        => strcmp( "0", "${${version[${i}]}}" );
+      "without_version_${param_file}_${i}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "0", "${d[${i}][package_version]}" );
 
-      "install_package_${i}"
-         ifvarclass => "${${class[${i}]}}",
-         expression => regcmp( "install|add|addupdate", "${${policy[${i}]}}" );
+      "with_version_${param_file}_${i}"
+         ifvarclass => "${d[${i}][class]}",
+         not        => strcmp( "0", "${d[${i}][package_version]}" );
 
-      "remove_package_${i}"
-         ifvarclass => "${${class[${i}]}}",
-         expression => regcmp( "remove|delete", "${${policy[${i}]}}" );
+      "install_package_${param_file}_${i}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => regcmp( "install|add|addupdate", "${d[${i}][package_policy]}" );
+
+      "remove_package_${param_file}_${i}"
+         ifvarclass => "${d[${i}][class]}",
+         expression => regcmp( "remove|delete", "${d[${i}][package_policy]}" );
 
 # Cannot specify version regex. So, must specify exact version or no version.
 # If no version then install must not have '=ver'.
    commands:
-      "${package_mgr} ${install} ${switches} '${name_spec[${i}]}'" -> { '${${promisee[${i}]}}' }
+      "${package_mgr} ${install} ${switches} '${name_spec[${i}]}'" -> { '${d[${i}][promisee]}' }
          comment    => 'Install package',
          handle     => 'efl_packages_via_cmd_commands_install_version',
-         ifvarclass => 'install_package_${i}.with_version_${i}',
+         ifvarclass => 'install_package_${param_file}_${i}.with_version_${param_file}_${i}',
          classes    => efl_rkn(
             "${package_mgr} ${install} ${switches} '${name_spec[${i}]}'",
             'efl_packages_via_cmd_commands_install_version' ),
          action     => efl_delta_reporting( 'efl_packages_via_cmd_commands_install_version',
             "${package_mgr} ${install} ${switches} '${name_spec[${i}]}'",
-            '${${promisee[${i}]}}', '1' );
+            '${d[${i}][promisee]}', '1' );
 
-      "${package_mgr} ${install} ${switches} '${${name[${i}]}}'" -> { '${${promisee[${i}]}}' }
+      "${package_mgr} ${install} ${switches} '${d[${i}][package_name]}'" -> { '${d[${i}][promisee]}' }
          comment    => 'Install package',
          handle     => 'efl_packages_via_cmd_commands_install_no_version',
-         ifvarclass => 'install_package_${i}.without_version_${i}',
+         ifvarclass => 'install_package_${param_file}_${i}.without_version_${param_file}_${i}',
          classes    => efl_rkn(
-            "${package_mgr} ${install} ${switches} '${${name[${i}]}}'",
+            "${package_mgr} ${install} ${switches} '${d[${i}][package_name]}'",
             'efl_packages_via_cmd_commands_install_no_version' ),
          action     => efl_delta_reporting( 'efl_packages_via_cmd_commands_install_no_version',
-            "${package_mgr} ${install} ${switches} '${${name[${i}]}}'",
-            '${${promisee[${i}]}}', '1' );
+            "${package_mgr} ${install} ${switches} '${d[${i}][package_name]}'",
+            '${d[${i}][promisee]}', '1' );
 
-      "${package_mgr} ${remove} ${switches} '${${name[${i}]}}'" -> { '${${promisee[${i}]}}' }
+      "${package_mgr} ${remove} ${switches} '${d[${i}][package_name]}'" -> { '${d[${i}][promisee]}' }
          comment    => 'Remove package',
          handle     => 'efl_packages_via_cmd_commands_remove',
-         ifvarclass => 'remove_package_${i}',
+         ifvarclass => 'remove_package_${param_file}_${i}',
          classes    => efl_rkn(
-            "${package_mgr} ${remove} ${switches} '${${name[${i}]}}'",
+            "${package_mgr} ${remove} ${switches} '${d[${i}][package_name]}'",
             'efl_packages_via_cmd_commands_remove' ),
          action     => efl_delta_reporting( 'efl_packages_via_cmd_commands_remove',
-            "${package_mgr} ${remove} ${switches} '${${name[${i}]}}'",
-            '${${promisee[${i}]}}', '1' );
+            "${package_mgr} ${remove} ${switches} '${d[${i}][package_name]}'",
+            '${d[${i}][promisee]}', '1' );
 }
 
 bundle agent efl_packages( ref )
@@ -623,82 +612,54 @@ bundle agent efl_packages( ref )
       "ReadMe"  string => "Specify a version of '0' when version does not matter.";
 
    vars:
-      "dim_pkg"
-         comment => "Read data file for parsing.",
-         handle  => "efl_packages_vars_files",
-         int     => readstringarrayidx(
-            "pkg_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "package_policy",
+            "2" : "package_name",
+            "3" : "package_version",
+            "4" : "architecture",
+            "5" : "promisee"
+         }');
 
-      "p"
-         comment => "Get index array loaded above.",
-         handle  => "efl_packages_vars_p",
-         slist   => getindices( "pkg_o" );
-
-      "p2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5" };
-
-      "pkg[${p}][${p2}]"
-         comment => "Work around for bug 2333",
-         string => "${pkg_o[${p}][${p2}]}";
-
-      "class[${p}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "pkg[${p}][0]";
-      "policy[${p}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "pkg[${p}][1]";
-      "name[${p}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "pkg[${p}][2]";
-      "version[${p}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "pkg[${p}][3]";
-      "arch[${p}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "pkg[${p}][4]";
-      "promisee[${p}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "pkg[${p}][5]";
+      <efl param_parser efl/>
 
    classes:
-      "do_not_specify_version_${p}"
-         comment    => "If version is '0' then do not specify version string",
-         ifvarclass => "${${class[${p}]}}",
-         expression => strcmp( "${${version[${p}]}}", "0" );
+      <efl param_file_picker efl/>
 
-      "specify_version_${p}"
+      "do_not_specify_version_${param_file}_${i}"
+         comment    => "If version is '0' then do not specify version string",
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "${d[${i}][package_version]}", "0" );
+
+      "specify_version_${param_file}_${i}"
          comment    => "If version is not '0' then specify version string",
-         ifvarclass => "${${class[${p}]}}",
-         not        => strcmp( "${${version[${p}]}}", "0" );
+         ifvarclass => "${d[${i}][class]}",
+         not        => strcmp( "${d[${i}][package_version]}", "0" );
 
    packages:
-      "${${name[${p}]}}" -> { "${${promisee[${p}]}}" }
+      "${d[${i}][package_name]}" -> { "${d[${i}][promisee]}" }
          comment               => "Promise package without version.",
          handle                => "efl_packages_packages_generic_no_version",
-         classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_no_version" ),
-         action                => efl_delta_reporting( "efl_packages_packages_generic_no_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
-         ifvarclass            => "do_not_specify_version_${p}",
-         package_policy        => "${${policy[${p}]}}",
+         classes               => efl_rkn( "${d[${i}][package_name]}", "efl_packages_packages_generic_no_version" ),
+         action                => efl_delta_reporting( "efl_packages_packages_generic_no_version", "${d[${i}][package_name]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass            => "do_not_specify_version_${param_file}_${i}",
+         package_policy        => "${d[${i}][package_policy]}",
          package_method        => generic,
-         package_architectures => { "${${arch[${p}]}}" };
+         package_architectures => { "${d[${i}][architecture]}" };
 
-      "${${name[${p}]}}" -> { "${${promisee[${p}]}}" }
+      "${d[${i}][package_name]}" -> { "${d[${i}][promisee]}" }
          comment               => "Promise package with version.",
          handle                => "efl_packages_packages_generic_version",
-         classes               => efl_rkn( "${${name[${p}]}}", "efl_packages_packages_generic_version" ),
-         action                => efl_delta_reporting( "efl_packages_packages_generic_version", "${${name[${p}]}}", "${${promisee[${p}]}}", "1" ),
-         ifvarclass            => "specify_version_${p}",
-         package_policy        => "${${policy[${p}]}}",
+         classes               => efl_rkn( "${d[${i}][package_name]}", "efl_packages_packages_generic_version" ),
+         action                => efl_delta_reporting( "efl_packages_packages_generic_version", "${d[${i}][package_name]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass            => "specify_version_${param_file}_${i}",
+         package_policy        => "${d[${i}][package_policy]}",
          package_method        => generic,
-         package_version       => "${${version[${p}]}}",
-         package_architectures => { "${${arch[${p}]}}" };
+         package_version       => "${d[${i}][package_version]}",
+         package_architectures => { "${d[${i}][architecture]}" };
 }
 
 bundle agent efl_start_service ( ref )

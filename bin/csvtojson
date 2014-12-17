@@ -39,6 +39,8 @@ my %headers = (
    'efl_link'              => [ qw/ class link_name target link_type promisee / ],
    'efl_delete_files'      => [ qw/ class file_promiser recurse_level leaf_regex negate_match file_age promisee / ],
    'efl_copy_files'        => [ qw/ class file_promiser leaf_regex file_source server encrypt mode owner group promisee / ],
+   'efl_packages_via_cmd'  => [ qw/ class package_policy package_name package_version architecture promisee / ],
+   'efl_packages'          => [ qw/ class package_policy package_name package_version architecture promisee / ],
 );
 
 # Get command options and switches
