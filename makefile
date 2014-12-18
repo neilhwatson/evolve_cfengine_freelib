@@ -73,7 +73,10 @@ tests       =    \
 	033_efl_test \
 	034_efl_test \
 	035_efl_test \
-	036_efl_test 
+	036_efl_test \
+	037_efl_test \
+	038_efl_test \
+	039_efl_test \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -163,6 +166,15 @@ define 035_036_test
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	cd test/serverspec; rspec spec/localhost/035_service.rb
 	systemctl stop $(test_systemd_def)
+	echo PASS: $@
+endef
+
+define 037_efl_test
+	echo foo > $(TEST_DIR)/037/01/a.txt 
+	/bin/systemctl start $(test_systemd_def)
+	if [ -f $(TEST_DIR)/037/01/restarted ]; then rm $(TEST_DIR)/037/01/restarted; fi
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	cd test/serverspec/; rspec spec/localhost/037_efl_test.rb
 	echo PASS: $@
 endef
 
@@ -546,6 +558,7 @@ test_daemon          = efl_test_daemon
 test_daemon_src      = test/035/$(test_daemon)
 test_systemd_def     = $(test_daemon).service
 test_systemd_def_src = test/035/$(test_daemon).service
+test_daemon_files    = /etc/systemd/system/$(test_systemd_def) $(TEST_DIR)/$(test_daemon)
 
 PHONY: 036_efl_test
 036_efl_test: 035_efl_test test/036/01_efl_start_service.json
@@ -555,15 +568,36 @@ test/036/01_efl_start_service.json: test/035/01_efl_start_service.csv
 	$(CSVTOJSON) -b efl_start_service < $^ > $@
 
 PHONY: 035_efl_test
-035_efl_test: /etc/systemd/system/$(test_systemd_def) $(TEST_DIR)/$(test_daemon)
+035_efl_test: $(test_daemon_files)
 	$(call 035_036_test)
 
-# TODO here:
 /etc/systemd/system/$(test_systemd_def): $(test_systemd_def_src)
 	cp $^ $@
 
 $(TEST_DIR)/$(test_daemon): $(test_daemon_src)
 	cp $^ $@
+
+PHONY: 039_efl_tet
+039_efl_test: 037_efl_test test/039/01_efl_service_recurse.json
+	echo Starting test $@
+	$(call 037_efl_test)
+
+test/039/01_efl_service_recurse.json: test/037/01_efl_service_recurse.csv
+	$(CSVTOJSON) -b efl_service_recurse < $^ > $@
+
+PHONY: 038_efl_test
+038_efl_test: 037_efl_test $(027_01_files) $(test_daemon_files) # Test if service is started
+	/bin/systemctl stop $(test_systemd_def)
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 037_efl_test
+	cd test/serverspec/; rspec spec/localhost/037_efl_test.rb
+	echo PASS: $@
+
+PHONY: 037_efl_test
+037_efl_test: $(027_01_files) $(TEST_DIR)/037/01/ $(test_daemon_files) # Test if service is restarted
+	$(call 037_efl_test)
+
+$(TEST_DIR)/037/01/:
+	mkdir -p	$@
 
 # service enable
 # 	cp $(test_daemon_src) $(TEST_DIR)/
@@ -575,12 +609,13 @@ $(TEST_DIR)/$(test_daemon): $(test_daemon_src)
 
 .PHONY: clean
 clean:
+	/bin/systemctl stop $(test_systemd_def); \
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
 	rm -fr /tmp/*efl_test* 
 	rm -f /tmp/ssh/ssh_config
-	rm /etc/systemd/system/$(test_systemd_def)
+	rm -f /etc/systemd/system/$(test_systemd_def)
 
 
 .PHONY: help

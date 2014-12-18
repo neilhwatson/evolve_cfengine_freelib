@@ -1,0 +1,1 @@
+any ;; efl_test_daemon\Z ;; /tmp/efl_test/037/01/ ;; /tmp/efl_test/027/01/ ;; main.localhost ;; no ;; 644 ;; root ;; root ;; touch /tmp/efl_test/037/01/restarted; /bin/systemctl restart efl_test_daemon ;; efl development

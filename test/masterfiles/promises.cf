@@ -107,6 +107,10 @@ bundle agent main
       "any" usebundle => efl_start_service( "../035/01_efl_start_service.csv" );
    036_efl_test::
       "any" usebundle => efl_start_service( "../036/01_efl_start_service.json" );
+   037_efl_test::
+      "any" usebundle => efl_service_recurse( "../037/01_efl_service_recurse.csv" );
+   039_efl_test::
+      "any" usebundle => efl_service_recurse( "../039/01_efl_service_recurse.json" );
 
    reports:
       005_efl_test|006_efl_test::

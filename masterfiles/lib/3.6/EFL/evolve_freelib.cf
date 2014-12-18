@@ -1211,7 +1211,7 @@ bundle agent efl_service_recurse ( ref )
       "field_2"  string => "Promiser directory";
       "field_3"  string => "Source directory";
       "field_4"  string => "Source server, as list without syntax: efl_c.policy_servers";
-      "field_5"  string => "Encrypted copy yes/now";
+      "field_5"  string => "Encrypted copy yes/no";
       "field_6"  string => "Configuration file mode";
       "field_7"  string => "Configuration file owner";
       "field_8"  string => "Configuration file group";
@@ -1219,137 +1219,177 @@ bundle agent efl_service_recurse ( ref )
       "field_10" string => "Promisee";
 
    vars:
-      "dim_svc"
-         comment => "Read data file for parsing.",
-         int     => readstringarrayidx(
-            "svc_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "process_regex",
+            "2" : "config_dir",
+            "3" : "config_dir_src",
+            "4" : "server",
+            "5" : "encrypt",
+            "6" : "mode",
+            "7" : "owner",
+            "8" : "group"
+            "9" : "restart_cmd",
+            "10" : "promisee"
+         }');
 
-      "s"
-         comment => "Get index array loaded above.",
-         handle  => "efl_service_vars_s",
-         slist   => getindices( "svc_o" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
 
-      "svc[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string => "${svc_o[${s}][${s2}]}";
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
+               "${ref}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
 
-      ## Use references for simpler reading.",
-      "class[${s}]"              string  => "svc[${s}][0]";
-      "process[${s}]"            string  => "svc[${s}][1]";
-      "promiser_directory[${s}]" string  => "svc[${s}][2]";
-      "source_directory[${s}]"   string  => "svc[${s}][3]";
-      "server[${s}]"             string  => "svc[${s}][4]";
-      "encrypt[${s}]"            string  => "svc[${s}][5]";
-      "mode[${s}]"               string  => "svc[${s}][6]";
-      "user[${s}]"               string  => "svc[${s}][7]";
-      "group[${s}]"              string  => "svc[${s}][8]";
-      "command[${s}]"            string  => "svc[${s}][9]";
-      "promisee[${s}]"           string  => "svc[${s}][10]";
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
+
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
+
+   classes:
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
+
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
 
    files:
-      "${efl_c.cache}/${${promiser_directory[${s}]}}/." -> { "${${promisee[${s}]}}" }
+      "${efl_c.cache}/${d[${i}][config_dir]}/." -> { "${d[${i}][promisee]}" }
          comment    => "Create cache dir",
          handle     => "efl_service_recurse_cache_dir",
-         ifvarclass => "${${class[${s}]}}",
+         ifvarclass => "${d[${i}][class]}",
          create     => "true",
-         classes    => efl_rkn( "${efl_c.cache}/${${promiser_directory[${s}]}}/.",
+         classes    => efl_rkn( "${efl_c.cache}/${d[${i}][config_dir]}/.",
             "efl_service_recurse_cache_dir" ),
          action     => efl_delta_reporting( "efl_service_recurse_cache_dir",
-            "${efl_c.cache}/${${promiser_directory[${s}]}}/.", "${${promisee[${s}]}}", "1"
+            "${efl_c.cache}/${d[${i}][config_dir]}/.", "${d[${i}][promisee]}", "1"
          );
 
-      "${efl_c.cache}/${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${efl_c.cache}/${d[${i}][config_dir]}" -> { "${d[${i}][promisee]}" }
          comment      => "Copy cache",
          handle       => "efl_service_recurse_copy_cache",
-         ifvarclass   => "${${class[${s}]}}",
-         classes      => efl_rkn( "${efl_c.cache}/${${promiser_directory[${s}]}}",
+         ifvarclass   => "${d[${i}][class]}",
+         classes      => efl_rkn( "${efl_c.cache}/${d[${i}][config_dir]}",
             "efl_service_recurse_copy_cache" ),
          action       => efl_delta_reporting( "efl_service_recurse_copy_cache",
-            "${efl_c.cache}/${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+            "${efl_c.cache}/${d[${i}][config_dir]}", "${d[${i}][promisee]}", "1"
          ),
          depth_search => recurse( "inf" ),
-         copy_from    => efl_cpf( "${${source_directory[${s}]}}", "@{${${server[${s}]}}}", "${${encrypt[${s}]}}" );
+         copy_from    => efl_cpf( "${d[${i}][config_dir_src]}", "@{${d[${i}][server]}}", "${d[${i}][encrypt]}" );
 
-      "${efl_c.cache}/${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${efl_c.cache}/${d[${i}][config_dir]}" -> { "${d[${i}][promisee]}" }
          comment      => "Perms for cache of source file",
          handle       => "efl_service_recurse_cache_perms",
-         ifvarclass   => "${${class[${s}]}}",
-         classes      => efl_rkn( "${efl_c.cache}/${${promiser_directory[${s}]}}",
+         ifvarclass   => "${d[${i}][class]}",
+         classes      => efl_rkn( "${efl_c.cache}/${d[${i}][config_dir]}",
             "efl_service_recurse_cache_perms" ),
          action       => efl_delta_reporting( "efl_service_recurse_cache_perms",
-            "${efl_c.cache}/${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+            "${efl_c.cache}/${d[${i}][config_dir]}", "${d[${i}][promisee]}", "1"
          ),
          depth_search => recurse( "inf" ),
-         perms        => mog( "${${mode[${s}]}}", "${${user[${s}]}}", "${${group[${s}]}}" );
+         perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-      "${${promiser_directory[${s}]}}/." -> { "${${promisee[${s}]}}" }
+      "${d[${i}][config_dir]}/." -> { "${d[${i}][promisee]}" }
          comment    => "Create dir",
          handle     => "efl_service_recurse_dir",
-         ifvarclass => "${${class[${s}]}}",
+         ifvarclass => "${d[${i}][class]}",
          create     => "true",
-         classes    => efl_rkn( "${${promiser_directory[${s}]}}/.",
+         classes    => efl_rkn( "${d[${i}][config_dir]}/.",
             "efl_service_recurse_dir" ),
          action     => efl_delta_reporting( "efl_service_recurse_dir",
-            "${${promiser_directory[${s}]}}/.", "${${promisee[${s}]}}", "1"
+            "${d[${i}][config_dir]}/.", "${d[${i}][promisee]}", "1"
          );
 
-      "${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${d[${i}][config_dir]}" -> { "${d[${i}][promisee]}" }
          comment      => "Copy to final destination",
          handle       => "efl_service_recurse_copy",
-         ifvarclass   => "${${class[${s}]}}",
-         classes      => efl_rkn( "${${promiser_directory[${s}]}}",
+         ifvarclass   => "${d[${i}][class]}",
+         classes      => efl_rkn( "${d[${i}][config_dir]}",
             "efl_service_recurse_copy" ),
          action       => efl_delta_reporting( "efl_service_recurse_copy",
-            "${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+            "${d[${i}][config_dir]}", "${d[${i}][promisee]}", "1"
          ),
          depth_search => recurse( "inf" ),
          copy_from    => efl_cpf(
-            "${efl_c.cache}/${${promiser_directory[${s}]}}",
-            "localhost", "${${encrypt[${s}]}}"
+            "${efl_c.cache}/${d[${i}][config_dir]}",
+            "localhost", "${d[${i}][encrypt]}"
          );
 
-      "${${promiser_directory[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${d[${i}][config_dir]}" -> { "${d[${i}][promisee]}" }
          comment      => "Perms for destination files",
          handle       => "efl_service_recurse_files_perms",
-         ifvarclass   => "${${class[${s}]}}",
-         classes      => efl_rkn( "${${promiser_directory[${s}]}}",
+         ifvarclass   => "${d[${i}][class]}",
+         classes      => efl_rkn( "${d[${i}][config_dir]}",
             "efl_service_recurse_perms" ),
          action       => efl_delta_reporting( "efl_service_recurse_perms",
-            "${${promiser_directory[${s}]}}", "${${promisee[${s}]}}", "1"
+            "${d[${i}][config_dir]}", "${d[${i}][promisee]}", "1"
          ),
          depth_search => recurse( "inf" ),
-         perms        => mog( "${${mode[${s}]}}", "${${user[${s}]}}", "${${group[${s}]}}" );
+         perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
    processes:
-      "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${d[${i}][process]}" -> { "${d[${i}][promisee]}" }
          comment        => "Promise process is running",
          handle         => "efl_service_recurse_processes_proc",
-         classes        => efl_rkn( "${${process[${s}]}}", "efl_service_recurse_processes_proc" ),
-         action         => efl_delta_reporting( "efl_service_recurse_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
-         process_select => by_command( "${${process[${s}]}}" ),
-         ifvarclass     => "${${class[${s}]}}",
-         restart_class  => "restart_proc_${s}";
+         classes        => efl_rkn( "${d[${i}][process]}", "efl_service_recurse_processes_proc" ),
+         action         => efl_delta_reporting( "efl_service_recurse_processes_proc", "${d[${i}][process]}", "${d[${i}][promisee]}", "1" ),
+         process_select => by_command( "${d[${i}][process]}" ),
+         ifvarclass     => "${d[${i}][class]}",
+         restart_class  => "restart_proc_${i}";
 
    commands:
-      "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${d[${i}][restart_cmd]}" -> { "${d[${i}][promisee]}" }
          comment    => "Restart service is required.",
          handle     => "efl_service_recurse_commands_restart",
-         classes    => efl_rkn( "${${command[${s}]}}", "efl_service_recurse_commands_restart" ),
-         action     => efl_delta_reporting( "efl_service_recurse_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         classes    => efl_rkn( "${d[${i}][restart_cmd]}", "efl_service_recurse_commands_restart" ),
+         action     => efl_delta_reporting( "efl_service_recurse_commands_restart", "${d[${i}][restart_cmd]}", "${d[${i}][promisee]}", "1" ),
          contain    => in_shell_and_silent,
          ifvarclass => or(
-            "restart_proc_${s}",
-            canonify( "${${promiser_directory[${s}]}}_handle_efl_service_recurse_copy_repaired" )
+            "restart_proc_${i}",
+            canonify( "${d[${i}][config_dir]}_handle_efl_service_recurse_copy_repaired" )
          );
 }
 

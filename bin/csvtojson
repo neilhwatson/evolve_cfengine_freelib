@@ -42,6 +42,7 @@ my %headers = (
    'efl_packages_via_cmd'  => [ qw/ class package_policy package_name package_version architecture promisee / ],
    'efl_packages'          => [ qw/ class package_policy package_name package_version architecture promisee / ],
    'efl_start_service'     => [ qw/ class process_regex restart_cmd promisee / ],
+   'efl_service_recurse'   => [ qw/ class process_regex config_dir config_dir_src server encrypt mode owner group restart_cmd promisee / ],
 );
 
 # Get command options and switches
