@@ -1,0 +1,8 @@
+[Unit]
+Description=A testing daemon for EFL development
+
+[Service]
+ExecStart=/tmp/efl_test/efl_test_daemon
+
+[Install]
+WantedBy=multi-user.target

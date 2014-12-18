@@ -6,6 +6,7 @@ EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
 CSVTOJSON   = ./bin/csvtojson
 APT_GET     = /usr/bin/apt-get --quiet --yes
+TEST_DIR    = /tmp/efl_test
 
 EFL_FILES   = \
 	$(EFL_LIB)/efl_common.cf \
@@ -70,7 +71,9 @@ tests       =    \
 	031_efl_test \
 	032_efl_test \
 	033_efl_test \
-	034_efl_test 
+	034_efl_test \
+	035_efl_test \
+	036_efl_test 
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -123,11 +126,11 @@ define 023_024_test
 endef
 
 define make_link_targets
-	for i in 01 02 03; do echo $$i > /tmp/efl_test_$$i; done
+	for i in 01 02 03; do echo $$i > $(TEST_DIR)_$$i; done
 endef
 
 define del_link_targets
-	for i in 01 02 03; do rm /tmp/efl_test_$$i /var/tmp/efl_test_$${i}_link; done
+	for i in 01 02 03; do rm $(TEST_DIR)_$$i /var$(TEST_DIR)_$${i}_link; done
 endef
 
 define 027_028_test
@@ -137,12 +140,12 @@ define 027_028_test
 endef
 
 define 029_030_test
-	rm -fr /tmp/efl_test/029 /tmp/efl_test/030 /tmp/ssh/
+	rm -fr $(TEST_DIR)/029 $(TEST_DIR)/030 /tmp/ssh/
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	cd test/serverspec; rspec spec/localhost/029_efl_test_spec.rb
 	$(call md5cmp_two_files,/etc/ssh/ssh_config,/tmp/ssh/ssh_config)
-	$(call md5cmp_two_files,/tmp/efl_test/029/01/a.txt,/tmp/efl_test/027/02/a.txt)
-	$(call md5cmp_two_files,/tmp/efl_test/029/01/b.txt,/tmp/efl_test/027/02/b.txt)
+	$(call md5cmp_two_files,$(TEST_DIR)/029/01/a.txt,$(TEST_DIR)/027/02/a.txt)
+	$(call md5cmp_two_files,$(TEST_DIR)/029/01/b.txt,$(TEST_DIR)/027/02/b.txt)
 	echo PASS $@
 endef
 
@@ -154,6 +157,13 @@ define packages_test
 	$(APT_GET) remove nano e3
 	cd test/serverspec; rspec spec/localhost/031.elf_post_test_spec.rb
 	echo PASS $@
+endef
+
+define 035_036_test
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	cd test/serverspec; rspec spec/localhost/035_service.rb
+	systemctl stop $(test_systemd_def)
+	echo PASS: $@
 endef
 
 .PHONY: all
@@ -461,7 +471,7 @@ test/026/01_efl_link.json: test/025/01_efl_link.csv
 test/028/01_efl_delete_files.json: test/027/01_efl_delete_files.csv
 	$(CSVTOJSON) -b efl_delete_files < $^ > $@
 
-027_testdir = /tmp/efl_test/027
+027_testdir = $(TEST_DIR)/027
 027_01_files = $(027_testdir)/01/a.txt $(027_testdir)/01/b.txt \
 	$(027_testdir)/01/c.html
 027_02_files = $(027_testdir)/02/a.txt $(027_testdir)/02/b.txt \
@@ -532,6 +542,37 @@ PHONY: 033_efl_test
 test/032/01_packages.json: test/031/01_packages.csv
 	$(CSVTOJSON) -b efl_packages < $^ > $@
 
+test_daemon          = efl_test_daemon
+test_daemon_src      = test/035/$(test_daemon)
+test_systemd_def     = $(test_daemon).service
+test_systemd_def_src = test/035/$(test_daemon).service
+
+PHONY: 036_efl_test
+036_efl_test: 035_efl_test test/036/01_efl_start_service.json
+	$(call 035_036_test)
+
+test/036/01_efl_start_service.json: test/035/01_efl_start_service.csv
+	$(CSVTOJSON) -b efl_start_service < $^ > $@
+
+PHONY: 035_efl_test
+035_efl_test: /etc/systemd/system/$(test_systemd_def) $(TEST_DIR)/$(test_daemon)
+	$(call 035_036_test)
+
+# TODO here:
+/etc/systemd/system/$(test_systemd_def): $(test_systemd_def_src)
+	cp $^ $@
+
+$(TEST_DIR)/$(test_daemon): $(test_daemon_src)
+	cp $^ $@
+
+# service enable
+# 	cp $(test_daemon_src) $(TEST_DIR)/
+# 	cp $(test_systemd_def_src) /etc/systemd/system/
+# 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+# 	systemctl is-enabled $(test_systemd_def)
+# 	rm /etc/systemd/system/$(test_systemd_def)
+# 	echo PASS: $@
+
 .PHONY: clean
 clean:
 	rm -fr masterfiles/*
@@ -539,6 +580,7 @@ clean:
 	rm -fr test/$(EFL_LIB)
 	rm -fr /tmp/*efl_test* 
 	rm -f /tmp/ssh/ssh_config
+	rm /etc/systemd/system/$(test_systemd_def)
 
 
 .PHONY: help

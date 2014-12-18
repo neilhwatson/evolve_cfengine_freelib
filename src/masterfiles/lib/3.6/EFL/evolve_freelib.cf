@@ -672,62 +672,39 @@ bundle agent efl_start_service ( ref )
       "field_3" string => "Promisee";
 
    vars:
-      "dim_svc"
-         comment => "Read data file for parsing.",
-         handle  => "efl_start_service_vars_files",
-         int     => readstringarrayidx(
-            "svc_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "process_regex",
+            "2" : "restart_cmd",
+            "3" : "promisee"
+         }');
 
-      "s"
-         comment => "Get index array loaded above.",
-         handle  => "efl_start_service_vars_s",
-         slist   => getindices( "svc_o" );
+      <efl param_parser efl/>
 
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3" };
-
-      "svc[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string => "${svc_o[${s}][${s2}]}";
-
-      "class[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "svc[${s}][0]";
-      "process[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "svc[${s}][1]";
-      "command[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "svc[${s}][2]";
-      "promisee[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "svc[${s}][3]";
+   classes:
+      <efl param_file_picker efl/>
 
    processes:
-      "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${d[${i}][process_regex]}" -> { "${d[${i}][promisee]}" }
          comment        => "Promise process is running",
          handle         => "efl_start_service_processes_proc",
-         process_select => by_command( "${${process[${s}]}}" ),
-         classes        => efl_rkn( "${${process[${s}]}}", "efl_start_service_processes_proc" ),
-         action         => efl_delta_reporting( "efl_start_service_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
-         ifvarclass     => "${${class[${s}]}}",
-         restart_class  => canonify( "efl_start_service_command_${${process[${s}]}}_${s}" );
+         process_select => by_command( "${d[${i}][process_regex]}" ),
+         classes        => efl_rkn( "${d[${i}][process_regex]}", "efl_start_service_processes_proc" ),
+         action         => efl_delta_reporting( "efl_start_service_processes_proc", "${d[${i}][process_regex]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass     => "${d[${i}][class]}",
+         restart_class  => canonify( "efl_start_service_command_${d[${i}][process_regex]}_${i}" );
 
    commands:
-      "${${command[${s}]}}" -> { "${${promisee[${s}]}}" }
+      "${d[${i}][restart_cmd]}" -> { "${d[${i}][promisee]}" }
          comment    => "Restart service is required.",
          handle     => "efl_start_service_commands_restart",
-         classes    => efl_rkn( "${${command[${s}]}}", "efl_start_service_commands_restart" ),
-         action     => efl_delta_reporting( "efl_start_service_commands_restart", "${${command[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         classes    => efl_rkn( "${d[${i}][restart_cmd]}", "efl_start_service_commands_restart" ),
+         action     => efl_delta_reporting( "efl_start_service_commands_restart", "${d[${i}][restart_cmd]}", "${d[${i}][promisee]}", "1" ),
          contain    => in_shell_and_silent,
-         ifvarclass => canonify( "efl_start_service_command_${${process[${s}]}}_${s}" );
+         ifvarclass => canonify( "efl_start_service_command_${d[${i}][process_regex]}_${i}" );
 }
 
 bundle agent efl_service_recurse ( ref )

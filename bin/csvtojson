@@ -41,6 +41,7 @@ my %headers = (
    'efl_copy_files'        => [ qw/ class file_promiser leaf_regex file_source server encrypt mode owner group promisee / ],
    'efl_packages_via_cmd'  => [ qw/ class package_policy package_name package_version architecture promisee / ],
    'efl_packages'          => [ qw/ class package_policy package_name package_version architecture promisee / ],
+   'efl_start_service'     => [ qw/ class process_regex restart_cmd promisee / ],
 );
 
 # Get command options and switches
