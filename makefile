@@ -81,6 +81,11 @@ tests       =   \
 	039_efl_test \
 	250_efl_test \
 	251_efl_test \
+	260_efl_test \
+	261_efl_test \
+	262_efl_test \
+	264_efl_test \
+	265_efl_test \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -193,6 +198,15 @@ define 250_efl_test
 	rm -f $(TEST_DIR)/250/cfengine_template
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	$(call md5cmp_two_files,$(TEST_DIR)/250/cfengine_template,test/250/cfengine_template)
+	echo PASS: $@
+endef
+
+define 260_efl_test
+	echo foo > $(TEST_DIR)/260/cfengine_template
+	/bin/systemctl start $(test_systemd_def)
+	if [ -f $(TEST_DIR)/260/restarted ]; then rm $(TEST_DIR)/260/restarted; fi
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	cd test/serverspec/; rspec spec/localhost/260_efl_test.rb
 	echo PASS: $@
 endef
 
@@ -622,21 +636,35 @@ $(TEST_DIR)/250/cfengine_template.tmp: $(TEST_DIR)/250/
 $(TEST_DIR)/250/:
 	mkdir -p $@
 
-# TODO test templates before efl_service
-# TODO Renumber these to follow efl_edit_template
-# PHONY: 040_efl_test # Test if service is restarted
-# 040_efl_test: $(027_01_files) $(TEST_DIR)/040/01/ $(test_daemon_files)
-# 	$(call 037_efl_test,040)
-# 
-# PHONY: 041_efl_test # Test if service is restarted
-# 041_efl_test: $(027_01_files) $(TEST_DIR)/040/01/ $(test_daemon_files)
-# 	$(call 038_efl_test,040)
-# 
-# $(TEST_DIR)/040/01/:
-# 	mkdir -p	$@
+PHONY: 260_efl_test Test if service is restarted
+260_efl_test: $(TEST_DIR)/260/cfengine_template.tmp $(TEST_DIR)/260/ $(test_daemon_files)
+	$(call 260_efl_test)
 
-#PHONY: 042_efl_test # Test if service template config is promised
-#042_efl_test: $(TEST_DIR)/040/01 $(test_daemon_files)
+$(TEST_DIR)/260/cfengine_template.tmp: $(TEST_DIR)/260/
+	cp test/260/cfengine_template.tmp $@
+
+PHONY: 261_efl_test Test if service is started
+261_efl_test: 260_efl_test 
+	$(call 038_efl_test,260)
+
+$(TEST_DIR)/260/:
+	mkdir -p	$@
+
+PHONY: 262_efl_test # Test if service template config is promised
+262_efl_test: 260_efl_test 
+	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
+	echo PASS: $@
+
+PHONY: 264_efl_test
+264_efl_test: test/264/01_efl_service.json
+	$(call 260_efl_test)
+
+test/264/01_efl_service.json: test/260/01_efl_service.csv
+	$(CSVTOJSON) -b efl_service < $^ > $@
+
+PHONY: 265_efl_test
+265_efl_test: 264_efl_test
+	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
 
 # service enable
 # 	cp $(test_daemon_src) $(TEST_DIR)/

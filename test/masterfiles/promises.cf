@@ -113,12 +113,14 @@ bundle agent main
       "any" usebundle => efl_service_recurse( "../037/01_efl_service_recurse.csv" );
    039_efl_test::
       "any" usebundle => efl_service_recurse( "../039/01_efl_service_recurse.json" );
-   040_efl_test::
-      "any" usebundle => efl_service( "../040/01_efl_service.csv" );
    250_efl_test::
       "any" usebundle => efl_main( "../250/efl_main.json" );
    251_efl_test::
       "any" usebundle => efl_main( "../251/efl_main.json" );
+   260_efl_test::
+      "any" usebundle => efl_service( "../260/01_efl_service.csv" );
+   264_efl_test::
+      "any" usebundle => efl_service( "../264/01_efl_service.json" );
 
    reports:
       005_efl_test|006_efl_test::

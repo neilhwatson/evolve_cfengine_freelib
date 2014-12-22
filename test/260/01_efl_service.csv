@@ -1,0 +1,1 @@
+any ;; efl_test_daemon\Z ;; /tmp/efl_test/260/cfengine_template ;; /tmp/efl_test/260/cfengine_template.tmp ;; main.localhost ;; yes ;; no ;; 644 ;; root ;; root ;; touch /tmp/efl_test/260/restarted; /bin/systemctl restart efl_test_daemon ;; efl development
