@@ -35,6 +35,8 @@ bundle agent main
 
 	methods:
 
+      "efl init" usebundle => efl_c;
+
    001_efl_test::
 		"any" usebundle => efl_main( "../001/efl_main.csv" );
    002_efl_test::
@@ -111,6 +113,12 @@ bundle agent main
       "any" usebundle => efl_service_recurse( "../037/01_efl_service_recurse.csv" );
    039_efl_test::
       "any" usebundle => efl_service_recurse( "../039/01_efl_service_recurse.json" );
+   040_efl_test::
+      "any" usebundle => efl_service( "../040/01_efl_service.csv" );
+   250_efl_test::
+      "any" usebundle => efl_main( "../250/efl_main.json" );
+   251_efl_test::
+      "any" usebundle => efl_main( "../251/efl_main.json" );
 
    reports:
       005_efl_test|006_efl_test::

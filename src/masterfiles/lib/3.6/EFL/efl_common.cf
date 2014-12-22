@@ -7,10 +7,6 @@ bundle common efl_c
 #
 # Configs for reading data files
 #
-      "cache"
-         comment => "Location for agent to cache template and other temp files",
-         string  => "/var/cache/cfengine";
-
       "class"
          comment => "Regex to extract class name from parameter file name.",
          string  => ".*?-(\w+)\.txt";
@@ -64,6 +60,21 @@ bundle common efl_c
             comment => "Server access rules parameter file",
 # NOTE Access file must be hardcoded because server bundles do not accept arguments.
             string => "${sys.workdir}/inputs/efl_data/bundle_params/efl_server.txt";
+
+      !efl_testing::
+      "cache"
+         comment => "Location for agent to cache template and other temp files",
+         string  => "/var/cache/cfengine";
+
+      efl_testing::
+      "cache"
+         comment => "Location for agent to cache template and other temp files",
+         string  => "/tmp/efl_test/cache";
+
+   classes:
+      "efl_testing"
+         comment    => "When testing efl for development",
+         expression => classmatch( ".*_efl_test" );
 
    reports:
       debug::

@@ -6,6 +6,8 @@ EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
 CSVTOJSON   = ./bin/csvtojson
 APT_GET     = /usr/bin/apt-get --quiet --yes
+
+# Don't changes this, it's hard coded in some CF policy data
 TEST_DIR    = /tmp/efl_test
 
 EFL_FILES   = \
@@ -35,16 +37,16 @@ cfstdlib    = \
 	test/$(LIB)/monitor.cf \
 	test/$(LIB)/stdlib.cf
 
-tests       =    \
-	version       \
-	syntax        \
-	001_efl_test  \
-	002_efl_test  \
-	003_efl_test  \
-	004_efl_test  \
-	005_efl_test  \
-	006_efl_test  \
-	007_efl_test  \
+tests       =   \
+	version      \
+	syntax       \
+	001_efl_test \
+	002_efl_test \
+	003_efl_test \
+	004_efl_test \
+	005_efl_test \
+	006_efl_test \
+	007_efl_test \
 	008_efl_test \
 	009_efl_test \
 	010_efl_test \
@@ -77,6 +79,8 @@ tests       =    \
 	037_efl_test \
 	038_efl_test \
 	039_efl_test \
+	250_efl_test \
+	251_efl_test \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -172,9 +176,23 @@ endef
 define 037_efl_test
 	echo foo > $(TEST_DIR)/037/01/a.txt 
 	/bin/systemctl start $(test_systemd_def)
-	if [ -f $(TEST_DIR)/037/01/restarted ]; then rm $(TEST_DIR)/037/01/restarted; fi
+	if [ -f $(TEST_DIR)/$1/01/restarted ]; then rm $(TEST_DIR)/$1/01/restarted; fi
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec/; rspec spec/localhost/037_efl_test.rb
+	cd test/serverspec/; rspec spec/localhost/$1_efl_test.rb
+	echo PASS: $@
+endef
+
+define 038_efl_test
+	/bin/systemctl stop $(test_systemd_def)
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1_efl_test
+	cd test/serverspec/; rspec spec/localhost/$1_efl_test.rb
+	echo PASS: $@
+endef
+
+define 250_efl_test
+	rm -f $(TEST_DIR)/250/cfengine_template
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	$(call md5cmp_two_files,$(TEST_DIR)/250/cfengine_template,test/250/cfengine_template)
 	echo PASS: $@
 endef
 
@@ -496,13 +514,8 @@ test/028/01_efl_delete_files.json: test/027/01_efl_delete_files.csv
 	$(027_testdir)/04/a.txt $(027_testdir)/04/b.json
 	$(call 027_028_test)
 
-$(027_01_files): $(027_testdir)/01/.
-	echo $@ > $@
-
-$(027_02_files): $(027_testdir)/02/.
-	echo $@ > $@
-
-$(027_03_files): $(027_testdir)/03/sub/.
+$(027_01_files) $(027_02_files) $(027_03_files): $(027_testdir)/01/. \
+	$(027_testdir)/02/. $(027_testdir)/03/sub/.
 	echo $@ > $@
 
 $(027_testdir)/04/a.txt: $(027_testdir)/04/.
@@ -512,17 +525,8 @@ $(027_testdir)/04/a.txt: $(027_testdir)/04/.
 $(027_testdir)/04/b.json: $(027_testdir)/04/.
 	echo $@ > $@
 
-$(027_testdir)/01/.:
-	test -d $(027_testdir)/01 || mkdir -p $(027_testdir)/01
-
-$(027_testdir)/02/.:
-	test -d $(027_testdir)/02 || mkdir -p $(027_testdir)/02
-
-$(027_testdir)/03/sub/.:
-	test -d $(027_testdir)/03/sub || mkdir -p $(027_testdir)/03/sub
-
-$(027_testdir)/04/.:
-	test -d $(027_testdir)/04 || mkdir -p $(027_testdir)/04
+$(027_testdir)/01/. $(027_testdir)/02/. $(027_testdir)/03/sub/. $(027_testdir)/04/.:
+	test -d $@ || mkdir -p $@
 
 PHONY: 030_efl_test
 030_efl_test: 029_efl_test test/030/01_efl_copy_files.json
@@ -577,27 +581,62 @@ PHONY: 035_efl_test
 $(TEST_DIR)/$(test_daemon): $(test_daemon_src)
 	cp $^ $@
 
-PHONY: 039_efl_tet
+PHONY: 039_efl_test
 039_efl_test: 037_efl_test test/039/01_efl_service_recurse.json
 	echo Starting test $@
-	$(call 037_efl_test)
+	$(call 037_efl_test,037)
 
 test/039/01_efl_service_recurse.json: test/037/01_efl_service_recurse.csv
 	$(CSVTOJSON) -b efl_service_recurse < $^ > $@
 
-PHONY: 038_efl_test
-038_efl_test: 037_efl_test $(027_01_files) $(test_daemon_files) # Test if service is started
-	/bin/systemctl stop $(test_systemd_def)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 037_efl_test
-	cd test/serverspec/; rspec spec/localhost/037_efl_test.rb
-	echo PASS: $@
+037_src_files = $(TEST_DIR)/037/src/a.txt $(TEST_DIR)/037/src/b.txt \
+	$(TEST_DIR)/037/src/c.html
+PHONY: 037_efl_test # Test if service is restarted
+037_efl_test: $(037_src_files) $(TEST_DIR)/037/01/ $(test_daemon_files)
+	$(call 037_efl_test,037)
 
-PHONY: 037_efl_test
-037_efl_test: $(027_01_files) $(TEST_DIR)/037/01/ $(test_daemon_files) # Test if service is restarted
-	$(call 037_efl_test)
+PHONY: 038_efl_test # Test if service is started
+038_efl_test: $(037_src_files) $(TEST_DIR)/037/01/ $(test_daemon_files)
+	$(call 038_efl_test,037)
 
-$(TEST_DIR)/037/01/:
+$(037_src_files): $(TEST_DIR)/037/src/
+	echo $@ >  $@
+
+$(TEST_DIR)/037/src/ $(TEST_DIR)/037/01/:
 	mkdir -p	$@
+
+PHONY: 251_efl_test
+251_efl_test: 250_efl_test test/251/03_cfengine_templates.json
+	$(call 250_efl_test)
+
+test/251/03_cfengine_templates.json: test/250/03_cfengine_templates.csv
+	$(CSVTOJSON) -b efl_edit_template < $^ > $@
+
+PHONY: 250_efl_test
+250_efl_test: $(TEST_DIR)/250/cfengine_template.tmp $(TEST_DIR)/250/
+	$(call 250_efl_test)
+
+$(TEST_DIR)/250/cfengine_template.tmp: $(TEST_DIR)/250/
+	cp test/250/cfengine_template.tmp $^
+
+$(TEST_DIR)/250/:
+	mkdir -p $@
+
+# TODO test templates before efl_service
+# TODO Renumber these to follow efl_edit_template
+# PHONY: 040_efl_test # Test if service is restarted
+# 040_efl_test: $(027_01_files) $(TEST_DIR)/040/01/ $(test_daemon_files)
+# 	$(call 037_efl_test,040)
+# 
+# PHONY: 041_efl_test # Test if service is restarted
+# 041_efl_test: $(027_01_files) $(TEST_DIR)/040/01/ $(test_daemon_files)
+# 	$(call 038_efl_test,040)
+# 
+# $(TEST_DIR)/040/01/:
+# 	mkdir -p	$@
+
+#PHONY: 042_efl_test # Test if service template config is promised
+#042_efl_test: $(TEST_DIR)/040/01 $(test_daemon_files)
 
 # service enable
 # 	cp $(test_daemon_src) $(TEST_DIR)/

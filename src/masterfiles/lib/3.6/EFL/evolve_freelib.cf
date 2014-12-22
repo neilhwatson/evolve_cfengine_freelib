@@ -821,14 +821,14 @@ bundle agent efl_service_recurse ( ref )
          perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
    processes:
-      "${d[${i}][process]}" -> { "${d[${i}][promisee]}" }
+      "${d[${i}][process_regex]}" -> { "${d[${i}][promisee]}" }
          comment        => "Promise process is running",
          handle         => "efl_service_recurse_processes_proc",
          classes        => efl_rkn( "${d[${i}][process]}", "efl_service_recurse_processes_proc" ),
          action         => efl_delta_reporting( "efl_service_recurse_processes_proc", "${d[${i}][process]}", "${d[${i}][promisee]}", "1" ),
-         process_select => by_command( "${d[${i}][process]}" ),
+         process_select => by_command( "${d[${i}][process_regex]}" ),
          ifvarclass     => "${d[${i}][class]}",
-         restart_class  => "restart_proc_${i}";
+         restart_class  => "restart_proc_${param_file}_${i}";
 
    commands:
       "${d[${i}][restart_cmd]}" -> { "${d[${i}][promisee]}" }
@@ -838,7 +838,7 @@ bundle agent efl_service_recurse ( ref )
          action     => efl_delta_reporting( "efl_service_recurse_commands_restart", "${d[${i}][restart_cmd]}", "${d[${i}][promisee]}", "1" ),
          contain    => in_shell_and_silent,
          ifvarclass => or(
-            "restart_proc_${i}",
+            "restart_proc_${param_file}_${i}",
             canonify( "${d[${i}][config_dir]}_handle_efl_service_recurse_copy_repaired" )
          );
 }
@@ -859,7 +859,7 @@ bundle agent efl_service ( ref )
       "field_9"  string => "Configuration file group";
       "field_10" string => "Restart command";
       "field_11" string => "Promisee";
-
+# TODO template field
    vars:
       "dim_svc"
          comment => "Read data file for parsing.",
@@ -1349,94 +1349,68 @@ bundle agent efl_edit_template ( ref )
       "field_0" string => "Class or context";
       "field_1" string => "Promiser file";
       "field_2" string => "Source file";
-      "field_3" string => "Mode";
-      "field_4" string => "User";
-      "field_5" string => "Group";
-      "field_6" string => "Promisee";
+      "field_3" string => "server, must an slist name";
+      "field_4" string => "Mode";
+      "field_5" string => "User";
+      "field_6" string => "Group";
+      "field_7" string => "Promisee";
 
    vars:
-      "dim_files"
-         comment => "Read data file for parsing.",
-         handle  => "efl_edit_template_vars_files",
-         int     => readstringarrayidx(
-            "files_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "promiser_file",
+            "2" : "template",
+            "3" : "server",
+            "4" : "mode",
+            "5" : "owner",
+            "6" : "group"
+            "7" : "promisee"
+         }');
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_edit_template_vars_f",
-         slist   => getindices( "files_o" );
+      <efl param_parser efl/>
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8" };
+   classes:
+      <efl param_file_picker efl/>
 
-      "files[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${files_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][0]";
-      "file[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][1]";
-      "source[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][2]";
-      "mode[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][3]";
-      "user[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][4]";
-      "group[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][5]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][6]";
-
+# TODO deterine template type.
    files:
-      "${efl_c.cache}/${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${efl_c.cache}/${d[${i}][template]}" -> { "${d[${i}][promisee]}" }
          comment    => "Locally cache template file.",
          handle     => "efl_edit_template_cache_template",
-         classes    => efl_rkn( "${efl_c.cache}/${${file[${f}]}}", "efl_edit_template_cache_template" ),
-         action     => efl_delta_reporting( "efl_edit_template_cache_template", "${efl_c.cache}/${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => "${${class[${f}]}}",
+         classes    => efl_rkn( "${efl_c.cache}/${d[${i}][promiser_file]}", "efl_edit_template_cache_template" ),
+         action     => efl_delta_reporting( "efl_edit_template_cache_template", "${efl_c.cache}/${d[${i}][promiser_file]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass => "${d[${i}][class]}",
          create     => "true",
-         copy_from  => remote_dcp( "${${source[${f}]}}", "@{efl_global_slists.policy_servers}" );
+         copy_from  => remote_dcp( "${d[${i}][template]}", "@{${d[${i}][server]}}" );
 
-      "${efl_c.cache}/${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${efl_c.cache}/${d[${i}][template]}" -> { "${d[${i}][promisee]}" }
          comment    => "Perms for locally cache template file.",
          handle     => "efl_edit_template_cache_template_perms",
-         classes    => efl_rkn( "${efl_c.cache}/${${file[${f}]}}", "efl_edit_template_cache_template_perms" ),
-         action     => efl_delta_reporting( "efl_edit_template_cache_template_perms", "${efl_c.cache}/${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => "${${class[${f}]}}",
-         perms      => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
+         classes    => efl_rkn( "${efl_c.cache}/${d[${i}][promiser_file]}", "efl_edit_template_cache_template_perms" ),
+         action     => efl_delta_reporting( "efl_edit_template_cache_template_perms", "${efl_c.cache}/${d[${i}][promiser_file]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass => "${d[${i}][class]}",
+         perms      => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][promiser_file]}" -> { "${d[${i}][promisee]}" }
          comment       => "Promise contents of file",
          handle        => "efl_edit_template_files_promiser",
-         classes       => efl_rkn( "${${file[${f}]}}", "efl_edit_template_files_promiser" ),
-         action        => efl_delta_reporting( "efl_edit_template_files_promiser", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass    => "${${class[${f}]}}",
+         classes       => efl_rkn( "${d[${i}][promiser_file]}", "efl_edit_template_files_promiser" ),
+         action        => efl_delta_reporting( "efl_edit_template_files_promiser", "${d[${i}][promiser_file]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass    => "${d[${i}][class]}",
          create        => "true",
          edit_defaults => empty,
-         edit_template => "${efl_c.cache}/${${file[${f}]}}";
+         edit_template => "${efl_c.cache}/${d[${i}][template]}";
 
-      "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][promiser_file]}" -> { "${d[${i}][promisee]}" }
          comment    => "Promise permissions of file",
          handle     => "efl_edit_template_files_perms",
-         classes    => efl_rkn( "${${file[${f}]}}", "efl_edit_template_files_perms" ),
-         action     => efl_delta_reporting( "efl_edit_template_files_perms", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         ifvarclass => "${${class[${f}]}}",
-         perms      => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
+         classes    => efl_rkn( "${d[${i}][promiser_file]}", "efl_edit_template_files_perms" ),
+         action     => efl_delta_reporting( "efl_edit_template_files_perms", "${d[${i}][promiser_file]}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass => "${d[${i}][class]}",
+         perms      => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 }
 
 bundle agent efl_lastseen
