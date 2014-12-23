@@ -45,6 +45,8 @@ my %headers = (
    'efl_service_recurse'   => [ qw/ class process_regex config_dir config_dir_src server encrypt mode owner group restart_cmd promisee / ],
    'efl_service'           => [ qw/ class process_regex config_file config_file_src server template encrypt mode owner group restart_cmd promisee / ],
    'efl_edit_template'     => [ qw/ class promiser_file template server mode owner group promisee / ],
+   'efl_enable_service'    => [ qw/ class service promisee / ],
+   'efl_disable_service'   => [ qw/ class service promisee / ],
 );
 
 # Get command options and switches
@@ -104,6 +106,15 @@ if ( $opt{bundle} && $opt{bundle} eq 'all' )
 {
    print "$_\n" for keys %headers;
    exit;
+}
+
+for my $bundle ( qw/ enable disable/ )
+{
+   if ( $opt{bundle} eq "efl_chkconfig_${bundle}_service" )
+   {
+      warn "Bundle $opt{bundle} has been replaceed with efl_${bundle}_service";
+      exit;
+   }
 }
 
 if ( $opt{bundle}  && ! grep m/^$opt{bundle}$/, keys %headers )

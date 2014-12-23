@@ -121,6 +121,10 @@ bundle agent main
       "any" usebundle => efl_service( "../260/01_efl_service.csv" );
    264_efl_test::
       "any" usebundle => efl_service( "../264/01_efl_service.json" );
+   270_efl_test::
+      "any" usebundle => efl_enable_service( "../270/01_efl_enable_service.csv" );
+   271_efl_test::
+      "any" usebundle => efl_enable_service( "../271/01_efl_enable_service.json" );
 
    reports:
       005_efl_test|006_efl_test::

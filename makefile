@@ -86,6 +86,8 @@ tests       =   \
 	262_efl_test \
 	264_efl_test \
 	265_efl_test \
+	270_efl_test \
+	271_efl_test \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -210,6 +212,16 @@ define 260_efl_test
 	echo PASS: $@
 endef
 
+define 270_efl_test
+	cp $(test_daemon_src) $(TEST_DIR)/
+	cp $(test_systemd_def_src) /etc/systemd/system/
+	systemctl disable $(test_systemd_def)
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	systemctl is-enabled $(test_systemd_def)
+	rm /etc/systemd/system/$(test_systemd_def)
+	echo PASS: $@
+endef
+
 .PHONY: all
 all: $(EFL_FILES)
 
@@ -242,7 +254,7 @@ version:
 	$(CF_PROMISES) -V | grep $(VERSION) && echo PASS: $@
 
 .PHONY: syntax
-syntax:
+syntax: $(cfstdlib) test/$(EFL_LIB)
 	OUTPUT=$$($(CF_PROMISES) -cf ./test/masterfiles/promises.cf 2>&1) ;\
 	if [ -z "$$OUTPUT" ] ;\
 	then                  \
@@ -592,8 +604,11 @@ PHONY: 035_efl_test
 /etc/systemd/system/$(test_systemd_def): $(test_systemd_def_src)
 	cp $^ $@
 
-$(TEST_DIR)/$(test_daemon): $(test_daemon_src)
-	cp $^ $@
+$(TEST_DIR)/$(test_daemon): $(test_daemon_src) $(TEST_DIR)
+	cp $< $@
+
+$(TEST_DIR):
+	mkdir -p $@
 
 PHONY: 039_efl_test
 039_efl_test: 037_efl_test test/039/01_efl_service_recurse.json
@@ -666,13 +681,16 @@ PHONY: 265_efl_test
 265_efl_test: 264_efl_test
 	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
 
-# service enable
-# 	cp $(test_daemon_src) $(TEST_DIR)/
-# 	cp $(test_systemd_def_src) /etc/systemd/system/
-# 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-# 	systemctl is-enabled $(test_systemd_def)
-# 	rm /etc/systemd/system/$(test_systemd_def)
-# 	echo PASS: $@
+PHONY: 270_efl_test
+270_efl_test: syntax $(test_daemon_files)
+	$(call 270_efl_test)
+
+PHONY: 271_efl_test
+271_efl_test: 270_efl_test test/271/01_efl_enable_service.json
+	$(call 270_efl_test)
+
+test/271/01_efl_enable_service.json: test/270/01_efl_enable_service.csv
+	$(CSVTOJSON) -b efl_enable_service < $< > $@
 
 .PHONY: clean
 clean:

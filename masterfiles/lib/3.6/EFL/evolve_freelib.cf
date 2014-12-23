@@ -1576,7 +1576,7 @@ body process_select by_command( command )
 	process_result => "command";
 }
 
-bundle agent efl_chkconfig_enable_service ( ref )
+bundle agent efl_enable_service ( ref )
 {
    meta:
       "purpose" string => "Enable service boot using chkconfig.";
@@ -1585,22 +1585,26 @@ bundle agent efl_chkconfig_enable_service ( ref )
       "field_2" string => "Promisee";
 
    vars:
-      debian::
-         "chkconfig_check"
-            comment => "Check mode required for Debian's chkconfig",
-            string  => "${paths.path[chkconfig]} -c";
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "service",
+            "2" : "promisee",
+         }');
 
-      !debian::
-         "chkconfig_check"
-            comment => "Check mode not required for none Debian",
-            string  => "${paths.path[chkconfig]}";
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-      any::
-         "dim_svc"
-            comment => "Read data file for parsing.",
-            handle  => "efl_chkconfig_enable_service_vars_files",
-            int     => readstringarrayidx(
-               "svc_o",
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
+
+      # parse_${param_file}_as_csv::
+         "csv_data"
+            comment    => "Parse csv file",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1608,63 +1612,93 @@ bundle agent efl_chkconfig_enable_service ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "s"
-            comment => "Get index array loaded above.",
-            handle  => "efl_chkconfig_enable_service_vars_s",
-            slist   => getindices( "svc_o" );
+         "i_unsorted" 
+            comment    => "index from csv file may not be in the correct order",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => getindices( "csv_data" );
 
-      "s2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2" };
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_csv",
+            slist      => sort( "i_unsorted", "int" );
 
-      "svc[${s}][${s2}]"
-         comment => "Work around for bug 2333",
-         string => "${svc_o[${s}][${s2}]}";
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_csv",
+            string     => "${csv_data[${i}][${p}]}";
 
-      "class[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "svc[${s}][0]";
-      "service[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "svc[${s}][1]";
-      "promisee[${s}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "svc[${s}][2]";
+      # parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+         "i"
+            comment    => "Index data",
+            ifvarclass => "parse_${param_file}_as_json",
+            slist      => getindices( "json_data" );
+
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            ifvarclass => "parse_${param_file}_as_json",
+            string     => "${json_data[${i}][${params[${p}]}]}";
+
+      # Use systemctl::
+      _stdlib_path_exists_systemctl::
+         "enable_check_command" string => "${paths.path[systemctl]} is-enabled";
+
+      _stdlib_path_exists_systemctl::
+         "enable_command[${i}]"
+            string => "${paths.path[systemctl]} enable ${d[${i}][service]}";
+
+      # Fallback to chkconfig::
+      !_stdlib_path_exists_systemctl.!debian::
+         "enable_check_command" string => "${paths.path[chkconfig]}";
+
+      !_stdlib_path_exists_systemctl.debian::
+         "enable_check_command" string => "${paths.path[chkconfig]} -c";
+
+      !_stdlib_path_exists_systemctl::
+         "enable_command[${i}]"
+            string  => "${paths.path[chkconfig]} ${d[${i}][service]} on";
 
    classes:
-      _stdlib_path_exists_chkconfig::
-         "efl_chkconfig_enable_${${service[${s}]}}"
-            comment    => "Check if service is enabled",
-            handle     => "efl_chkconfig_enable_classes_needs_repair",
-            ifvarclass => "${${class[${s}]}}",
-            not        => returnszero( "${chkconfig_check} ${${service[${s}]}}", "noshell" );
+## If you call this bundle outside of efl_main, these classes will test for
+## a json or csv parameter file. Warning, using this way you lose a pass.
+      "parse_${param_file}_as_json"
+         comment    => "Is parameter file json?",
+         expression => regcmp( ${efl_c.json_file}, ${ref} );
 
-         "${${service[${s}]}}_handle_efl_chkconfig_enable_classes_ok_kept"
-            comment    => "Check if service is enabled",
-            handle     => "efl_chkconfig_enable_classes_ok",
-            scope      => "namespace",
-            ifvarclass => "${${class[${s}]}}",
-            expression => returnszero( "${chkconfig_check} ${${service[${s}]}}", "noshell" );
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "enable_service_${param_file}_${i}"
+         comment    => "Set action to enable if service not enabled",
+         ifvarclass => "${d[${i}][class]}",
+         not        => returnszero( "${enable_check_command} ${d[${i}][service]}", "noshell" );
+
+      "${d[${i}][service]}_handle_efl_enable_service_classes_check_kept"
+         comment    => "Set class kept if service is enabled",
+         handle     => "efl_enable_service_classes_check",
+         scope      => "namespace",
+         ifvarclass => "${d[${i}][class]}",
+         expression => returnszero( "${chkconfig_check} ${d[${i}][service]}", "noshell" );
 
    commands:
-      "${paths.path[chkconfig]} ${${service[${s}]}} on" -> { "${${promisee[${s}]}}" }
+      "${enable_command[${i}]}" -> { "${d[${i}][promisee]}" }
          comment    => "Enable service using chkconfig",
          handle     => "efl_chkconfig_enable_service_commands_chkconfig",
-         ifvarclass => canonify( "efl_chkconfig_enable_${${service[${s}]}}" ),
-         classes    => efl_rkn( "${paths.path[chkconfig]} ${${service[${s}]}} off", "efl_chkconfig_enable_service_commands_chkconfig" ),
-         action     => efl_delta_reporting( "efl_chkconfig_enable_service_commands_chkconfig", "${${service[${s}]}}", "${${promisee[${s}]}}", "1" ),
+         ifvarclass => "enable_service_${param_file}_${i}",
+         classes    => efl_rkn( "${enable_command}", "efl_enable_service_commands_enable" ),
+         action     => efl_delta_reporting( "efl_chkconfig_enable_service_commands_enable", "${d[${i}][service]}", "${d[${i}][promisee]}", "1" ),
          contain    => silent;
 
    reports:
       delta_reporting::
-         "${efl_c.udate} ;; efl_chkconfig_enable_classes_ok ;; ${${service[${s}]}} ;; ${${promisee[${s}]}}"
-            ifvarclass      => canonify( "${${service[${s}]}}_handle_efl_chkconfig_enable_classes_ok_kept" ),
+         "efl_chkconfig_enable_classes_check ;; ${d[${i}][service]} ;; ${d[${i}][promisee]}"
+            ifvarclass      => canonify( "${d[${i}][service]}_handle_efl_enable_service_classes_check_kept" ),
             report_to_file  => "${efl_c.promise_log}";
-
-      !_stdlib_path_exists_chkconfig::
-         "Promise ${this.handle} reports ${paths.path[chkconfig]} is not found."
-            handle => "efl_chkconfig_enable_service_reports_no_chkconfig";
-
 }
 
 bundle agent efl_chkconfig_disable_service ( ref )

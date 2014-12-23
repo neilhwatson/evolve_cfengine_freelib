@@ -132,6 +132,17 @@ bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
       "meta_purpose" string => "Workaround for naked variable bug 2638.";
       "bug"          string => "https://cfengine.com/dev/issues/2638";
 
+   defaults:
+      "bundle_name"
+         comment        => "Override old bundle name with new one",
+         if_match_regex => "efl_chkconfig_enable_service",
+         string         => "efl_enable_service";
+
+      "bundle_name"
+         comment        => "Override old bundle name with new one",
+         if_match_regex => "efl_chkconfig_disable_service",
+         string         => "efl_disable_service";
+
    vars:
       "param_file" string => canonifyuniquely( "${parameter}" );
 
