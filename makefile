@@ -88,6 +88,8 @@ tests       =   \
 	265_efl_test \
 	270_efl_test \
 	271_efl_test \
+	272_efl_test \
+	273_efl_test \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -221,6 +223,17 @@ define 270_efl_test
 	rm /etc/systemd/system/$(test_systemd_def)
 	echo PASS: $@
 endef
+
+define 272_efl_test
+	cp $(test_daemon_src) $(TEST_DIR)/
+	cp $(test_systemd_def_src) /etc/systemd/system/
+	systemctl enable $(test_systemd_def)
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	systemctl is-enabled $(test_systemd_def) |grep disabled
+	rm /etc/systemd/system/$(test_systemd_def)
+	echo PASS: $@
+endef
+
 
 .PHONY: all
 all: $(EFL_FILES)
@@ -691,6 +704,14 @@ PHONY: 271_efl_test
 
 test/271/01_efl_enable_service.json: test/270/01_efl_enable_service.csv
 	$(CSVTOJSON) -b efl_enable_service < $< > $@
+
+PHONY: 272_efl_test
+272_efl_test: 270_efl_test
+	$(call 272_efl_test)
+
+PHONY: 273_efl_test
+273_efl_test: 272_efl_test
+	$(call 272_efl_test)
 
 .PHONY: clean
 clean:
