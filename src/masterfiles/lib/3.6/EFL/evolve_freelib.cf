@@ -1117,7 +1117,7 @@ bundle agent efl_file_perms ( ref )
       "purpose" string => "Promise file permissions.";
       "field_0" string => "Context";
       "field_1" string => "Promiser file";
-      "field_2" string => "Recurse into promiser directory no/#/inf)";
+      "field_2" string => "Recurse level #/inf)";
       "field_3" string => "Leaf regex";
       "field_4" string => "Negative match?";
       "field_5" string => "Promiser mode";
@@ -1126,137 +1126,97 @@ bundle agent efl_file_perms ( ref )
       "field_8" string => "Promisee";
 
    vars:
-      "dim_files"
-         comment => "Read data file for parsing.",
-         handle  => "efl_file_perms_vars_files",
-         int     => readstringarrayidx(
-            "files_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "file_promiser",
+            "2" : "recurse_level",
+            "3" : "leaf_regex",
+            "4" : "negate",
+            "5" : "mode",
+            "6" : "owner",
+            "7" : "group",
+            "8" : "promisee"
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_file_perms_vars_f",
-         slist   => getindices( "files_o" );
+         }');
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6", "7", "8" };
+      <efl param_parser efl/>
 
-      "files[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${files_o[${f}][${f2}]}";
+   classes:
+      <efl param_file_picker efl/>
 
-      "files[${f}][file_canon]"
-         comment    => "Canonify file name fo later use",
-         string     => canonify( "${files[${f}][1]}" );
+      "recurse_${param_file}_${i}"
+         comment    => "Is recursion desired?",
+         ifvarclass => "${d[${i}][class]}",
+         expression => isdir( "${d[${i}][file_promiser]}" );
+      
+      "do_not_recurse_${param_file}_${i}"
+         comment    => "Is recursion desired?",
+         ifvarclass => "${d[${i}][class]}",
+         expression => isplain( "${d[${i}][file_promiser]}" );
+      
+      "negative_match_${param_file}_${i}"
+         comment => "Is negative match desired?",
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "yes", "${d[${i}][negate]}" );
 
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][0]";
-      "file[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][1]";
-      "file_canon[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][file_canon]";
-      "recurse[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][2]";
-      "leaf[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][3]";
-      "negative[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][4]";
-      "mode[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][5]";
-      "user[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][6]";
-      "group[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][7]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "files[${f}][8]";
+      "positive_match_${param_file}_${i}"
+         comment => "Is positive match desired?",
+         ifvarclass => "${d[${i}][class]}",
+         expression => strcmp( "no", "${d[${i}][negate]}" );
 
-      classes:
-         "recurse_${${file_canon[${f}]}}_${f}"
-            comment    => "Is recursion desired?",
-            ifvarclass => "${${class[${f}]}}",
-            expression => strcmp( "yes", "${${recurse[${f}]}}" );
-         
-         "do_not_recurse_${${file_canon[${f}]}}_${f}"
-            comment    => "Is recursion desired?",
-            ifvarclass => "${${class[${f}]}}",
-            expression => strcmp( "no", "${${recurse[${f}]}}" );
-         
-         "negative_match_${${file_canon[${f}]}}_${f}"
-            comment => "Is negative match desired?",
-            ifvarclass => "${${class[${f}]}}",
-            expression => strcmp( "yes", "${${negative[${f}]}}" );
+      "recurse_and_negative_match_${param_file}_${i}"
+         and => { "recurse_${param_file}_${i}", "negative_match_${param_file}_${i}" };
 
-         "positive_match_${${file_canon[${f}]}}_${f}"
-            comment => "Is positive match desired?",
-            ifvarclass => "${${class[${f}]}}",
-            expression => strcmp( "no", "${${negative[${f}]}}" );
+      "recurse_and_positive_match_${param_file}_${i}"
+         and => { "recurse_${param_file}_${i}", "positive_match_${param_file}_${i}" };
 
-         "recurse_and_negative_match_${${file_canon[${f}]}}_${f}"
-            and => { "recurse_${${file_canon[${f}]}}_${f}", "negative_match_${${file_canon[${f}]}}_${f}" };
+      "do_not_recurse_and_negative_match_${param_file}_${i}"
+         and => { "do_not_recurse_${param_file}_${i}", "negative_match_${param_file}_${i}" };
 
-         "recurse_and_positive_match_${${file_canon[${f}]}}_${f}"
-            and => { "recurse_${${file_canon[${f}]}}_${f}", "positive_match_${${file_canon[${f}]}}_${f}" };
+      "do_not_recurse_and_positive_match_${param_file}_${i}"
+         and => { "do_not_recurse_${param_file}_${i}", "positive_match_${param_file}_${i}" };
 
-         "do_not_recurse_and_negative_match_${${file_canon[${f}]}}_${f}"
-            and => { "do_not_recurse_${${file_canon[${f}]}}_${f}", "negative_match_${${file_canon[${f}]}}_${f}" };
+   files:
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
+         comment      => "Promise permissions of file recurse_with_base and positive match",
+         handle       => "efl_file_perms_files_recurse_positive",
+         ifvarclass   => "recurse_and_positive_match_${param_file}_${i}",
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_file_perms_files_recurse_positive" ),
+         action       => efl_delta_reporting( "efl_file_perms_files_recurse_positive", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         depth_search => recurse_with_base( "${d[${i}][recurse_level]}" ),
+         file_select  => by_name( "${d[${i}][leaf_regex]}" ),
+         perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-         "do_not_recurse_and_positive_match_${${file_canon[${f}]}}_${f}"
-            and => { "do_not_recurse_${${file_canon[${f}]}}_${f}", "positive_match_${${file_canon[${f}]}}_${f}" };
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
+         comment      => "Promise permissions of file recurse_with_base and negative leaf match",
+         handle       => "efl_file_perms_files_recurse_negative",
+         ifvarclass   => "recurse_and_negative_match_${param_file}_${i}",
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_file_perms_files_recurse_with_base_negative" ),
+         action       => efl_delta_reporting( "efl_file_perms_files_recurse_negative", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         depth_search => recurse_with_base( "${d[${i}][recurse_level]}" ),
+         file_select  => negate_by_name( "${d[${i}][leaf_regex]}" ),
+         perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-      files:
-         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
-            comment      => "Promise permissions of file recurse_with_base and positive match",
-            handle       => "efl_file_perms_files_recurse_with_base_postive",
-            ifvarclass   => "recurse_and_positive_match_${${file_canon[${f}]}}_${f}",
-            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_recurse_with_base_postive" ),
-            action       => efl_delta_reporting( "efl_file_perms_files_recurse_with_base_postive", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-            depth_search => recurse_with_base( "${${recurse[${f}]}}" ),
-            file_select  => by_name( "${${leaf[${f}]}}" ),
-            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
+         comment      => "Promise permissions using positive match",
+         handle       => "efl_file_perms_files_positive",
+         ifvarclass   => "do_not_recurse_and_positive_match_${param_file}_${i}",
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_file_perms_files_positive" ),
+         action       => efl_delta_reporting( "efl_file_perms_files_positive", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         file_select  => by_name( "${d[${i}][leaf_regex]}" ),
+         perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
-            comment      => "Promise permissions of file recurse_with_base and negative leaf match",
-            handle       => "efl_file_perms_files_recurse_with_base_negative",
-            ifvarclass   => "recurse_and_positive_match_${${file_canon[${f}]}}_${f}",
-            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_recurse_with_base_negative" ),
-            action       => efl_delta_reporting( "efl_file_perms_files_recurse_with_base_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-            depth_search => recurse_with_base( "${${recurse[${f}]}}" ),
-            file_select  => negate_by_name( "${${leaf[${f}]}}" ),
-            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
-
-         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
-            comment      => "Promise permissions using positive match",
-            handle       => "efl_file_perms_files_positive",
-            ifvarclass   => "do_not_recurse_and_negative_match_${${file_canon[${f}]}}_${f}",
-            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_positive" ),
-            action       => efl_delta_reporting( "efl_file_perms_files_positive", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-            file_select  => by_name( "${${leaf[${f}]}}" ),
-            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
-
-         "${${file[${f}]}}" -> { "${${promisee[${f}]}}" }
-            comment      => "Promise permissions using negative leaf match",
-            handle       => "efl_file_perms_files_negative",
-            ifvarclass   => "do_not_recurse_and_positive_match_${${file_canon[${f}]}}_${f}",
-            classes      => efl_rkn( "${${file[${f}]}}", "efl_file_perms_files_negative" ),
-            action       => efl_delta_reporting( "efl_file_perms_files_negative", "${${file[${f}]}}", "${${promisee[${f}]}}", "1" ),
-            file_select  => negate_by_name( "${${leaf[${f}]}}" ),
-            perms        => mog( "${${mode[${f}]}}", "${${user[${f}]}}", "${${group[${f}]}}" );
+      "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
+         comment      => "Promise permissions using negative leaf match",
+         handle       => "efl_file_perms_files_negative",
+         ifvarclass   => "do_not_recurse_and_negative_match_${param_file}_${i}",
+         classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_file_perms_files_negative" ),
+         action       => efl_delta_reporting( "efl_file_perms_files_negative", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
+         file_select  => negate_by_name( "${d[${i}][leaf_regex]}" ),
+         perms        => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 }
 
 body file_select negate_by_name(names)

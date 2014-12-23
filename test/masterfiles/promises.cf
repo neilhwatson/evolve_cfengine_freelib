@@ -129,6 +129,10 @@ bundle agent main
       "any" usebundle => efl_disable_service( "../270/01_efl_enable_service.csv" );
    273_efl_test::
       "any" usebundle => efl_disable_service( "../271/01_efl_enable_service.json" );
+   280_efl_test::
+      "any" usebundle => efl_file_perms( "../280/01_efl_file_perms.csv" );
+   281_efl_test::
+      "any" usebundle => efl_file_perms( "../281/01_efl_file_perms.json" );
 
    reports:
       005_efl_test|006_efl_test::

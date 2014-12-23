@@ -90,6 +90,8 @@ tests       =   \
 	271_efl_test \
 	272_efl_test \
 	273_efl_test \
+	280_efl_test \
+	281_efl_test \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -234,6 +236,19 @@ define 272_efl_test
 	echo PASS: $@
 endef
 
+define 280_efl_test
+	rm -fr /tmp/efl_test/280/*
+	test -d /tmp/efl_test/280/sub || mkdir -p /tmp/efl_test/280/sub
+	touch /tmp/efl_test/280/a
+	touch /tmp/efl_test/280/b
+	touch /tmp/efl_test/280/d
+	chmod -R 444 /tmp/efl_test/280
+	chmod -R 600 /tmp/efl_test/280/sub
+	chown -R 12000:12000 /tmp/efl_test/280
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ -vl > agent.txt
+	cd test/serverspec; rspec spec/localhost/280_efl_test.rb
+	echo PASS: $@
+endef
 
 .PHONY: all
 all: $(EFL_FILES)
@@ -712,6 +727,17 @@ PHONY: 272_efl_test
 PHONY: 273_efl_test
 273_efl_test: 272_efl_test
 	$(call 272_efl_test)
+
+PHONY: 280_efl_test
+280_efl_test: syntax
+	$(call 280_efl_test)
+
+PHONY: 281_efl_test
+281_efl_test: syntax test/281/01_efl_file_perms.json
+	$(call 280_efl_test)
+
+test/281/01_efl_file_perms.json: test/280/01_efl_file_perms.csv
+	$(CSVTOJSON) -b efl_file_perms < $< > $@
 
 .PHONY: clean
 clean:
