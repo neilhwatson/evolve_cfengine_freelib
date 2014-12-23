@@ -1579,7 +1579,7 @@ body process_select by_command( command )
 bundle agent efl_enable_service ( ref )
 {
    meta:
-      "purpose" string => "Enable service boot using chkconfig.";
+      "purpose" string => "Enable service boot using chkconfig or systemctl.";
       "field_0" string => "Context";
       "field_1" string => "Service name promiser";
       "field_2" string => "Promisee";
@@ -1704,7 +1704,7 @@ bundle agent efl_enable_service ( ref )
 bundle agent efl_disable_service ( ref )
 {
    meta:
-      "purpose" string => "Enable service boot using chkconfig.";
+      "purpose" string => "Disable service boot using chkconfig or systemctl.";
       "field_0" string => "Context";
       "field_1" string => "Service name promiser";
       "field_2" string => "Promisee";
