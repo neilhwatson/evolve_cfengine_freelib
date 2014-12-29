@@ -1521,123 +1521,91 @@ bundle agent efl_rcs_pull( ref )
       "field_7" string => "Promisee";
 
    vars:
-      "dim_rcs"
-         comment => "Read data file for parsing.",
-         handle  => "efl_rcs_pull_vars_files",
-         int     => readstringarrayidx(
-            "rcs_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+     "params"   
+         comment    => "Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "update_cmd",
+            "2" : "checkout_cmd",
+            "3" : "dest_dir",
+            "4" : "mode",
+            "5" : "owner",
+            "6" : "group"
+            "7" : "promisee"
+         }');
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_rcs_pull_vars_f",
-         slist   => getindices( "rcs_o" );
+      <efl param_parser efl/>
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0", "1", "2", "3", "4", "5", "6", "7" };
- 
-      "rcs[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${rcs_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][0]";
-      "update[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][1]";
-      "checkout[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][2]";
-      "dir[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][3]";
-      "mode[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][4]";
-      "owner[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][5]";
-      "group[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][6]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "rcs[${f}][7]";
-
-      "canonify[${f}]"
+      "canonify[${i}]"
          comment => "Canonify for later use",
-         string  => canonify( "PROMISER=${f} ${${update[${f}]}}" );
+         string  => canonify( "PROMISER=${i} ${d[${i}][update_cmd]}" );
 
-      classes:
-         "promise_permissions_${f}"
-            comment => "Fix perms if update or checkout was made",
-            or => {
-               "${canonify[${f}]}_handle_efl_rcs_pull_commands_update_repaired",
-               "${canonify[${f}]}_handle_efl_rcs_pull_commands_checkout_repaired",
-               "${canonify[${f}]}_handle_efl_rcs_pull_commands_update_kept",
-               "${canonify[${f}]}_handle_efl_rcs_pull_commands_checkout_kept"
-            };
+   classes:
+      <efl param_file_picker efl/>
+
+      "promise_permissions_${i}"
+         comment => "Fix perms if update or checkout was made",
+         or => {
+            "${canonify[${i}]}_handle_efl_rcs_pull_commands_update_repaired",
+            "${canonify[${i}]}_handle_efl_rcs_pull_commands_checkout_repaired",
+            "${canonify[${i}]}_handle_efl_rcs_pull_commands_update_kept",
+            "${canonify[${i}]}_handle_efl_rcs_pull_commands_checkout_kept"
+         };
 
    files:
-      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+      "${d[${i}][dest_dir]}/." -> { "${d[${i}][promisee]}" }
          comment    => "Create destination directory",
          handle     => "efl_rcs_pull_files_create_dir",
-         ifvarclass => "${${class[${f}]}}",
-         classes    => efl_rkn( "${${dir[${f}]}}", "efl_rcs_pull_files_create_dir" ),
-         action     => efl_delta_reporting( "efl_rcs_pull_files_create_dir", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass => "${d[${i}][class]}",
+         classes    => efl_rkn( "${d[${i}][dest_dir]}", "efl_rcs_pull_files_create_dir" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_files_create_dir", "${d[${i}][dest_dir]}", "${d[${i}][promisee]}", "1" ),
          create     => 'true';
 
-      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+      "${d[${i}][dest_dir]}/." -> { "${d[${i}][promisee]}" }
          comment    => "promise directory perms",
          handle     => "efl_rcs_pull_files_dir_perms",
-         ifvarclass => "${${class[${f}]}}",
-         classes    => efl_rkn( "${${dir[${f}]}}", "efl_rcs_pull_files_dir_perms" ),
-         action     => efl_delta_reporting( "efl_rcs_pull_files_dir_perms", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
-         perms      => mog( "${${mode[${f}]}}", "${${owner[${f}]}}", "${${group[${f}]}}" );
+         ifvarclass => "${d[${i}][class]}",
+         classes    => efl_rkn( "${d[${i}][dest_dir]}", "efl_rcs_pull_files_dir_perms" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_files_dir_perms", "${d[${i}][dest_dir]}", "${d[${i}][promisee]}", "1" ),
+         perms      => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-      "${${dir[${f}]}}/." -> { "${${promisee[${f}]}}" }
+      "${d[${i}][dest_dir]}/." -> { "${d[${i}][promisee]}" }
          comment      => "promise perms on contents",
          handle       => "efl_rcs_pull_files_perms",
-         ifvarclass   => "promise_permissions_${f}",
-         classes      => efl_rkn( "${${dir[${f}]}}", "efl_rcs_pull_files_perms" ),
-         action       => efl_delta_reporting( "efl_rcs_pull_files_perms", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" ),
+         ifvarclass   => "promise_permissions_${i}",
+         classes      => efl_rkn( "${d[${i}][dest_dir]}", "efl_rcs_pull_files_perms" ),
+         action       => efl_delta_reporting( "efl_rcs_pull_files_perms", "${d[${i}][dest_dir]}", "${d[${i}][promisee]}", "1" ),
          depth_search => recurse( "inf" ),
          file_select  => by_name( ".*" ),
-         perms        => og( "${${owner[${f}]}}", "${${group[${f}]}}" );
+         perms        => og( "${d[${i}][owner]}", "${d[${i}][group]}" );
 
-      "${${dir[${f}]}}/" -> { "${${promisee[${f}]}}" }
+      "${d[${i}][dest_dir]}/" -> { "${d[${i}][promisee]}" }
          comment      => "purge destination directory if update command failed",
          handle       => "efl_rcs_files_purge_dir",
-         ifvarclass   => canonify( "PROMISER=${f} ${${update[${f}]}}_handle_efl_rcs_pull_commands_update_notkept" ),
+         ifvarclass   => canonify( "PROMISER=${i} ${d[${i}][update_cmd]}_handle_efl_rcs_pull_commands_update_notkept" ),
          delete       => tidy,
          depth_search => recurse( "inf" ),
          file_select  => by_name( ".*" ),
-         classes      => efl_rkn( "${${dir[${f}]}}", "efl_rcs_files_purge_dir" ),
-         action       => efl_delta_reporting( "efl_rcs_files_purge_dir", "${${dir[${f}]}}", "${${promisee[${f}]}}", "1" );
+         classes      => efl_rkn( "${d[${i}][dest_dir]}", "efl_rcs_files_purge_dir" ),
+         action       => efl_delta_reporting( "efl_rcs_files_purge_dir", "${d[${i}][dest_dir]}", "${d[${i}][promisee]}", "1" );
 
    commands:
-      "PROMISER=${f} ${${checkout[${f}]}} ${${dir[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "PROMISER=${i} ${d[${i}][checkout_cmd]} ${d[${i}][dest_dir]}" -> { "${d[${i}][promisee]}" }
          comment    => "Pull checkout",
          handle     => "efl_rcs_pull_commands_checkout",
-         ifvarclass => canonify( "PROMISER=${f} ${${update[${f}]}}_handle_efl_rcs_pull_commands_update_notkept" ),
-         contain    => in_dir_shell_and_silent( "${${dir[${f}]}}" ),
-         classes    => efl_rkn( "PROMISER=${f} ${${checkout[${f}]}}", "efl_rcs_pull_commands_checkout" ),
-         action     => efl_delta_reporting( "efl_rcs_pull_commands_checkout", "PROMISER=${f} ${${checkout[${f}]}}", "${${promisee[${f}]}}", "1" );
+         ifvarclass => canonify( "PROMISER=${i} ${d[${i}][update_cmd]}_handle_efl_rcs_pull_commands_update_notkept" ),
+         contain    => in_dir_shell_and_silent( "${d[${i}][dest_dir]}" ),
+         classes    => efl_rkn( "PROMISER=${i} ${d[${i}][checkout_cmd]}", "efl_rcs_pull_commands_checkout" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_commands_checkout", "PROMISER=${i} ${d[${i}][checkout_cmd]}", "${d[${i}][promisee]}", "1" );
 
-      "PROMISER=${f} ${${update[${f}]}}" -> { "${${promisee[${f}]}}" }
+      "PROMISER=${i} ${d[${i}][update_cmd]}" -> { "${d[${i}][promisee]}" }
          comment    => "Pull update",
          handle     => "efl_rcs_pull_commands_update",
-         ifvarclass => "${${class[${f}]}}",
-         contain    => in_dir_shell_and_silent( "${${dir[${f}]}}" ),
-         classes    => efl_rkn( "PROMISER=${f} ${${update[${f}]}}", "efl_rcs_pull_commands_update" ),
-         action     => efl_delta_reporting( "efl_rcs_pull_commands_update", "PROMISER=${f} ${${update[${f}]}}", "${${promisee[${f}]}}", "1" );
+         ifvarclass => "${d[${i}][class]}",
+         contain    => in_dir_shell_and_silent( "${d[${i}][dest_dir]}" ),
+         classes    => efl_rkn( "PROMISER=${i} ${d[${i}][update_cmd]}", "efl_rcs_pull_commands_update" ),
+         action     => efl_delta_reporting( "efl_rcs_pull_commands_update", "PROMISER=${i} ${d[${i}][update_cmd]}", "${d[${i}][promisee]}", "1" );
 }
 
 bundle agent efl_test_simple( ref )

@@ -133,6 +133,11 @@ bundle agent main
       "any" usebundle => efl_file_perms( "../280/01_efl_file_perms.csv" );
    281_efl_test::
       "any" usebundle => efl_file_perms( "../281/01_efl_file_perms.json" );
+   290_efl_test|291_efl_test::
+      "any" usebundle => efl_rcs_pull( "../290/01_efl_rcs_pull.csv" );
+   292_efl_test|293_efl_test::
+      "any" usebundle => efl_rcs_pull( "../292/01_efl_rcs_pull.json" );
+
 
    reports:
       005_efl_test|006_efl_test::

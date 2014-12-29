@@ -92,6 +92,10 @@ tests       =   \
 	273_efl_test \
 	280_efl_test \
 	281_efl_test \
+	290_efl_test \
+	291_efl_test \
+	292_efl_test \
+	293_efl_test \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -247,6 +251,25 @@ define 280_efl_test
 	chown -R 12000:12000 /tmp/efl_test/280
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ -vl > agent.txt
 	cd test/serverspec; rspec spec/localhost/280_efl_test.rb
+	echo PASS: $@
+endef
+
+define 290_efl_test
+	rm -fr $(TEST_DIR)/290_master
+	git clone https://github.com/neilhwatson/vim_cf3.git $(TEST_DIR)/290_master
+	cd $(TEST_DIR)/290_master; git status > $(TEST_DIR)/290_master.status
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ 
+	cd $(TEST_DIR)/290_test; git status > $(TEST_DIR)/290_test.status
+	$(call md5cmp_two_files,$(TEST_DIR)/290_test.status,$(TEST_DIR)/290_master.status)
+	echo PASS: $@
+endef
+
+define 291_efl_test
+	rm -f $(TEST_DIR)/290_test.status*
+	rm -f $(TEST_DIR)/290_test/README*
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
+	cd $(TEST_DIR)/290_test; git status > $(TEST_DIR)/290_test.status
+	$(call md5cmp_two_files,$(TEST_DIR)/290_test.status,$(TEST_DIR)/290_master.status)
 	echo PASS: $@
 endef
 
@@ -738,6 +761,25 @@ PHONY: 281_efl_test
 
 test/281/01_efl_file_perms.json: test/280/01_efl_file_perms.csv
 	$(CSVTOJSON) -b efl_file_perms < $< > $@
+
+PHONY: 290_efl_test
+290_efl_test: syntax
+	$(call 290_efl_test)
+
+PHONY: 291_efl_test
+291_efl_test: syntax 290_efl_test
+	$(call 291_efl_test)
+
+PHONY: 292_efl_test
+292_efl_test: syntax test/292/01_efl_rcs_pull.json
+	$(call 290_efl_test)
+
+PHONY: 293_efl_test
+293_efl_test: syntax 292_efl_test test/292/01_efl_rcs_pull.json
+	$(call 291_efl_test)
+
+test/292/01_efl_rcs_pull.json: test/290/01_efl_rcs_pull.csv
+	$(CSVTOJSON) -b efl_rcs_pull < $< > $@
 
 .PHONY: clean
 clean:

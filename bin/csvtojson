@@ -48,6 +48,7 @@ my %headers = (
    'efl_enable_service'    => [ qw/ class service promisee / ],
    'efl_disable_service'   => [ qw/ class service promisee / ],
    'efl_file_perms'        => [ qw/ class file_promiser recurse_level leaf_regex negate mode owner group promisee / ],
+   'efl_rcs_pull'          => [ qw/ class update_cmd checkout_cmd dest_dir mode owner group  promisee / ],
 );
 
 # Get command options and switches
