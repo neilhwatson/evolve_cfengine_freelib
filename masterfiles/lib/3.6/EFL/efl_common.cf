@@ -38,6 +38,15 @@ bundle common efl_c
       "csv_file"
          comment => "How to determine if param file is csv",
          string  => ".*\.(txt|csv)";
+
+      "cfengine_template"
+         comment => "How to determine if param file is csv",
+         string  => ".*\.(tmp|template)";
+
+      "mustache_template"
+         comment => "How to determine if param file is csv",
+         string  => ".*\.mus(tache){0,1}";
+#
 #
 # Delta Reporting configs
 #
