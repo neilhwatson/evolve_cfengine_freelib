@@ -140,7 +140,7 @@ bundle agent main
 
 
    reports:
-      005_efl_test|006_efl_test::
+     005_efl_test|006_efl_test::
          "efl_global_lists.ntp_servers  => [${efl_global_slists.ntp_servers}]";
          "efl_global_lists.name_servers => [${efl_global_slists.name_servers}]";
          "efl_global_lists.web_servers  => [${efl_global_slists.web_servers}]";

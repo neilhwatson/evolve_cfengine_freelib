@@ -57,9 +57,13 @@ bundle common efl_c
 # Misc vars
 #
       "efl_server_txt"
-            comment => "Server access rules parameter file",
+            comment => "Server access rules csv parameter file",
 # NOTE Access file must be hardcoded because server bundles do not accept arguments.
             string => "${sys.workdir}/inputs/efl_data/bundle_params/efl_server.txt";
+      "efl_server_json"
+            comment => "Server access rules json parameter file",
+# NOTE Access file must be hardcoded because server bundles do not accept arguments.
+            string => "${sys.workdir}/inputs/efl_data/bundle_params/efl_server.json";
 
       !efl_testing::
       "cache"
@@ -197,6 +201,11 @@ bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
          comment        => "Override old bundle name with new one",
          if_match_regex => "efl_chkconfig_disable_service",
          string         => "efl_disable_service";
+
+      "bundle_name"
+         comment        => "Override old bundle name with new one",
+         if_match_regex => "efl_server\Z",
+         string         => "efl_server_csv";
 
    vars:
       "param_file" string => canonifyuniquely( "${parameter}" );

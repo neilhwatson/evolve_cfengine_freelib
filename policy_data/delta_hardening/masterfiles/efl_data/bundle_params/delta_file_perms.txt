@@ -3,8 +3,8 @@ redhat    ;; /etc/passwd        ;; no      ;; .*         ;; no     ;; 0644   ;; 
 redhat    ;; /etc/group         ;; no      ;; .*         ;; no     ;; 0644   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.1
 redhat    ;; /etc/shadow        ;; no      ;; .*         ;; no     ;; 0400   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.1
 redhat    ;; /etc/gshadow       ;; no      ;; .*         ;; no     ;; 0400   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.1
-redhat    ;; /tmp/.             ;; no      ;; .*         ;; no     ;; 1777   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.2 
-redhat    ;; /var/tmp/.         ;; no      ;; .*         ;; no     ;; 1777   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.2 
+redhat    ;; /tmp/.             ;; no      ;; \.         ;; no     ;; 1777   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.2 
+redhat    ;; /var/tmp/.         ;; no      ;; \.         ;; no     ;; 1777   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 2.2.3.2 
 redhat    ;; /etc/crontab       ;; no      ;; .*         ;; no     ;; 0600   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
 redhat    ;; /etc/anacrontab    ;; no      ;; .*         ;; no     ;; 0600   ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2
 redhat    ;; /etc/cron.hourly/. ;; inf     ;; .*         ;; no     ;; go-rwx ;; root  ;; root  ;; nsa_rhel5 v4.2 sec 3.4.2

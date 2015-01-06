@@ -1351,7 +1351,7 @@ bundle agent efl_mon_cfengine
            "Standard deviation: ${mon.dev_cfengine_out}";
 }
 
-bundle server efl_server
+bundle server efl_server_csv
 {
    meta:
       "purpose" string => "Read cf-server access rules.";
@@ -1406,10 +1406,78 @@ bundle server efl_server
    access:
 
       "${${path[${f}]}}" -> { "${${promisee[${f}]}}" }
-            handle     => "efl_server_grant_access_policy",
+            handle     => "efl_server_csv_grant_access_policy",
             comment    => "Grant client access to the policy server",
             ifvarclass => "${${class[${f}]}}",
             admit      => { "@{acl_list[${f}]}" };
+}
+
+bundle server efl_server_json
+{
+   meta:
+      "purpose" string => "Read cf-server access rules with json params.";
+
+# NOTE Because 3.5 rules accept only 'admit' and not 'admit_*' attributes, and
+# because server bundles do not accept parameters, this bundle does not accept
+# 3.5 csv files. Use csvtojson to convert.
+
+   vars:
+     "ref" string => "${efl_c.efl_server_json}";
+
+     "params"   
+         comment    => "JSON Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "path",
+            "6" : "promisee"
+         }');
+
+#            "2" : "admit",
+#            "3" : "admit_ips",
+#            "4" : "admit_hostnames",
+#            "5" : "admit_keys",
+      "param_file" string => canonifyuniquely( "${ref}" );
+
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
+
+      # parse_${param_file}_as_json::
+      "json_data"
+         comment    => "Parse json file",
+         data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+
+      "i"
+         comment    => "Index data",
+         slist      => getindices( "json_data" );
+
+      "d[${i}][${params[${p}]}]"
+         comment    => "Make final data set and deal with bug 2333",
+         string     => "${json_data[${i}][${params[${p}]}]}";
+
+      "d[${i}][admit]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit]" );
+      "d[${i}][admit_ips]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit_ips]" );
+      "d[${i}][admit_hostnames]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit_hostnames]" );
+      "d[${i}][admit_keys]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit_keys]" );
+
+   access:
+      "${d[${i}][path]}" -> { "${d[${i}][promisee]}" }
+            handle          => "efl_server_json_grant_access_policy",
+            comment         => "Grant client access to the policy server",
+            ifvarclass      => "${d[${i}][class]}",
+            admit           => { "@{d[${i}][admit]}" },
+            admit_ips       => { "@{d[${i}][admit_ips]}" },
+            admit_hostnames => { "@{d[${i}][admit_hostnames]}" },
+            admit_keys      => { "@{d[${i}][admit_keys]}" };
 }
 
 body action efl_delta_reporting ( handle, promiser, promisee, if_elapsed )

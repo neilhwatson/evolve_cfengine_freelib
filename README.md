@@ -16,11 +16,10 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 
-## Version notice
+## 3.6.3+ ready!
 
-We recommend that you use the 3.5 branch of EFL with CFEngine version 3.5.2,
-but CFEngine 3.6 should work with the 3.5 EFL branch too. The master branch
-will support 3.6 in time, but not yet.
+This master branch is ready for 3.6.3+. Most bundles now support both CSV and JSON
+parameter files. A conversion script is included in ./bin.
 
 ## Introduction
 
@@ -73,6 +72,6 @@ http://evolvethinking.com/category/cfengine/efl/
 
 ## Requirements
 
-1. Cfengine Core 3.6.x or higher. There are older 3.4, and 3.5  branch too.
+1. Cfengine Core 3.6.3 or higher. There are older 3.4, and 3.5 branch too.
 1. The Cfengine standard library. 
 1. Perl of any version and no special modules.

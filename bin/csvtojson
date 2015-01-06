@@ -24,7 +24,7 @@ END
 my %headers = (
    'efl_main'              => [ qw/ class promiser bundle ifelapsed parameter promisee / ],
    'efl_command'           => [ qw/ class command useshell module ifelapsed promisee / ],
-   'efl_server'            => [ qw/ class path admit admit_ips  admit_hostnames admit_keys promisee / ],
+   'efl_server'            => [ qw/ class path admit promisee / ],
    'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ],
    'efl_test_simple'       => [ qw/ class class_to_test is_or_isnt name / ],
    'efl_global_slists'     => [ qw/ class name contents shuffle promisee / ],
@@ -48,7 +48,7 @@ my %headers = (
    'efl_enable_service'    => [ qw/ class service promisee / ],
    'efl_disable_service'   => [ qw/ class service promisee / ],
    'efl_file_perms'        => [ qw/ class file_promiser recurse_level leaf_regex negate mode owner group promisee / ],
-   'efl_rcs_pull'          => [ qw/ class update_cmd checkout_cmd dest_dir mode owner group  promisee / ],
+   'efl_rcs_pull'          => [ qw/ class update_cmd checkout_cmd dest_dir mode owner group promisee / ],
 );
 
 # Get command options and switches

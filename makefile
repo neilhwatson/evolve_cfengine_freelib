@@ -382,7 +382,7 @@ test/006/name_servers.txt: test/005/name_servers.txt
 	cp test/005/name_servers.txt test/006/
 
 .PHONY: 005_efl_test
-005_efl_test:
+005_efl_test: syntax
 	$(call cf_agent_grep_test, $@,$(005_006_efl_test_result))
 
 007_008_efl_test_result = R: Name => \[efl_global_strings\.main_efl_dev\] Value => \[Neil H\. Watson \(neil\@watson-wilson\.ca\)\] Promisee => \[efl_development\]\nR: Name => \[efl_global_strings\.gateway\] Value => \[2001:DB8::1\] Promisee => \[efl_development\]
