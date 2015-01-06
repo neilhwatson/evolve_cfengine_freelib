@@ -16,7 +16,7 @@ bundle common efl_c
          string  => "\s*#[^\n]*";
 
       "array_delimiter"
-         comment => "Field delimiter for CSV data files read by readstringarrayidx",
+         comment => "Field delimiter for CSV data files read by data_readstringarrayidx.",
          string  => "\s*;;\s*";
 
       "slist_delimiter"

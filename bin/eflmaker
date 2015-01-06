@@ -133,7 +133,10 @@ sub replace_tag_with_file
 
    while (<$target>)
    {
-      s/\s*$tags{start}\s*$args{tag}\s*$tags{end}\s*/$include_contents/;
+      if ( ! m/\s*#/ )
+      {
+         s/\s*$tags{start}\s*$args{tag}\s*$tags{end}\s*/$include_contents/;
+      }
       print $temp $_;
    }
    close $target;

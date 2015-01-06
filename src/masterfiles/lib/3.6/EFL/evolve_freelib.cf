@@ -33,43 +33,28 @@
 # CFEngine Core 3.5.x or higher
 # CFEengine standard library
 
-bundle agent efl_skeleton ( ref )
-{
-   meta:
-      "purpose" string => "Skeleton bundle for new bundle authoring";
-      "field_0" string => "Context";
-
-   vars:
-      "dim_skel"
-         comment => "Read data file for parsing.",
-         handle  => "efl_skeleton_vars_files",
-         int     => readstringarrayidx(
-            "skel_o",
-            "${ref}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
-
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_skeleton_vars_f",
-         slist   => getindices( "skel_o" );
-
-      "f2"
-         comment => "Work around for bug 2333",
-         slist => { "0" };
- 
-      "skel[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string => "${skel_o[${f}][${f2}]}";
-
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "skel[${f}][0]";
-# Call the above variable as ${${class[${f}]}} 
-}
+# bundle agent efl_skeleton ( ref )
+# {
+#    meta:
+#       "purpose" string => "Skeleton bundle for new bundle authoring";
+#       "field_0" string => "Context";
+# 
+#    vars:
+#       "params"   
+#          comment    => "Parameter field names and positions to be parsed.",
+#          data       => parsejson(
+#          '{
+#             "0" : "class",
+#             "1" : "variable",
+#             "2" : "value",
+#             "3" : "promisee"
+#          }');
+# 
+#       <efl param_parser efl/>
+# 
+#    classes:
+#       <efl param_file_picker efl/>
+# }
 
 bundle agent efl_sysctl_live( ref )
 {   
@@ -1361,11 +1346,10 @@ bundle server efl_server_csv
       "field_3" string => "Promisee";
 
    vars:
-      "dim_acl"
+      "acl_o"
          comment => "Read data file for parsing.",
          handle  => "efl_server_vars_files",
-         int     => readstringarrayidx(
-            "acl_o",
+         data    => data_readstringarrayidx(
             "${efl_c.efl_server_txt}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",
@@ -1770,11 +1754,10 @@ bundle agent efl_test_count( ref )
       "field_3" string => "Test name, free form like promisee";
 
    vars:
-      "dim_test"
+      "test_o"
          comment => "Read data file for parsing.",
          handle  => "efl_test_count_vars_files",
-         int     => readstringarrayidx(
-            "test_o",
+         data    => data_readstringarrayidx(
             "${ref}",
             "${efl_c.comment}",
             "${efl_c.array_delimiter}",

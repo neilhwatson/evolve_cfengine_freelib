@@ -22,7 +22,7 @@
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 

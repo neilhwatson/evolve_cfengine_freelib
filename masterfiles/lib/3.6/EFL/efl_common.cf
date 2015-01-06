@@ -16,7 +16,7 @@ bundle common efl_c
          string  => "\s*#[^\n]*";
 
       "array_delimiter"
-         comment => "Field delimiter for CSV data files read by readstringarrayidx",
+         comment => "Field delimiter for CSV data files read by data_readstringarrayidx.",
          string  => "\s*;;\s*";
 
       "slist_delimiter"
@@ -135,7 +135,7 @@ bundle agent efl_main( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 
@@ -278,7 +278,7 @@ bundle agent efl_class_returnszero( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 
@@ -383,7 +383,7 @@ bundle agent efl_global_slists( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 
@@ -523,7 +523,7 @@ bundle agent efl_global_strings ( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 
@@ -617,7 +617,7 @@ bundle agent efl_class_cmd_regcmp( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 
@@ -723,7 +723,7 @@ bundle agent efl_class_expression( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 
@@ -807,7 +807,7 @@ bundle agent efl_class_classmatch( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 
@@ -892,7 +892,7 @@ bundle agent efl_class_iprange( ref )
             slist      => getindices( "csv_data" );
 
          "i"
-            comment    => "Index data",
+            comment    => "Sort index data",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => sort( "i_unsorted", "int" );
 

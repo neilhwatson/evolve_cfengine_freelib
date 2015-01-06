@@ -290,7 +290,7 @@ $(EFL_LIB):
 check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
 	@echo PASSED ALL TESTS
 
-test/$(EFL_LIB):
+test/$(EFL_LIB): $(EFL_FILES)
 	mkdir -p $@
 	cp -r $(EFL_LIB)/* test/$(EFL_LIB)/
 
