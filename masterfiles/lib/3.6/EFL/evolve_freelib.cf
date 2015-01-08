@@ -1385,7 +1385,7 @@ bundle agent efl_service ( ref )
       "field_0"  string => "Context";
       "field_1"  string => "Process regex";
       "field_2"  string => "Configuration file promiser";
-      "field_3"  string => "Configuration file source";
+      "field_3"  string => "Configuration file source, can be a template with extension for cfengine, tmp, or mustache";
       "field_4"  string => "Source server, as list without syntax: efl_c.policy_servers";
       "field_5"  string => "Template file yes/no";
       "field_6"  string => "Encrypted copy yes/now";
@@ -1465,6 +1465,16 @@ bundle agent efl_service ( ref )
             ifvarclass => "parse_${param_file}_as_json",
             string     => "${json_data[${i}][${params[${p}]}]}";
 
+      "template_method[${i}]"
+         comment    => "Set template type base on file extension",
+         ifvarclass => "use_cfengine_template_${param_file}_${i}",
+         string     => "cfengine";
+
+      "template_method[${i}]"
+         comment    => "Set template type base on file extension",
+         ifvarclass => "use_mustache_template_${param_file}_${i}",
+         string     => "mustache";
+
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
@@ -1486,21 +1496,29 @@ bundle agent efl_service ( ref )
          ifvarclass => "${d[${i}][class]}",
          expression => strcmp( "${d[${i}][template]}", "yes" );
 
+      "use_cfengine_template_${param_file}_${i}"
+         ifvarclass => "build_from_template_${param_file}_${i}",
+         expression => regcmp( "${efl_c.cfengine_template}", "${d[${i}][config_file_src]}" );
+
+      "use_mustache_template_${param_file}_${i}"
+         ifvarclass => "build_from_template_${param_file}_${i}",
+         expression => regcmp( "${efl_c.mustache_template}", "${d[${i}][config_file_src]}" );
+
    files:
-      "${efl_c.cache}/${d[${i}][config_file]}" -> { "${d[${i}][promisee]}" }
+      "${efl_c.cache}/${d[${i}][config_file_src]}" -> { "${d[${i}][promisee]}" }
          comment    => "Cache the source file",
          handle     => "efl_service_files_cache",
-         classes    => efl_rkn( "${efl_c.cache}/${d[${i}][config_file]}", "efl_service_svc_cache" ),
-         action     => efl_delta_reporting( "efl_service_svc_cache", "${efl_c.cache}/${d[${i}][config_file]}", "${d[${i}][promisee]}", "1" ),
+         classes    => efl_rkn( "${efl_c.cache}/${d[${i}][config_file_src]}", "efl_service_svc_cache" ),
+         action     => efl_delta_reporting( "efl_service_svc_cache", "${efl_c.cache}/${d[${i}][config_file_src]}", "${d[${i}][promisee]}", "1" ),
          ifvarclass => "${d[${i}][class]}",
          create     => "true",
          copy_from  => efl_cpf( "${d[${i}][config_file_src]}", "@{${d[${i}][server]}}", "${d[${i}][encrypt]}" );
 
-      "${efl_c.cache}/${d[${i}][config_file]}" -> { "${d[${i}][promisee]}" }
+      "${efl_c.cache}/${d[${i}][config_file_src]}" -> { "${d[${i}][promisee]}" }
          comment    => "Perms for cache of source file",
          handle     => "efl_service_files_cache_perms",
-         classes    => efl_rkn( "${efl_c.cache}/${d[${i}][config_file]}", "efl_service_svc_cache_perms" ),
-         action     => efl_delta_reporting( "efl_service_svc_cache_perms", "${efl_c.cache}/${d[${i}][config_file]}", "${d[${i}][promisee]}", "1" ),
+         classes    => efl_rkn( "${efl_c.cache}/${d[${i}][config_file_src]}", "efl_service_svc_cache_perms" ),
+         action     => efl_delta_reporting( "efl_service_svc_cache_perms", "${efl_c.cache}/${d[${i}][config_file_src]}", "${d[${i}][promisee]}", "1" ),
          ifvarclass => "${d[${i}][class]}",
          perms      => mog( "${d[${i}][mode]}", "${d[${i}][owner]}", "${d[${i}][group]}" );
 
@@ -1511,17 +1529,18 @@ bundle agent efl_service ( ref )
          action     => efl_delta_reporting( "efl_service_files_config", "${d[${i}][config_file]}", "${d[${i}][promisee]}", "1" ),
          ifvarclass => canonify( "copy_config_${param_file}_${i}" ),
          create     => "true",
-         copy_from  => efl_cpf( "${efl_c.cache}/${d[${i}][config_file]}", "localhost", "${d[${i}][encrypt]}" );
+         copy_from  => efl_cpf( "${efl_c.cache}/${d[${i}][config_file_src]}", "localhost", "${d[${i}][encrypt]}" );
 
       "${d[${i}][config_file]}" -> { "${d[${i}][promisee]}" }
-         comment       => "Promise contents of configurationn file from template",
-         handle        => "efl_service_files_config_template",
-         classes       => efl_rkn( "${d[${i}][config_file]}", "efl_service_files_config_template" ),
-         action        => efl_delta_reporting( "efl_service_files_config_template", "${d[${i}][config_file]}", "${d[${i}][promisee]}", "1" ),
-         create        => "true",
-         edit_defaults => empty,
-         ifvarclass    => canonify( "build_from_template_${param_file}_${i}" ),
-         edit_template => "${efl_c.cache}/${d[${i}][config_file]}";
+         comment         => "Promise contents of configurationn file from template",
+         handle          => "efl_service_files_config_template",
+         classes         => efl_rkn( "${d[${i}][config_file]}", "efl_service_files_config_template" ),
+         action          => efl_delta_reporting( "efl_service_files_config_template", "${d[${i}][config_file]}", "${d[${i}][promisee]}", "1" ),
+         create          => "true",
+         edit_defaults   => empty,
+         ifvarclass      => canonify( "build_from_template_${param_file}_${i}" ),
+         template_method => "${template_method[${i}]}",
+         edit_template   => "${efl_c.cache}/${d[${i}][config_file_src]}";
 
       "${d[${i}][config_file]}" -> { "${d[${i}][promisee]}" }
          comment    => "Promise permissions of configuration file",

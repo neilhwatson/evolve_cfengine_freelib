@@ -88,6 +88,7 @@ tests       =   \
 	262_efl_test \
 	264_efl_test \
 	265_efl_test \
+	266_efl_test \
 	270_efl_test \
 	271_efl_test \
 	272_efl_test \
@@ -143,9 +144,9 @@ define test_sysclt_conf
 endef
 
 define 023_024_test
-	rm -f /tmp/023_efl_test
+	rm -f $(TEST_DIR)/023_efl_test
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	echo 'a95cee7d8d28c9a1d6f4cd86100d341c /tmp/023_efl_test' |md5sum -c
+	echo 'a95cee7d8d28c9a1d6f4cd86100d341c $(TEST_DIR)/023_efl_test' |md5sum -c
 	echo PASS: $@
 endef
 
@@ -551,7 +552,7 @@ test/024/01_efl_command.json: test/023/01_efl_command.csv
 	$(CSVTOJSON) -b efl_command < $^ > $@
 
 .PHONY: 023_efl_test
-023_efl_test:
+023_efl_test: syntax $(TEST_DIR)
 	$(call 023_024_test)
 
 .PHONY: 026_efl_test
@@ -718,7 +719,7 @@ $(TEST_DIR)/252/:
 	mkdir -p $@
 
 PHONY: 260_efl_test Test if service is restarted
-260_efl_test: $(TEST_DIR)/260/cfengine_template.tmp $(TEST_DIR)/260/ $(test_daemon_files)
+260_efl_test: syntax $(TEST_DIR)/260/cfengine_template.tmp $(TEST_DIR)/260/ $(test_daemon_files)
 	$(call 260_efl_test)
 
 $(TEST_DIR)/260/cfengine_template.tmp: $(TEST_DIR)/260/
@@ -746,6 +747,17 @@ test/264/01_efl_service.json: test/260/01_efl_service.csv
 PHONY: 265_efl_test
 265_efl_test: 264_efl_test
 	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
+
+PHONY: 266_efl_test
+266_efl_test: syntax $(test_daemon_files) $(TEST_DIR)/266/cfengine_template.mustache
+	$(call 260_efl_test)
+	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
+
+$(TEST_DIR)/266/cfengine_template.mustache: $(TEST_DIR)/266
+	cp test/260/cfengine_template.mustache $@
+
+$(TEST_DIR)/266:
+	mkdir -p	$@
 
 PHONY: 270_efl_test
 270_efl_test: syntax $(test_daemon_files)
