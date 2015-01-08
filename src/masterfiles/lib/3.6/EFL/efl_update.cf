@@ -11,7 +11,8 @@
 
 body common control
 {
-   bundlesequence => { "main" };
+   inputs => { "lib/3.6/EFL/efl_common.cf" };
+   bundlesequence => { "list_backup", "efl_c", "main" };
 }
 
 bundle agent config
@@ -19,88 +20,32 @@ bundle agent config
    meta:
       "purpose" string => "User defined configs here.";
 
-   defaults:
-      "policy_servers"
-         comment        => "Default to bootstrap server",
-         slist          => { "${sys.policy_hub}" },
-         if_match_regex => "";
-
    vars:
-      am_policy_hub::
+      "modules_path"
+         comment => "Where to find modules on the policy server.",
+         string  => "${sys.workdir}/modules";
+
+      "inputs_manifest"
+         comment => "Manifest file to determine what inputs to download",
+         string  => "efl_manifest.txt";
+
+      "cfengine_procs"
+         comment => "CFEngine processes to start or restart",
+         slist   => { "cf-serverd", "cf-execd", "cf-monitord" };
+
+      policy_server|am_policy_hub::
          "modules"
             comment => "Modules required for a minimum working system.",
-            slist   => { "return_index.pl", "cf-manifest" };
+            slist   => { "cf-manifest" };
       
-      !am_policy_hub::
-         "modules"
-            comment => "Modules required for a minimum working system.",
-            slist   => { "return_index.pl" };
-      
-      any::
-         "modules_path"
-            comment => "Where to find modules on the policy server.",
-            string  => "${sys.workdir}/modules";
-
-         "inputs_manifest"
-            comment => "Manifest file to determine what inputs to download",
-            string  => "efl_manifest.txt";
-
-         "cfengine_procs"
-            comment => "CFEngine processes to start or restart",
-            slist   => { "cf-serverd", "cf-execd", "cf-monitord" };
-
-         "comment"
-            comment => "Comment string in data file.",
-            string  => "\s*#[^\n]*";
-
-         "array_delimiter"
-            comment => "Field delimiter for CSV data files read by readstringarrayidx",
-            string  => "\s*;;\s*";
-
-         "max_num"
-            comment => "Maximum number of lines to read from data file",
-            int     => "500";
-
-         "max_bytes"
-            comment => "Maximum number of bytes to read from data file.",
-            string  => "1M";
-
-         "policy_servers_file"
-            comment => "File that contains redundant policy servers.",
-            string  => "${sys.workdir}/efl_policy_servers.dat";
-
-      load_policy_servers::
-         "policy_servers_unshuffled"
-            comment => "Read into string for processing",
-            slist   => readstringlist(
-               "${policy_servers_file}",
-               "#[^\n]*", # Allowed comments in file.
-               "[\n]",    # One server IP or hostname per line.
-               "10",      # Maximum allowed entries.
-               "10K"      # Maximum file size
-               );
-
-         "seed"
-            comment => "Seed deterministic shuffle.",
-            string  => "${sys.fqhost}";
-
-         "policy_servers"
-            comment => "Shuffle deterministically for load balancing",
-            slist   => shuffle( "policy_servers_unshuffled", "${seed}" );
-
    classes:
-      "load_policy_servers"
-         comment    => "Not to be confused with policy_server.dat",
-         expression => fileexists( "${policy_servers_file}" );
-
       "daily_inputs_sync_with_purge"
          scope      => "namespace",
          expression => splayclass( "${sys.host}", "daily" );
 
    reports:
-      debug::
-         "policy_servers => ${policy_servers}"
-            comment => "Set debug to see debugging reports";
+      report_policy_servers::
+         "${list_backup.policy_servers}";
 }
 
 bundle agent main
@@ -109,8 +54,13 @@ bundle agent main
       "purpose" string => "Drives bundle order through method calls.";
 
    methods:
+      "Build classes and vars"
+         handle     => "main_methods_efl_main",
+         comment    => "Build required vars and classes",
+         usebundle  => efl_main( "${sys.workdir}/inputs/efl_data/bundle_params/efl_update_main.txt" );
+
       "Load configs"
-         handle => "main_methods_config",
+         handle    => "main_methods_config",
          usebundle => config;
 
       !daily_inputs_sync_with_purge::
@@ -147,9 +97,9 @@ bundle agent download_manifest( ref )
          handle    => "download_manifest_files_inputs_manifest",
          perms     => mog( "600", "root", "root" ),
          copy_from => secure_cp( 
-            "${sys.workdir}/masterfiles/${ref}",
+            "${efl_global_strings.masterfiles}/${ref}",
             # "@{eflu:config.policy_servers}" # prefix with namespace because of bug
-            "@{config.policy_servers}" 
+            "@{list_backup.policy_servers}" 
             );
 }
 
@@ -164,7 +114,7 @@ bundle agent inputs_purge
          perms        => mog( "600", "root", "root" ),
          classes      => if_repaired( "kill_cf_procs" ),
          depth_search => recurse( "inf" ),
-         copy_from    => secure_sync( "${sys.workdir}/masterfiles/", "@{config.policy_servers}" );
+         copy_from    => secure_sync( "${efl_global_strings.masterfiles}", "@{list_backup.policy_servers}" );
 
    processes:
       kill_cf_procs::
@@ -181,60 +131,52 @@ bundle agent inputs_and_modules( ref )
       "purpose" string => "Download inputs determined by manifest file.";
 
    vars:
-      "dim_manifest"
+      "manifest"
          comment => "Read data file for parsing.",
-         int     => readstringarrayidx(
-            "manifest_o",
+         data    => data_readstringarrayidx(
             "${ref}",
-            "${config.comment}",
-            "${config.array_delimiter}",
-            "${config.max_num}",
-            "${config.max_bytes}"
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
          );
 
-      "r"
-         comment => "Get index array loaded above.",
-         slist   => getindices( "manifest_o" );
+      "i"
+         comment => "Get index json loaded above.",
+         slist   => getindices( "manifest" );
 
-      "r2"
-         comment => "Work around for bug 2333",
-         slist   => { "0", "1" };
- 
-      "manifest[${r}][${r2}]"
-         comment => "Work around for bug 2333",
-         string  => "${manifest_o[${r}][${r2}]}";
+      "manifest_file_canon[${i}]"
+         comment => "Canonify for later use",
+         string  => canonify( "${manifest[${i}][0]}" );
 
-      "manifest_file[${r}]"
+      "manifest_file[${i}]"
          comment => "Turn into reference for simpler reading.",
-         string  => "manifest[${r}][0]";
+         string  => "manifest[${i}][0]";
 
-      "manifest_md5sum[${r}]"
+      "manifest_md5sum[${i}]"
          comment => "Turn into reference for simpler reading.",
-         string  => "manifest[${r}][1]";
+         string  => "manifest[${i}][1]";
 
    classes:
-      "download_${${manifest_file[${r}]}}"
+      "download_${manifest_file_canon[${i}]}"
          comment => "Set download class if file is missing.",
-         not     => fileexists( "${sys.workdir}/inputs/${${manifest_file[${r}]}}" );
+         not     => fileexists( "${sys.workdir}/inputs/${${manifest_file[${i}]}}" );
 
-      "download_${${manifest_file[${r}]}}"
-         comment    => "Set download class if file checksum does not match manifest.",
-         ifvarclass => not( canonify( "download_${${manifest_file[${r}]}}" ) ),
-         not        => hashmatch( "${sys.workdir}/inputs/${${manifest_file[${r}]}}", "md5", "${${manifest_md5sum[${r}]}}" );
+      "download_${manifest_file_canon[${i}]}"
+         comment => "Set download class if file checksum does not match manifest.",
+         not     => hashmatch( "${sys.workdir}/inputs/${${manifest_file[${i}]}}", "md5", "${${manifest_md5sum[${i}]}}" );
 
    files:
-      "${sys.workdir}/inputs/${${manifest_file[${r}]}}"
+      "${sys.workdir}/inputs/${${manifest_file[${i}]}}"
          handle     => "inputs_and_modules_files_inputs_download",
          comment    => "Download file shown to be new by the mainfest",
-         ifvarclass => canonify( "download_${${manifest_file[${r}]}}" ),
-         perms      => mog( "600", "root", "root" ),
+         ifvarclass => "download_${manifest_file_canon[${i}]}",
          classes    => if_repaired( "kill_cf_procs" ),
-         copy_from  => secure_cp( "${sys.workdir}/masterfiles/${${manifest_file[${r}]}}", "@{config.policy_servers}" );
+         copy_from  => secure_cp( "${efl_global_strings.masterfiles}/${${manifest_file[${i}]}}", "@{list_backup.policy_servers}" );
       
-      "${sys.workdir}/inputs/${${manifest_file[${r}]}}"
+      "${sys.workdir}/inputs/${${manifest_file[${i}]}}"
          handle     => "inputs_and_modules_files_inputs_permissions",
-         comment    => "Promise file perms for files not downloaded",
-         ifvarclass => not( canonify( "download_${${manifest_file[${r}]}}" ) ),
+         comment    => "Promise file perms",
          perms      => mog( "600", "root", "root" );
 
 # TODO were to put masterfiles module? sitefiles?
@@ -242,7 +184,7 @@ bundle agent inputs_and_modules( ref )
          handle    => "inputs_and_modules_files_modules_download",
          comment   => "Update modules",
          perms     => mog( "700", "root", "root" ),
-         copy_from => secure_cp( "${config.modules_path}/${config.modules}", "@{config.policy_servers}" );
+         copy_from => secure_cp( "${config.modules_path}/${config.modules}", "@{list_backup.policy_servers}" );
 
    processes:
       kill_cf_procs::
@@ -251,11 +193,6 @@ bundle agent inputs_and_modules( ref )
             comment        => "Kill procs for later restart.",
             process_select => by_name( "(${sys.workdir}/bin/){0,1}${config.cfengine_procs}" ),
             signals        => { "term", "kill" };
-
-   reports:
-      debug::
-         "download ${${manifest_file[${r}]}}"
-            ifvarclass => canonify( "download_${${manifest_file[${r}]}}" );
 }
 
 bundle agent start_procs

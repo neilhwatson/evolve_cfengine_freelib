@@ -12,7 +12,8 @@ TEST_DIR    = /tmp/efl_test
 
 EFL_FILES   = \
 	$(EFL_LIB)/efl_common.cf \
-	$(EFL_LIB)/evolve_freelib.cf
+	$(EFL_LIB)/evolve_freelib.cf \
+	$(EFL_LIB)/efl_update.cf
 
 eflmaker    = ./bin/eflmaker
 cfstdlib    = \

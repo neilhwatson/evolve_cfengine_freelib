@@ -40,11 +40,11 @@ bundle common efl_c
          string  => ".*\.(txt|csv)";
 
       "cfengine_template"
-         comment => "How to determine if template file is cfengine style",
+         comment => "How to determine if param file is csv",
          string  => ".*\.(tmp|template)";
 
       "mustache_template"
-         comment => "How to determine if template file is mustache style",
+         comment => "How to determine if param file is csv",
          string  => ".*\.mus(tache){0,1}";
 #
 #
