@@ -82,3 +82,8 @@ http://evolvethinking.com/category/cfengine/efl/
 1. Cfengine Core 3.6.3 or higher. There are older 3.4, and 3.5 branch too.
 1. The Cfengine standard library. 
 1. Perl of any version and no special modules.
+
+## Reporting
+
+If you are interest in reporting on the outcome of EFL promises please look at Delta Reporting:
+https://github.com/evolvethinking/delta_reporting
