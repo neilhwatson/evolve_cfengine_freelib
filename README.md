@@ -85,5 +85,5 @@ http://evolvethinking.com/category/cfengine/efl/
 
 ## Reporting
 
-If you are interest in reporting on the outcome of EFL promises please look at Delta Reporting:
+If you are interested in reporting on the outcome of EFL promises please look at Delta Reporting:
 https://github.com/evolvethinking/delta_reporting
