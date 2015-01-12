@@ -32,9 +32,8 @@ parameter files. A conversion script is included in ./bin.
 ## Introduction
 
 The bundles contained in this CFEngine library primarily focus on data driven
-policy.  Each such bundle takes csv type delimited parameter file as shown in
-the common bundle efl_c. A record consists of a single line and the required
-fields.
+policy.  Each such bundle takes csv of JSON type delimited parameter file as shown in
+the common bundle efl_c.
 
 ### Contents of the main library
 | Bundle | Purpose |
