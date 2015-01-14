@@ -319,7 +319,8 @@ syntax: $(cfstdlib) test/$(EFL_LIB)
 		exit 1            ;\
 	fi                    
 
-001_002_efl_test_result = R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5
+001_002_efl_test_result = R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5\nR: PASS, any, efl_main order 6\nR: PASS, any, efl_main order 7\nR: PASS, any, efl_main order 8\nR: PASS, any, efl_main order 9\nR: PASS, any, efl_main order 10\nR: PASS, any, efl_main order 11\nR: PASS, any, efl_main order 12\nR: PASS, any, efl_main order 13\nR: PASS, any, efl_main order 14\nR: PASS, any, efl_main order 15\nR: PASS, any, efl_main order 16
+
 .PHONY: 002_efl_test
 001_csv_test_files  = $(wildcard test/001/*.csv)
 002_csv_test_files  = $(patsubst test/001%,test/002%,$(001_csv_test_files))
@@ -337,7 +338,7 @@ test/002/%_efl_test_simple.json: test/001/%_efl_test_simple.csv
 	$(CSVTOJSON) -b efl_test_simple < $^ > $@
 
 .PHONY: 001_efl_test
-001_efl_test: 
+001_efl_test: syntax
 	$(call cf_agent_grep_test, $@,$(001_002_efl_test_result))
 
 .PHONY: 004_efl_test

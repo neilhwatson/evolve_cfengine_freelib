@@ -5,10 +5,11 @@
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",

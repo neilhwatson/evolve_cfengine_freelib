@@ -83,10 +83,11 @@ bundle agent efl_sysctl_live( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -202,10 +203,11 @@ bundle agent efl_sysctl_conf_file( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -330,10 +332,11 @@ bundle agent efl_command ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -428,10 +431,11 @@ bundle agent efl_link ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -532,10 +536,11 @@ bundle agent efl_delete_files ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -699,10 +704,11 @@ bundle agent efl_copy_files ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -847,10 +853,11 @@ bundle agent efl_packages_via_cmd( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1001,10 +1008,11 @@ bundle agent efl_packages( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1114,10 +1122,11 @@ bundle agent efl_start_service ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1228,10 +1237,11 @@ bundle agent efl_service_recurse ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1423,10 +1433,11 @@ bundle agent efl_service ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1605,10 +1616,11 @@ bundle agent efl_enable_service ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1730,10 +1742,11 @@ bundle agent efl_disable_service ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -1868,10 +1881,11 @@ bundle agent efl_file_perms ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -2034,10 +2048,11 @@ bundle agent efl_edit_template ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -2460,10 +2475,11 @@ bundle agent efl_rcs_pull( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -2608,10 +2624,11 @@ bundle agent efl_test_simple( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -2716,10 +2733,11 @@ bundle agent efl_dump_strings( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "csv_data"
+         "dim"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            int        => readstringarrayidx(
+               "csv_data",
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
