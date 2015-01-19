@@ -1726,31 +1726,31 @@ bundle agent efl_test_simple( ref )
    classes:
       <efl param_file_picker efl/>
 
-      "class_isnt_${d[${i}][class_to_test]}"
+      "class_isnt_${param_file}_${i}"
         ifvarclass => "${d[${i}][class]}",
         expression => strcmp( "isnt", "${d[${i}][is_or_isnt]}" );
-      "class_is_${d[${i}][class_to_test]}"
+      "class_is_${param_file}_${i}"
         ifvarclass => "${d[${i}][class]}",
         expression => strcmp( "is", "${d[${i}][is_or_isnt]}" );
 
-      "pass_${d[${i}][class_to_test]}"
-         ifvarclass => "class_isnt_${d[${i}][class_to_test]}",
+      "pass_${param_file}_${i}"
+         ifvarclass => "class_isnt_${param_file}_${i}",
          not        => classmatch( "${d[${i}][class_to_test]}" );
-      "fail_${d[${i}][class_to_test]}"
-         ifvarclass => "class_isnt_${d[${i}][class_to_test]}",
+      "fail_${param_file}_${i}"
+         ifvarclass => "class_isnt_${param_file}_${i}",
          expression => classmatch( "${d[${i}][class_to_test]}" );
-      "pass_${d[${i}][class_to_test]}"
-         ifvarclass => "class_is_${d[${i}][class_to_test]}",
+      "pass_${param_file}_${i}"
+         ifvarclass => "class_is_${param_file}_${i}",
          expression => classmatch( "${d[${i}][class_to_test]}" );
-      "fail_${d[${i}][class_to_test]}"
-         ifvarclass => "class_is_${d[${i}][class_to_test]}",
+      "fail_${param_file}_${i}"
+         ifvarclass => "class_is_${param_file}_${i}",
          not        => classmatch( "${d[${i}][class_to_test]}" );
 
    reports:
       "PASS, ${d[${i}][class_to_test]}, ${d[${i}][name]}"
-         ifvarclass => "pass_${d[${i}][class_to_test]}";
+         ifvarclass => "pass_${param_file}_${i}";
       "FAIL, ${d[${i}][class_to_test]}, ${d[${i}][name]}"
-         ifvarclass => "fail_${d[${i}][class_to_test]}";
+         ifvarclass => "fail_${param_file}_${i}";
 
       efl_test_simple_debug::
          "${d[${i}][class]}, ${d[${i}][class_to_test]}, ${d[${i}][is_or_isnt]}, ${d[${i}][name]}";
