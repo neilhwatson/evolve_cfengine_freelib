@@ -1387,50 +1387,46 @@ bundle server efl_server_csv
       "field_3" string => "Promisee";
 
    vars:
-      parse_acl_param_file::
-         "acl_o"
-            comment => "Read data file for parsing.",
-            handle  => "efl_server_vars_files",
-            data    => data_readstringarrayidx(
-               "${efl_c.efl_server_txt}",
-               "${efl_c.comment}",
-               "${efl_c.array_delimiter}",
-               "${efl_c.max_num}",
-               "${efl_c.max_bytes}"
-            );
+      "acl_o"
+         comment => "Read data file for parsing.",
+         handle  => "efl_server_vars_files",
+         data    => data_readstringarrayidx(
+            "${efl_c.efl_server_txt}",
+            "${efl_c.comment}",
+            "${efl_c.array_delimiter}",
+            "${efl_c.max_num}",
+            "${efl_c.max_bytes}"
+         );
 
-         "f"
-            comment => "Get index array loaded above.",
-            handle  => "efl_server_vars_f",
-            slist   => getindices( "acl_o" );
+      "f"
+         comment => "Get index array loaded above.",
+         handle  => "efl_server_vars_f",
+         slist   => getindices( "acl_o" );
 
-         "f2"
-            comment => "Work around for bug 2333",
-            slist   => { "0","1","2","3" };
-    
-         "acl[${f}][${f2}]"
-            comment => "Work around for bug 2333",
-            string  => "${acl_o[${f}][${f2}]}";
+      "f2"
+         comment => "Work around for bug 2333",
+         slist   => { "0","1","2","3" };
+ 
+      "acl[${f}][${f2}]"
+         comment => "Work around for bug 2333",
+         string  => "${acl_o[${f}][${f2}]}";
 
-         "class[${f}]"
-            comment => "Turn into reference for simpler reading.",
-            string  => "acl[${f}][0]";
-         "path[${f}]"
-            comment => "Turn into reference for simpler reading.",
-            string  => "acl[${f}][1]";
-         "admit[${f}]"
-            comment => "Turn into reference for simpler reading.",
-            string  => "acl[${f}][2]";
-         "promisee[${f}]"
-            comment => "Turn into reference for simpler reading.",
-            string  => "acl[${f}][3]";
+      "class[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][0]";
+      "path[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][1]";
+      "admit[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][2]";
+      "promisee[${f}]"
+         comment => "Turn into reference for simpler reading.",
+         string  => "acl[${f}][3]";
 
-         "acl_list[${f}]"
-            comment => "Turn comma list into slist",
-            slist   => splitstring( "${${admit[${f}]}}", "\s*,\s*", "10" );
-
-   classes:
-      "parse_acl_param_file" expression => fileexists( "${efl_c.efl_server_txt}" );
+      "acl_list[${f}]"
+         comment => "Turn comma list into slist",
+         slist   => splitstring( "${${admit[${f}]}}", "\s*,\s*", "10" );
 
    access:
 
@@ -1451,56 +1447,52 @@ bundle server efl_server_json
 # 3.5 csv files. Use csvtojson to convert.
 
    vars:
-      parse_acl_param_file::
-         "ref" string => "${efl_c.efl_server_json}";
+     "ref" string => "${efl_c.efl_server_json}";
 
-         "params"   
-            comment    => "JSON Parameter field names and positions to be parsed.",
-            data       => parsejson(
-            '{
-               "0" : "class",
-               "1" : "path",
-               "6" : "promisee"
-            }');
+     "params"   
+         comment    => "JSON Parameter field names and positions to be parsed.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "path",
+            "6" : "promisee"
+         }');
 
 #            "2" : "admit",
 #            "3" : "admit_ips",
 #            "4" : "admit_hostnames",
 #            "5" : "admit_keys",
-         "param_file" string => canonifyuniquely( "${ref}" );
+      "param_file" string => canonifyuniquely( "${ref}" );
 
-         "p"
-            comment    => "Index params",
-            slist      => getindices( "params" );
+      "p"
+         comment    => "Index params",
+         slist      => getindices( "params" );
 
-# parse_${param_file}_as_json::
-         "json_data"
-            comment    => "Parse json file",
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+      # parse_${param_file}_as_json::
+      "json_data"
+         comment    => "Parse json file",
+         data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-         "i"
-            comment    => "Index data",
-            slist      => getindices( "json_data" );
+      "i"
+         comment    => "Index data",
+         slist      => getindices( "json_data" );
 
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+      "d[${i}][${params[${p}]}]"
+         comment    => "Make final data set and deal with bug 2333",
+         string     => "${json_data[${i}][${params[${p}]}]}";
 
-         "d[${i}][admit]"
-            comment    => "Convert to proper list",
-            slist      => getvalues( "json_data[${i}][admit]" );
-         "d[${i}][admit_ips]"
-            comment    => "Convert to proper list",
-            slist      => getvalues( "json_data[${i}][admit_ips]" );
-         "d[${i}][admit_hostnames]"
-            comment    => "Convert to proper list",
-            slist      => getvalues( "json_data[${i}][admit_hostnames]" );
-         "d[${i}][admit_keys]"
-            comment    => "Convert to proper list",
-            slist      => getvalues( "json_data[${i}][admit_keys]" );
-
-   classes:
-      "parse_acl_param_file" expression => fileexists( "${efl_c.efl_server_txt}" );
+      "d[${i}][admit]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit]" );
+      "d[${i}][admit_ips]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit_ips]" );
+      "d[${i}][admit_hostnames]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit_hostnames]" );
+      "d[${i}][admit_keys]"
+         comment    => "Convert to proper list",
+         slist      => getvalues( "json_data[${i}][admit_keys]" );
 
    access:
       "${d[${i}][path]}" -> { "${d[${i}][promisee]}" }
@@ -1536,6 +1528,74 @@ body classes efl_rkn( promiser, handle )
       repair_failed     => { "${promiser}_handle_${handle}_notkept" };
       repair_denied     => { "${promiser}_handle_${handle}_notkept" };
       repair_timeout    => { "${promiser}_handle_${handle}_notkept" };
+}
+
+bundle agent efl_bug3430 (ref)
+{
+   meta:
+      "purpose" string => "Workaround CFEngine tcdb corruption and deadlock issues";
+      "readme"  string => "See bug https://cfengine.com/dev/issues/3430";
+
+   vars:
+      redhat::
+         "lsof" string => "/usr/sbin/lsof";
+
+      debian::
+         "lsof" string => "/usr/bin/lsof";
+
+      any::
+         "cf_lock_tcdb"
+            comment => "Location of lock database",
+            string  => "${sys.workdir}/state/cf_lock.tcdb";
+
+         "cf_lock_tcdb_lock"
+            comment => "Location of lock database",
+            string  => "${cf_lock_tcdb}.lock";
+
+         "lsof_pids_string"
+            comment => "Count number of openings to cf_lock.tcdb",
+            string  => execresult( "${lsof} -t ${cf_lock_tcdb_lock}", "noshell" );
+
+         "lsof_pids"
+            comment => "Convert string to list",
+            slist   => splitstring( "${lsof_pids_string}", "\s+", "10" );
+
+         "no_of_pids"
+            comment => "Convert string returned from execresult to int",
+            int     => length( "lsof_pids" );
+
+   classes:
+      "kill_pids"
+         expression => isgreaterthan( "${no_of_pids}", "1" );
+
+      "delete_cf_lock"
+         expression => "cf_agent_handle_efl_bug3430_processes_kill_cf_agent_repaired";
+
+      "report_kill_and_delete"
+         expression => classmatch( ".*?_handle_efl_bug3430.*?_repaired" );
+
+   files:
+      delete_cf_lock::
+         "${cf_lock_tcdb}" -> { "CFEngine bug 3430" }
+            comment => "Remove corrupted lock file",
+            handle  => "efl_bug3430_files_delete_cf_lock_tcdb",
+            classes => efl_rkn( "${cf_lock_tcdb}", "efl_bug3430_files_delete_cf_lock_tcdb" ),
+            action  => efl_delta_reporting( "efl_bug3430_files_delete_cf_lock_tcdb", "${cf_lock_tcdb}", "CFEngine bug 3430", "1" ),
+            delete  => tidy;
+
+   processes:
+      kill_pids::
+         "cf-agent" -> { "CFEngine bug 3430" }
+            comment        => "Kill pids",
+            handle         => "efl_bug3430_processes_kill_cf_agent",
+            signals        => { "term", "kill" },
+            classes        => efl_rkn( "cf-agent", "efl_bug3430_processes_kill_cf_agent" ),
+            action         => efl_delta_reporting( "efl_bug3430_processes_kill_cf_agent", "cf-agent", "CFEngine bug 3430", "1" ),
+            process_select => by_pid( "${lsof_pids}" );
+
+   reports:
+      report_kill_and_delete::
+         "TCDB corruption detected. Repair was attempted.";
 }
 
 bundle agent efl_rcs_pull( ref )
