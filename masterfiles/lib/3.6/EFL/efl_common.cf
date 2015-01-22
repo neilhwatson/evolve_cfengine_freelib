@@ -85,6 +85,14 @@ bundle common efl_c
          string  => "/tmp/efl_test/cache";
 
    classes:
+      "parse_server_csv_access_rules"
+         comment    => "Here instead of server bundle due to bug 6947",
+         expression => fileexists( "${efl_server_csv}" );
+
+      "parse_server_json_access_rules"
+         comment    => "Here instead of server bundle due to bug 6947",
+         expression => fileexists( "${efl_server_json}" );
+
       "efl_testing"
          comment    => "When testing efl for development",
          expression => classmatch( ".*_efl_test" );

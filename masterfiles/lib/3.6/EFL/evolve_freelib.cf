@@ -2227,46 +2227,47 @@ bundle server efl_server_csv
       "field_3" string => "Promisee";
 
    vars:
-      "acl_o"
-         comment => "Read data file for parsing.",
-         handle  => "efl_server_vars_files",
-         data    => data_readstringarrayidx(
-            "${efl_c.efl_server_txt}",
-            "${efl_c.comment}",
-            "${efl_c.array_delimiter}",
-            "${efl_c.max_num}",
-            "${efl_c.max_bytes}"
-         );
+      parse_server_csv_access_rules::
+         "acl_o"
+            comment => "Read data file for parsing.",
+            handle  => "efl_server_vars_files",
+            data    => data_readstringarrayidx(
+               "${efl_c.efl_server_txt}",
+               "${efl_c.comment}",
+               "${efl_c.array_delimiter}",
+               "${efl_c.max_num}",
+               "${efl_c.max_bytes}"
+            );
 
-      "f"
-         comment => "Get index array loaded above.",
-         handle  => "efl_server_vars_f",
-         slist   => getindices( "acl_o" );
+         "f"
+            comment => "Get index array loaded above.",
+            handle  => "efl_server_vars_f",
+            slist   => getindices( "acl_o" );
 
-      "f2"
-         comment => "Work around for bug 2333",
-         slist   => { "0","1","2","3" };
- 
-      "acl[${f}][${f2}]"
-         comment => "Work around for bug 2333",
-         string  => "${acl_o[${f}][${f2}]}";
+         "f2"
+            comment => "Work around for bug 2333",
+            slist   => { "0","1","2","3" };
+    
+         "acl[${f}][${f2}]"
+            comment => "Work around for bug 2333",
+            string  => "${acl_o[${f}][${f2}]}";
 
-      "class[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][0]";
-      "path[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][1]";
-      "admit[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][2]";
-      "promisee[${f}]"
-         comment => "Turn into reference for simpler reading.",
-         string  => "acl[${f}][3]";
+         "class[${f}]"
+            comment => "Turn into reference for simpler reading.",
+            string  => "acl[${f}][0]";
+         "path[${f}]"
+            comment => "Turn into reference for simpler reading.",
+            string  => "acl[${f}][1]";
+         "admit[${f}]"
+            comment => "Turn into reference for simpler reading.",
+            string  => "acl[${f}][2]";
+         "promisee[${f}]"
+            comment => "Turn into reference for simpler reading.",
+            string  => "acl[${f}][3]";
 
-      "acl_list[${f}]"
-         comment => "Turn comma list into slist",
-         slist   => splitstring( "${${admit[${f}]}}", "\s*,\s*", "10" );
+         "acl_list[${f}]"
+            comment => "Turn comma list into slist",
+            slist   => splitstring( "${${admit[${f}]}}", "\s*,\s*", "10" );
 
    access:
 
@@ -2287,52 +2288,53 @@ bundle server efl_server_json
 # 3.5 csv files. Use csvtojson to convert.
 
    vars:
-     "ref" string => "${efl_c.efl_server_json}";
+      parse_server_json_access_rules::
+         "ref" string => "${efl_c.efl_server_json}";
 
-     "params"   
-         comment    => "JSON Parameter field names and positions to be parsed.",
-         data       => parsejson(
-         '{
-            "0" : "class",
-            "1" : "path",
-            "6" : "promisee"
-         }');
+         "params"   
+            comment    => "JSON Parameter field names and positions to be parsed.",
+            data       => parsejson(
+            '{
+               "0" : "class",
+               "1" : "path",
+               "6" : "promisee"
+            }');
 
 #            "2" : "admit",
 #            "3" : "admit_ips",
 #            "4" : "admit_hostnames",
 #            "5" : "admit_keys",
-      "param_file" string => canonifyuniquely( "${ref}" );
+         "param_file" string => canonifyuniquely( "${ref}" );
 
-      "p"
-         comment    => "Index params",
-         slist      => getindices( "params" );
+         "p"
+            comment    => "Index params",
+            slist      => getindices( "params" );
 
-      # parse_${param_file}_as_json::
-      "json_data"
-         comment    => "Parse json file",
-         data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+# parse_${param_file}_as_json::
+         "json_data"
+            comment    => "Parse json file",
+            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      "i"
-         comment    => "Index data",
-         slist      => getindices( "json_data" );
+         "i"
+            comment    => "Index data",
+            slist      => getindices( "json_data" );
 
-      "d[${i}][${params[${p}]}]"
-         comment    => "Make final data set and deal with bug 2333",
-         string     => "${json_data[${i}][${params[${p}]}]}";
+         "d[${i}][${params[${p}]}]"
+            comment    => "Make final data set and deal with bug 2333",
+            string     => "${json_data[${i}][${params[${p}]}]}";
 
-      "d[${i}][admit]"
-         comment    => "Convert to proper list",
-         slist      => getvalues( "json_data[${i}][admit]" );
-      "d[${i}][admit_ips]"
-         comment    => "Convert to proper list",
-         slist      => getvalues( "json_data[${i}][admit_ips]" );
-      "d[${i}][admit_hostnames]"
-         comment    => "Convert to proper list",
-         slist      => getvalues( "json_data[${i}][admit_hostnames]" );
-      "d[${i}][admit_keys]"
-         comment    => "Convert to proper list",
-         slist      => getvalues( "json_data[${i}][admit_keys]" );
+         "d[${i}][admit]"
+            comment    => "Convert to proper list",
+            slist      => getvalues( "json_data[${i}][admit]" );
+         "d[${i}][admit_ips]"
+            comment    => "Convert to proper list",
+            slist      => getvalues( "json_data[${i}][admit_ips]" );
+         "d[${i}][admit_hostnames]"
+            comment    => "Convert to proper list",
+            slist      => getvalues( "json_data[${i}][admit_hostnames]" );
+         "d[${i}][admit_keys]"
+            comment    => "Convert to proper list",
+            slist      => getvalues( "json_data[${i}][admit_keys]" );
 
    access:
       "${d[${i}][path]}" -> { "${d[${i}][promisee]}" }
