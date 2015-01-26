@@ -2159,7 +2159,7 @@ bundle agent efl_edit_template ( ref )
 
    reports:
       "ERROR invalid template filename [${d[${i}][template]}] required: <filename.(${efl_c.cfengine_template}|${efl_c.mustache_template})>"
-      ifvarclass => "!(use_cfengine_template_${param_file}_${i}|use_mustache_template_${param_file}_${i}).${d[${i}][class]}";
+      ifvarclass => "!(use_cfengine_template_${param_file}_${i}|use_mustache_template_${param_file}_${i}).(${d[${i}][class]})";
 }
 
 bundle agent efl_lastseen
