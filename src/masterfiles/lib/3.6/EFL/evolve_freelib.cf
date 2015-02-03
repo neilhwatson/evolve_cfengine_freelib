@@ -1509,7 +1509,8 @@ bundle server efl_server_json
 
 body action efl_delta_reporting ( handle, promiser, promisee, if_elapsed )
 {
-   ifelapsed => "${if_elapsed}";
+   ifelapsed   => "${if_elapsed}";
+   expireafter => "${if_elapsed}";
 
    upassive::
       action_policy => 'warn';
