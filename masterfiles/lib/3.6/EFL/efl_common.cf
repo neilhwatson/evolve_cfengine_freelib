@@ -74,6 +74,10 @@ bundle common efl_c
 # NOTE Access file must be hardcoded because server bundles do not accept arguments.
             string => "${sys.workdir}/inputs/efl_data/bundle_params/efl_server.json";
 
+      "localhost"
+         comment => "Used for some local copies",
+         slist   => { "localhost" };
+
       !efl_testing::
       "cache"
          comment => "Location for agent to cache template and other temp files",
