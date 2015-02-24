@@ -1,6 +1,6 @@
 ### Requirements
 
-* Cfengine 3.5.1+
+* Cfengine 3.6.3+
 * The Evolve free promise library (see below).
 * A good understanding of Cfengine 3.
 
