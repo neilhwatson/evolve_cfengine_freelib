@@ -19,7 +19,7 @@ approach is to call it using a methods.
 ```
 methods:
    "Evolve Thinking Delta Hardening"
-      usebundle => efl_main( "/var/cfengine/inputs/delta_methods.txt" );
+      usebundle => efl_main( "/var/cfengine/inputs/delta_methods.json" );
 ```
 
 ### Reporting

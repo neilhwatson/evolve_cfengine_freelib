@@ -1,0 +1,82 @@
+[
+   {
+      "promiser" : "classmatch",
+      "ifelapsed" : "1",
+      "bundle" : "efl_class_classmatch",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_class_classmatch.txt",
+      "promisee" : "class matching",
+      "class" : "any"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2",
+      "class" : "redhat",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_packages.txt",
+      "bundle" : "efl_packages",
+      "ifelapsed" : "15",
+      "promiser" : "packages"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2",
+      "class" : "redhat",
+      "ifelapsed" : "1",
+      "promiser" : "delete files",
+      "bundle" : "efl_delete_files",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_delete_files.txt"
+   },
+   {
+      "bundle" : "efl_chkconfig_disable_service",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_chkconfig_disable_service.txt",
+      "promiser" : "chkconfig disable",
+      "ifelapsed" : "15",
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2"
+   },
+   {
+      "promiser" : "chkconfig enable",
+      "ifelapsed" : "15",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_chkconfig_enable_service.txt",
+      "bundle" : "efl_chkconfig_enable_service",
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2"
+   },
+   {
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_svc.txt",
+      "bundle" : "efl_service",
+      "promiser" : "services",
+      "ifelapsed" : "1",
+      "promisee" : "services",
+      "class" : "redhat"
+   },
+   {
+      "ifelapsed" : "1",
+      "promiser" : "edit files",
+      "bundle" : "efl_edit_template",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_edit_template.txt",
+      "promisee" : "nsa_rhel5 v4.2",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2",
+      "class" : "redhat",
+      "ifelapsed" : "1",
+      "promiser" : "file permissions",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_file_perms.txt",
+      "bundle" : "efl_file_perms"
+   },
+   {
+      "promiser" : "sysctl live",
+      "ifelapsed" : "15",
+      "bundle" : "efl_sysctl_live",
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_sysctl.txt",
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2"
+   },
+   {
+      "parameter" : "/var/cfengine/inputs/efl_data/bundle_params/delta_sysctl.txt",
+      "bundle" : "efl_sysctl_conf_file",
+      "ifelapsed" : "15",
+      "promiser" : "sysctl conf file",
+      "promisee" : "nsa_rhel5 v4.2",
+      "class" : "redhat"
+   }
+]
