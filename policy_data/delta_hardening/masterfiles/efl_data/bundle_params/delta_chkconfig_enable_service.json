@@ -1,0 +1,32 @@
+[
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.15.3",
+      "class" : "redhat",
+      "service" : "cpuspeed"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 2.1.1.6",
+      "class" : "redhat",
+      "service" : "iptables"
+   },
+   {
+      "class" : "redhat",
+      "service" : "irqbalance",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.3"
+   },
+   {
+      "class" : "redhat",
+      "service" : "network",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.9"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.11",
+      "service" : "smartd",
+      "class" : "redhat"
+   },
+   {
+      "service" : "ntpd",
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.10.2.2.1"
+   }
+]

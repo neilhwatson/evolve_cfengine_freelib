@@ -160,7 +160,7 @@ while (<STDIN>)
 
      for ( my $f = 0; $f <= $#fields; $f++ )
      {
-        if ( $fields[$f] =~ m/$opt{array_delimiter}/ )
+        if ( $fields[$f] =~ m/$opt{array_delimiter}/ and $headers[$f] ne 'promisee' )
         {
            my @array = split m/$opt{array_delimiter}/, $fields[$f];
            @array = trim_whitespace( @array );

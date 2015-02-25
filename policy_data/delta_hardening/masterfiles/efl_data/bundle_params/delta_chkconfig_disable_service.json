@@ -1,0 +1,202 @@
+[
+   {
+      "class" : "redhat",
+      "service" : "snmpd",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.20.1, nist sp 800-123 sec 4.2.1"
+   },
+   {
+      "service" : "squid",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.19.1, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "service" : "smb",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.18.1, nist sp 800-123 sec 4.2.1"
+   },
+   {
+      "service" : "dovecot",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.17.1, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.16.1, nist sp 800-123 sec 4.2.1",
+      "service" : "httpd"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.15.1, nist sp 800-123 sec 4.2.1",
+      "service" : "vsftpd"
+   },
+   {
+      "service" : "named",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.14.1, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.4.3, nist sp 800-123 sec 4.2.1",
+      "service" : "atd",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.9.3, nist sp 800-123 sec 4.2.1",
+      "service" : "dhcpd"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 2.2.2.3, nist sp 800-123 sec 4.2.1",
+      "service" : "autofs",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.7, nist sp 800-123 sec 4.2.1",
+      "service" : "avahi-daemon",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.14, nist sp 800-123 sec 4.2.1",
+      "service" : "bluetooth",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.8, nist sp 800-123 sec 4.2.1",
+      "service" : "cups"
+   },
+   {
+      "service" : "firstboot",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.1, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "service" : "gpm",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.2, nist sp 800-123 sec 4.2.1"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.13.2, nist sp 800-123 sec 4.2.1",
+      "service" : "haldaemon"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.14.2, nist sp 800-123 sec 4.2.1",
+      "service" : "hidd",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.8.4.1, nist sp 800-123 sec 4.2.1",
+      "service" : "hplip",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.16.1, nist sp 800-123 sec 4.2.1",
+      "service" : "irda"
+   },
+   {
+      "service" : "isdn",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.4, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 2.1.1.6, 3.3.5, nist sp 800-123 sec 4.2.1",
+      "service" : "kdump",
+      "class" : "redhat"
+   },
+   {
+      "service" : "kudzu",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.6, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "service" : "mcstrans",
+      "promisee" : "nsa_rhel5 v4.2 sec 2.4.3.2, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.7, nist sp 800-123 sec 4.2.1",
+      "service" : "mdmonitor",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "service" : "messagebus",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.13.1, nist sp 800-123 sec 4.2.1"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1",
+      "service" : "netfs",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1",
+      "service" : "nfslock"
+   },
+   {
+      "service" : "pcscd",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.10, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "service" : "portmap",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "promisee" : "nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1",
+      "service" : "rcpidmapd",
+      "class" : "redhat"
+   },
+   {
+      "service" : "readahead_early",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.12, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.12, nist sp 800-123 sec 4.2.1",
+      "service" : "readahead_later"
+   },
+   {
+      "service" : "rhnsd",
+      "promisee" : "nsa_rhel5 v4.2 sec 2.1.2.2, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.13, nist sp 800-123 sec 4.2.1",
+      "service" : "rpcgssd"
+   },
+   {
+      "class" : "redhat",
+      "service" : "xfs",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.6, nist sp 800-123 sec 4.2.1"
+   },
+   {
+      "class" : "redhat",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.2.4, nist sp 800-123 sec 4.2.1",
+      "service" : "ypbind"
+   },
+   {
+      "service" : "yum-updatesd",
+      "promisee" : "nsa_rhel5 v4.2 sec 2.1.2.3.2, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "service" : "rawdevices",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.3.17.1, nist sp 800-123 sec 4.2.1",
+      "class" : "redhat"
+   },
+   {
+      "service" : "sendmail",
+      "promisee" : "nist sp 800-123 sec 4.2.1",
+      "class" : "redhat_5"
+   },
+   {
+      "class" : "redhat_6",
+      "promisee" : "nist sp 800-123 sec 4.2.1",
+      "service" : "postfix"
+   }
+]
