@@ -1,0 +1,44 @@
+[
+   {
+      "encrypt" : "no",
+      "process_regex" : "ntpd -u ntp:ntp -p /var/run/ntpd\\.pid -g",
+      "config_file" : "/etc/ntp.conf",
+      "class" : "redhat_6|centos_6",
+      "restart_cmd" : "/etc/init.d/ntpd restart",
+      "mode" : "644",
+      "group" : "root",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.10",
+      "template" : "no",
+      "server" : "efl.policy_servers",
+      "owner" : "root",
+      "config_file_src" : "/var/cfengine/sitefiles/etc/ntp.conf"
+   },
+   {
+      "restart_cmd" : "/etc/init.d/ntpd restart",
+      "mode" : "644",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.10",
+      "group" : "root",
+      "encrypt" : "no",
+      "process_regex" : "ntpd -x -u ntp:ntp -p /var/run/ntpd.pid -g",
+      "config_file" : "/etc/ntp.conf",
+      "class" : "redhat_5|centos_5",
+      "template" : "no",
+      "server" : "efl.policy_servers",
+      "config_file_src" : "/var/cfengine/sitefiles/etc/ntp.conf",
+      "owner" : "root"
+   },
+   {
+      "process_regex" : "/usr/sbin/sshd",
+      "encrypt" : "yes",
+      "config_file" : "/etc/ssh/sshd_config",
+      "class" : "redhat",
+      "mode" : "640",
+      "restart_cmd" : "/etc/init.d/sshd restart",
+      "group" : "root",
+      "promisee" : "nsa_rhel5 v4.2 sec 3.5.2",
+      "template" : "yes",
+      "config_file_src" : "/var/cfengine/sitefiles/etc/ssh/sshd_config",
+      "owner" : "root",
+      "server" : "efl.policy_servers"
+   }
+]
