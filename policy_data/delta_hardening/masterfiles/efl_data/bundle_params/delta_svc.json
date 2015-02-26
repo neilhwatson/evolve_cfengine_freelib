@@ -8,10 +8,10 @@
       "mode" : "644",
       "group" : "root",
       "promisee" : "nsa_rhel5 v4.2 sec 3.10",
-      "template" : "no",
+      "template" : "yes",
       "server" : "efl.policy_servers",
       "owner" : "root",
-      "config_file_src" : "/var/cfengine/sitefiles/etc/ntp.conf"
+      "config_file_src" : "/var/cfengine/sitefiles/etc/ntp.conf.tmp"
    },
    {
       "restart_cmd" : "/etc/init.d/ntpd restart",
@@ -22,9 +22,9 @@
       "process_regex" : "ntpd -x -u ntp:ntp -p /var/run/ntpd.pid -g",
       "config_file" : "/etc/ntp.conf",
       "class" : "redhat_5|centos_5",
-      "template" : "no",
+      "template" : "yes",
       "server" : "efl.policy_servers",
-      "config_file_src" : "/var/cfengine/sitefiles/etc/ntp.conf",
+      "config_file_src" : "/var/cfengine/sitefiles/etc/ntp.conf.tmp",
       "owner" : "root"
    },
    {
@@ -37,7 +37,7 @@
       "group" : "root",
       "promisee" : "nsa_rhel5 v4.2 sec 3.5.2",
       "template" : "yes",
-      "config_file_src" : "/var/cfengine/sitefiles/etc/ssh/sshd_config",
+      "config_file_src" : "/var/cfengine/sitefiles/etc/ssh/sshd_config.tmp",
       "owner" : "root",
       "server" : "efl.policy_servers"
    }
