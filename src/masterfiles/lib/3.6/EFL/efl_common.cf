@@ -112,7 +112,7 @@ bundle agent efl_main( ref )
    meta:
       "meta_purpose" string => "All policies are called via methods iteration from this bundle.";
 
-      "method_field_0" string => "Context when method is called";
+      "method_field_0" string => "Class when method is called";
       "method_field_1" string => "Method promiser name";
       "method_field_2" string => "Bundle name";
       "method_field_3" string => "Ifelapsed";
@@ -200,7 +200,7 @@ bundle agent efl_class_returnszero( ref )
 {
    meta:
       "purpose" string => "Skeleton bundle for new bundle authoring";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Class to set";
       "field_2" string => "Command to run";
       "field_3" string => "useshell/noshell";
@@ -252,7 +252,7 @@ bundle agent efl_global_slists( ref )
 {
    meta:
       "purpose" string => "Set slist type variable when class is true.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Variable name";
       "field_2" string => "csv inline list or path to external file where file format is one list element per line.";
 		"field_4" string => "random shuffle list (r), or determistic shuffle (d), or normal (n)";
@@ -339,7 +339,7 @@ bundle agent efl_global_strings ( ref )
 {
    meta:
       "purpose" string => "Set string type variable when class is true.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Variable name";
       "field_2" string => "Variable value";
       "field_3" string => "Promisee";
@@ -372,7 +372,7 @@ bundle agent efl_class_cmd_regcmp( ref )
    meta:
       "purpose" string => "Set global class if the given command output matches regex.";
       "wanring" string => "Commands in classes and variables are expensive";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Class promiser to set";
       "field_2" string => "Use 'expression' or 'not' in class promise";
       "field_3" string => "command to run";

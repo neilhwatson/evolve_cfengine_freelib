@@ -37,7 +37,7 @@
 # {
 #    meta:
 #       "purpose" string => "Skeleton bundle for new bundle authoring";
-#       "field_0" string => "Context";
+#       "field_0" string => "Class";
 # 
 #    vars:
 #       "params"   
@@ -60,7 +60,7 @@ bundle agent efl_sysctl_live( ref )
 {   
    meta:
       "purpose" string => "Promise live sysctl kernel settings";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "sysctl variable";
       "field_2" string => "sysctl value";
       "field_3" string => "Promisee";
@@ -178,7 +178,7 @@ bundle agent efl_sysctl_conf_file( ref )
 {
    meta:
       "purpose" string => "Promise live sysctl.conf.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "sysctl variable";
       "field_2" string => "sysctl value";
       "field_3" string => "Promisee";
@@ -305,7 +305,7 @@ bundle agent efl_command ( ref )
 {
    meta:
       "purpose" string => "Run given command if context is true.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Command";
       "field_2" string => "usehell";
       "field_3" string => "module";
@@ -406,7 +406,7 @@ bundle agent efl_link ( ref )
 {
    meta:
       "purpose" string => "Link files if context is true.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Link promiser";
       "field_2" string => "Link target";
       "field_3" string => "Link type";
@@ -669,7 +669,7 @@ bundle agent efl_copy_files ( ref )
 {
    meta:
       "purpose" string => "Copy files";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "File promiser. A trailing /. indicates a directory for recursive copy.";
       "field_2" string => "leaf regex";
       "field_3" string => "File source";
@@ -826,7 +826,7 @@ bundle agent efl_packages_via_cmd( ref )
 {
    meta:
       'Purpose' string => "promise packages using commands promises";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Package policy";
       "field_2" string => "Package name regex";
       'field_3' string => "Full version string or '0' for latest";
@@ -980,7 +980,7 @@ bundle agent efl_packages( ref )
 {
    meta:
       "purpose" string => "Promises packages using generic method.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Package policy";
       "field_2" string => "Package name regex";
       "field_3" string => "version string";
@@ -1099,7 +1099,7 @@ bundle agent efl_start_service ( ref )
 {
    meta:
       "purpose" string => "Start serivce with process and restart command.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Process regex";
       "field_2" string => "Restart command";
       "field_3" string => "Promisee";
@@ -1200,7 +1200,7 @@ bundle agent efl_service_recurse ( ref )
 {
    meta:
       "purpose"  string => "Promise serivce with recursive file, process, and restart command.";
-      "field_0"  string => "Context";
+      "field_0"  string => "Class";
       "field_1"  string => "Process regex";
       "field_2"  string => "Promiser directory";
       "field_3"  string => "Source directory";
@@ -1392,7 +1392,7 @@ bundle agent efl_service ( ref )
 {
    meta:
       "purpose"  string => "Promise serivce with file, process, and restart command.";
-      "field_0"  string => "Context";
+      "field_0"  string => "Class";
       "field_1"  string => "Process regex";
       "field_2"  string => "Configuration file promiser";
       "field_3"  string => "Configuration file source, can be a template with extension for cfengine, tmp, or mustache";
@@ -1595,7 +1595,7 @@ bundle agent efl_enable_service ( ref )
 {
    meta:
       "purpose" string => "Enable service boot using chkconfig or systemctl.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Service name promiser";
       "field_2" string => "Promisee";
 
@@ -1721,7 +1721,7 @@ bundle agent efl_disable_service ( ref )
 {
    meta:
       "purpose" string => "Disable service boot using chkconfig or systemctl.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Service name promiser";
       "field_2" string => "Promisee";
 
@@ -1847,7 +1847,7 @@ bundle agent efl_file_perms ( ref )
 {
    meta:
       "purpose" string => "Promise file permissions.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Promiser file";
       "field_2" string => "Recurse level #/inf)";
       "field_3" string => "Leaf regex";
@@ -2017,7 +2017,7 @@ bundle agent efl_edit_template ( ref )
 {
    meta:
       "purpose" string => "Promise whole contents of files";
-      "field_0" string => "Class or context";
+      "field_0" string => "Class";
       "field_1" string => "Promiser file";
       "field_2" string => "Source file";
       "field_3" string => "server, must an slist name";
@@ -2221,7 +2221,7 @@ bundle server efl_server_csv
 {
    meta:
       "purpose" string => "Read cf-server access rules.";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Promiser path";
       "field_2" string => "Comma separated admit list";
       "field_3" string => "Promisee";
@@ -2377,7 +2377,7 @@ bundle agent efl_rcs_pull( ref )
 {
    meta:
       "purpose" string => "Build or update a copy from version control";
-      "field_0" string => "Context";
+      "field_0" string => "Class";
       "field_1" string => "Update working copy command";
 # Example: /usr/bin/git reset --hard HEAD && /usr/bin/git pull
       "field_2" string => "Checkout command to be used if update command fails";
@@ -2536,7 +2536,7 @@ bundle agent efl_test_simple( ref )
 {
    meta:
       "purpose" string => "A testing bundle inspired by Perl's Test::Simple";
-      "field_0" string => "Context expression"; # class
+      "field_0" string => "Class expression"; # class
       "field_1" string => "Class regex to test"; # class_to_test
       "field_2" string => "pass test whether test class 'is' true or 'isnt' true"; # is_or_isnt
       "field_3" string => "Test name, free form like promisee"; # name
@@ -2647,7 +2647,7 @@ bundle agent efl_dump_strings( ref )
 {
    meta:
       "purpose" string => "Dump string variables via reports promises";
-      "field_0" string => "Context expression"; # class
+      "field_0" string => "Class expression"; # class
       "field_1" string => "Name of string to dump"; # name
       "field_2" string => "promisee"; # promisee
 
@@ -2732,7 +2732,7 @@ bundle agent efl_test_count( ref )
 {
    meta:
       "purpose" string => "Skeleton bundle for new bundle authoring";
-      "field_0" string => "Context expression";
+      "field_0" string => "Class expression";
       "field_1" string => "Class regex to test";
       "field_2" string => "Expected number classes that match the regex";
       "field_3" string => "Test name, free form like promisee";
