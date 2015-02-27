@@ -5,11 +5,10 @@
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -17,15 +16,10 @@
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
