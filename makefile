@@ -1,5 +1,6 @@
-CF_PROMISES = cf-promises
-CF_AGENT    = cf-agent
+HOME        = /home/neil/bin
+CF_PROMISES = $(HOME)/cf-promises
+CF_AGENT    = $(HOME)/cf-agent
 VERSION     = 3.6
 LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
