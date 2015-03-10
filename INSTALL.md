@@ -29,7 +29,7 @@ Next, build your data files to feed the bundles. Typically store the data files 
 
 ## Building data files
 
-Here's a trivial example to get you started.  First create data file to define class.
+Here's a trivial example to get you started.  First create a data file to define classes using the classmatch function.
 ```
 vim masterfiles/efl_data/classes/efl_classmatch.json
 [
@@ -39,8 +39,10 @@ vim masterfiles/efl_data/classes/efl_classmatch.json
       "promisee"     : "dmz security"
    }
 ]
+```
 
 Then a command promise.
+```
 vim masterfiles/efl_data/bundle_params/efl_command.json
 [
    {
@@ -52,8 +54,10 @@ vim masterfiles/efl_data/bundle_params/efl_command.json
       "promisee" : "dmz security"
    }
 ]
+```
 
 Call both via the efl_main bundle.
+```
 vim mastefiles/efl_data/bundle_params/efl_main.json
 [
    {
@@ -83,10 +87,12 @@ body common control
    bundlesequence => { .... "efl_main( '${sys.inputdir}/efl_data/bundle_params/efl_main.json' )", ... };
    ...
 }
+```
 
 OR
 
-bundle again mymain
+```
+bundle agent mymain
 {
    methods:
       "EFL" usebundle => efl_main( "${sys.inputdir}/efl_data/bundle_params/efl_main.json" );
