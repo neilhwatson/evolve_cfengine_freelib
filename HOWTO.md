@@ -97,7 +97,7 @@ Use the bundle efl_sysctl_live. This sample data is taken from [Delta Hardening]
 ]
 ```
 
-This bundle test with sysctl and use sysctl to make corrections.
+This bundle uses sysctl to test and make needed corrections.
 
 ### Sysctl.conf kernel settings
 
@@ -150,7 +150,7 @@ bundle agent g
 
 Where 192.0.2.100 is another CFEngine server, but not the one that the agent is bootstrapped to.
 
-The extension of the template file will determine if it is treated at a CFEngine template (.tmp) or a mustache template (.mus).
+The extension of the template file will determine if it is treated as a CFEngine template (.tmp) or a mustache template (.mus).
 
 ### Copying a file
 
@@ -396,6 +396,35 @@ The bundle efl_links promises links.
 ]
 ```
 
+## Promising revision controled file
+
+Use the bundle efl_rcs_pull to promise local working copies from a RCS system. This bundle will either update a functioning working copy or checkout a new copy if there is any problem.
+
+```
+[
+   {
+      "mode" : "644",
+      "checkout_cmd" : "/usr/bin/git clone http://github.com/cfengine/core.git",
+      "promisee" : "CFEngine",
+      "update_cmd" : "/usr/bin/git reset --hard HEAD && /usr/bin/git pull",
+      "class" : "ettin",
+      "group" : "neil",
+      "owner" : "neil",
+      "dest_dir" : "/home/neil/src/cfengine/core"
+   },
+   {
+      "mode" : "644",
+      "checkout_cmd" : "/usr/bin/git clone http://github.com/cfengine/documentation.git",
+      "promisee" : "CFEngine",
+      "update_cmd" : "/usr/bin/git reset --hard HEAD && /usr/bin/git pull",
+      "class" : "ettin",
+      "group" : "neil",
+      "owner" : "neil",
+      "dest_dir" : "/home/neil/src/cfengine/documentation"
+   }
+]
+```
+
 ## Creating namespace strings
 
 The bundle efl_global_strings allows you to define namespace, a.k.a global, strings.
@@ -432,7 +461,7 @@ There are also many bundles to help define namespace classes.
 
 ### Using IPrange
 
-Use the bundle efl_class_iprange. This uses the CFEngine function _iprange_.
+The bundle efl_class_iprange uses the CFEngine function _iprange_.
 
 ```
 [
@@ -451,7 +480,7 @@ Use the bundle efl_class_iprange. This uses the CFEngine function _iprange_.
 
 ### Using Classmatch
 
-Use the bundle efl_class_classmatch. This uses the CFEngine fucntion _classmatch_.
+The bundle efl_class_classmatch uses the CFEngine fucntion _classmatch_.
 
 ```
 [
@@ -470,7 +499,7 @@ Use the bundle efl_class_classmatch. This uses the CFEngine fucntion _classmatch
 
 ### Using class expressions
 
-Use the bundle efl_class_expression to make classes using standard CFEngine class expressions.
+The bundle efl_class_expression makes classes using standard CFEngine class expressions.
 
 ```
 [
@@ -489,7 +518,7 @@ Use the bundle efl_class_expression to make classes using standard CFEngine clas
 
 ### Using hostnames
 
-Use the bundle efl_class_hostname2 to make classes if the host's short hostname matches the given list.
+Use the bundle efl_class_hostname2 to make classes if the host's short hostname (${sys.uqhost}) matches the given list.
 
 ```
 [
