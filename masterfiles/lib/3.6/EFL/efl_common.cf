@@ -139,11 +139,10 @@ bundle agent efl_main( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -151,15 +150,10 @@ bundle agent efl_main( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
@@ -283,11 +277,10 @@ bundle agent efl_class_returnszero( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -295,15 +288,10 @@ bundle agent efl_class_returnszero( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
@@ -389,11 +377,10 @@ bundle agent efl_global_slists( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -401,15 +388,10 @@ bundle agent efl_global_slists( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
@@ -530,11 +512,10 @@ bundle agent efl_global_strings ( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -542,15 +523,10 @@ bundle agent efl_global_strings ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
@@ -625,11 +601,10 @@ bundle agent efl_class_cmd_regcmp( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -637,15 +612,10 @@ bundle agent efl_class_cmd_regcmp( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
@@ -732,11 +702,10 @@ bundle agent efl_class_expression( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -744,15 +713,10 @@ bundle agent efl_class_expression( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
@@ -817,11 +781,10 @@ bundle agent efl_class_classmatch( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -829,15 +792,10 @@ bundle agent efl_class_classmatch( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
@@ -903,11 +861,10 @@ bundle agent efl_class_iprange( ref )
          slist      => getindices( "params" );
 
       # parse_${param_file}_as_csv::
-         "dim"
+         "csv_data"
             comment    => "Parse csv file",
             ifvarclass => "parse_${param_file}_as_csv",
-            int        => readstringarrayidx(
-               "csv_data",
+            data       => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -915,15 +872,10 @@ bundle agent efl_class_iprange( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i_unsorted" 
+         "i" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
-
-         "i"
-            comment    => "Sort index data",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => sort( "i_unsorted", "int" );
 
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
