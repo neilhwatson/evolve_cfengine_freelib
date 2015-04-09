@@ -563,6 +563,52 @@ Use the bundle efl_class_returnszero to make classes if the given command return
 
 The _zero_ parameter means set class if returns zero (yes) or non-zero (no).
 
+## Cf-serverd ACL's
+
+As your infrastructure grows you'll need more than the simple cf-serverd ACL's that masterfiles provides. EFL allow you to configure extra rules, by reading the file sys_workdir/inputs/efl_data/bundle_params/efl_server.json if it exists. The file looks like this:
+
+```
+[
+   {
+      "promisee" : "cfengine server",
+      "class" : "am_policy_hub",
+      "path" : "${sys.workdir}/masterfiles/",
+      "admit" : [
+         "172.16.100.254",
+         "2001:0DB8::/32"
+      ]
+   },
+   {
+      "path" : "${sys.workdir}/modules/",
+      "class" : "am_policy_hub",
+      "promisee" : "cfengine server",
+      "admit" : [
+         "172.16.100.254",
+         "2001:0DB8::/32"
+      ]
+   },
+   {
+      "path" : "${sys.workdir}/sitefiles/",
+      "class" : "am_policy_server",
+      "promisee" : "cfengine server",
+      "admit" : [
+         "172.16.100.254",
+         "2001:0DB8::/32"
+      ]
+   },
+   {
+      "path" : "${sys.workdir}/delta_reporting",
+      "class" : "any",
+      "promisee" : "delta reporting",
+      "admit" : [
+         "${sys.policy_hub}"
+      ]
+   }
+]
+```
+
+Cf-serverd will read this data and turn them into server ACL's.
+
 ## Using promise outcome classes
 
 TODO
