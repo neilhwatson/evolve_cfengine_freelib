@@ -74,7 +74,7 @@ The file efl_update.cf is an alternate high performance, yet simplified,
 collection of bundles to keep CFEngine's inputs directory up to date. See the
 in docs for more information.
 
-Details and examples are here:
+EFL related articles:
 http://evolvethinking.com/category/cfengine/efl/
 
 ## Requirements
