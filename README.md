@@ -74,14 +74,17 @@ The file efl_update.cf is an alternate high performance, yet simplified,
 collection of bundles to keep CFEngine's inputs directory up to date. See the
 in docs for more information.
 
-EFL related articles:
-http://evolvethinking.com/category/cfengine/efl/
-
 ## Requirements
 
 1. Cfengine Core 3.6.3 or higher. There are older 3.4, and 3.5 branch too.
 1. The Cfengine standard library. 
 1. Perl of any version and no special modules.
+
+## Futher reading
+
+1. [INSTALL.md](INSTALL.md)
+1. [HOWTO.md](HOWTO.md)
+1. EFL related articles: http://evolvethinking.com/category/cfengine/efl/
 
 ## Reporting
 
