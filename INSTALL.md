@@ -7,8 +7,8 @@
 bundle common efl_lib
 {
    vars:
-      cfengine_3_6::
-         'lib_dir' string => 'lib/3.6/EFL';
+      cfengine_3_7::
+         'lib_dir' string => 'lib/3.7/EFL';
          'inputs'   slist => {
             '${lib_dir}/efl_common.cf',
             '${lib_dir}/efl_update.cf',

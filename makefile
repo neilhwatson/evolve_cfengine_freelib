@@ -1,6 +1,6 @@
 CF_PROMISES = $(HOME)/bin/cf-promises
 CF_AGENT    = $(HOME)/bin/cf-agent
-VERSION     = 3.6
+VERSION     = 3.7
 LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine

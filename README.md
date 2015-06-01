@@ -68,7 +68,7 @@ in docs for more information.
 
 ## Requirements
 
-1. Cfengine Core 3.6.3 or higher. There are older 3.4, and 3.5 branch too.
+1. Cfengine Core 3.7.0 or higher. There are older 3.6, 3.5, and 3.4 branches too.
 1. The Cfengine standard library. 
 1. Perl of any version and no special modules.
 

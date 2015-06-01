@@ -11,7 +11,7 @@
 
 body common control
 {
-   inputs => { "lib/3.6/EFL/efl_common.cf" };
+   inputs => { "lib/3.7/EFL/efl_common.cf" };
    bundlesequence => { "list_backup", "efl_c", "main" };
 }
 
