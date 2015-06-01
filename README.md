@@ -2,6 +2,11 @@ Copyright Evolve Thinking ( www.evolvethinking.com ).
 For fresh updates visit:
 https://github.com/evolvethinking/evolve_cfengine_freelib
 
+## Version notice
+
+The master branch is for CFEngine 3.7. See other branches of this repo for
+CFEngine 3.6.
+
 ## License
 
 Evolve_freelib.cf is free software: you can redistribute it and/or modify it
@@ -15,19 +20,6 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
-
-## 3.6.3+ ready!
-
-This master branch is ready for 3.6.3+. Most bundles now support both CSV and JSON
-parameter files. A conversion script is included in ./bin.
-
-## Upgrade from 3.5?
-
-1. Template source in efl_edit_templates and efl_service must now have an
-   extention to identify them as cfengine (tmp|template) or mustache
-   (mus|mustache) style templates.
-1. Efl_edit_templates now has a server column that works just like efl_service
-   and other bundles. Add the column between the source file and mode.
 
 ## Introduction
 
