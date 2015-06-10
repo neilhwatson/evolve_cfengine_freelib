@@ -110,15 +110,15 @@ bundle agent efl_sysctl_live( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
       "efl_sysctl_live[${d[${i}][variable]}]"
          comment    => "Get current live value",
@@ -224,15 +224,15 @@ bundle agent efl_sysctl_conf_file( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -347,15 +347,15 @@ bundle agent efl_command ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -440,15 +440,15 @@ bundle agent efl_link ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -539,15 +539,15 @@ bundle agent efl_delete_files ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -701,15 +701,15 @@ bundle agent efl_copy_files ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -844,15 +844,15 @@ bundle agent efl_packages_via_cmd( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
       debian::
          "package_mgr" string => "/usr/bin/apt-get";
@@ -993,15 +993,15 @@ bundle agent efl_packages( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -1101,15 +1101,15 @@ bundle agent efl_start_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -1210,15 +1210,15 @@ bundle agent efl_service_recurse ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -1400,15 +1400,15 @@ bundle agent efl_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
       "template_method[${i}]"
          comment    => "Set template type base on file extension",
@@ -1577,15 +1577,15 @@ bundle agent efl_enable_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
       # Use systemctl::
       _stdlib_path_exists_systemctl::
@@ -1697,15 +1697,15 @@ bundle agent efl_disable_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
       # Use systemctl::
       _stdlib_path_exists_systemctl::
@@ -1830,15 +1830,15 @@ bundle agent efl_file_perms ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -1991,15 +1991,15 @@ bundle agent efl_edit_template ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
       "template_method[${i}]"
          comment    => "Set template type base on file extension",
@@ -2347,15 +2347,15 @@ bundle agent efl_rcs_pull( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
       "canonify[${i}]"
          comment => "Canonify for later use",
@@ -2490,15 +2490,15 @@ bundle agent efl_test_simple( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -2593,15 +2593,15 @@ bundle agent efl_dump_strings( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
+            data       => data_expand( "json_data" );
+
          "i"
             comment    => "Index data",
             ifvarclass => "parse_${param_file}_as_json",
-            slist      => getindices( "json_data" );
-
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
-            ifvarclass => "parse_${param_file}_as_json",
-            string     => "${json_data[${i}][${params[${p}]}]}";
+            slist      => getindices( "d" );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
