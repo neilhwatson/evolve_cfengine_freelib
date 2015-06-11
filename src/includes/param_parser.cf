@@ -21,6 +21,8 @@
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",

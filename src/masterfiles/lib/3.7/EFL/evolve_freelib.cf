@@ -41,7 +41,7 @@
 # 
 #    vars:
 #       "params"   
-#          comment    => "Parameter field names and positions to be parsed.",
+#          comment    => "Parameter field names and positions needef for csv parsing.",
 #          data       => parsejson(
 #          '{
 #             "0" : "class",
@@ -67,7 +67,7 @@ bundle agent efl_sysctl_live( ref )
 
    vars:
       "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -131,7 +131,7 @@ bundle agent efl_sysctl_conf_file( ref )
       "sysctl_conf"  string => "/etc/sysctl.conf";
 
       "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -202,7 +202,7 @@ bundle agent efl_command ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -246,7 +246,7 @@ bundle agent efl_link ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -293,7 +293,7 @@ bundle agent efl_delete_files ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -402,7 +402,7 @@ bundle agent efl_copy_files ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -499,7 +499,7 @@ bundle agent efl_packages_via_cmd( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -598,7 +598,7 @@ bundle agent efl_packages( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -658,7 +658,7 @@ bundle agent efl_start_service ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -710,7 +710,7 @@ bundle agent efl_service_recurse ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -849,7 +849,7 @@ bundle agent efl_service ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -985,7 +985,7 @@ bundle agent efl_enable_service ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -1055,7 +1055,7 @@ bundle agent efl_disable_service ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -1131,7 +1131,7 @@ bundle agent efl_file_perms ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -1244,7 +1244,7 @@ bundle agent efl_edit_template ( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -1452,7 +1452,7 @@ bundle server efl_server_json
          "ref" string => "${efl_c.efl_server_json}";
 
          "params"   
-            comment    => "JSON Parameter field names and positions to be parsed.",
+            comment    => "JSON Parameter field names and positions needef for csv parsing.",
             data       => parsejson(
             '{
                "0" : "class",
@@ -1550,7 +1550,7 @@ bundle agent efl_rcs_pull( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -1647,7 +1647,7 @@ bundle agent efl_test_simple( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -1701,7 +1701,7 @@ bundle agent efl_dump_strings( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",

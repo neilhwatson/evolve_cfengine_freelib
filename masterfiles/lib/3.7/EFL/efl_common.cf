@@ -121,7 +121,7 @@ bundle agent efl_main( ref )
 
    vars:
       "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -155,6 +155,8 @@ bundle agent efl_main( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -223,22 +225,6 @@ bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
          if_match_regex => "efl_server\Z",
          string         => "efl_server_csv";
 
-   vars:
-      "param_file" string => canonifyuniquely( "${parameter}" );
-
-   classes:
-## These classes are used by the bundle called in the methods. Declaring the
-## class at this level saves a pass in the called bundle
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         scope      => 'namespace',
-         expression => regcmp( ${efl_c.json_file}, ${parameter} );
-
-      "parse_${param_file}_as_csv"
-         comment    => "Is parameter file csv?",
-         scope      => 'namespace',
-         expression => regcmp( ${efl_c.csv_file}, ${parameter} );
-
    methods:
       "${promiser_name}" -> { "${promisee_name}" }
          comment    => "Methods promises described in methods.txt",
@@ -259,7 +245,7 @@ bundle agent efl_class_returnszero( ref )
 
    vars:
       "params"   
-         comment    => "Parameter field names and positions to be parsed.",
+         comment    => "Parameter field names and positions needef for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -293,6 +279,8 @@ bundle agent efl_class_returnszero( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -360,7 +348,7 @@ bundle agent efl_global_slists( ref )
 
    vars:
       "params"
-         comment => "Parameter field names and positions to be parsed.",
+         comment => "Parameter field names and positions needef for csv parsing.",
          data    => parsejson(
          '{
             "0" : "class",
@@ -393,6 +381,8 @@ bundle agent efl_global_slists( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -496,7 +486,7 @@ bundle agent efl_global_strings ( ref )
 
    vars:
       "params"
-         comment => "Parameter field names and positions to be parsed.",
+         comment => "Parameter field names and positions needef for csv parsing.",
          data    => parsejson(
          '{
             "0" : "class",
@@ -528,6 +518,8 @@ bundle agent efl_global_strings ( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -582,7 +574,7 @@ bundle agent efl_class_cmd_regcmp( ref )
 
    vars:
       "params"
-         comment => "Parameter field names and positions to be parsed.",
+         comment => "Parameter field names and positions needef for csv parsing.",
          data    => parsejson(
          '{
             "0" : "class",
@@ -617,6 +609,8 @@ bundle agent efl_class_cmd_regcmp( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -687,7 +681,7 @@ bundle agent efl_class_expression( ref )
 
    vars:
        "params"
-         comment => "Parameter field names and positions to be parsed.",
+         comment => "Parameter field names and positions needef for csv parsing.",
          data    => parsejson(
          '{
             "0" : "class_to_set",
@@ -718,6 +712,8 @@ bundle agent efl_class_expression( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -766,7 +762,7 @@ bundle agent efl_class_classmatch( ref )
 
    vars:
        "params"
-         comment => "Parameter field names and positions to be parsed.",
+         comment => "Parameter field names and positions needef for csv parsing.",
          data    => parsejson(
          '{
             "0" : "class_to_set",
@@ -797,6 +793,8 @@ bundle agent efl_class_classmatch( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -846,7 +844,7 @@ bundle agent efl_class_iprange( ref )
 
    vars:
        "params"
-         comment => "Parameter field names and positions to be parsed.",
+         comment => "Parameter field names and positions needef for csv parsing.",
          data    => parsejson(
          '{
             "0" : "class_to_set",
@@ -877,6 +875,8 @@ bundle agent efl_class_iprange( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
+# Would like to transform this into a data container, but mergedata needs
+# fixing first.  See https://dev.cfengine.com/issues/4566
          "d[${i}][${params[${p}]}]"
             comment    => "Make final data set and deal with bug 2333",
             ifvarclass => "parse_${param_file}_as_csv",
@@ -963,7 +963,7 @@ bundle agent efl_class_hostname2( ref )
 
    vars:
        "params"
-         comment => "Parameter field names and positions to be parsed.",
+         comment => "Parameter field names and positions needef for csv parsing.",
          data    => parsejson(
          '{
             "0" : "class_to_set",
