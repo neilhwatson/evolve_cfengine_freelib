@@ -257,7 +257,7 @@ bundle agent efl_sysctl_conf_file( ref )
          classes       => efl_rkn( "${sysctl_conf}", "efl_sysctl_conf_file_files_contents" ),
          action        => efl_delta_reporting( "efl_sysctl_conf_file_files_contents", "${sysctl_conf}", "Harending", "1" ),
          create        => "true",
-         edit_defaults => empty,
+         edit_defaults => efl_empty,
          edit_line     => el_efl_sysctl_conf_file( "efl_sysctl_conf_file.d" );
 
       "${sysctl_conf}" -> { "Provisioning" }
@@ -780,10 +780,27 @@ bundle agent efl_copy_files ( ref )
 
 body copy_from efl_cpf(from, server, encrypt)
 {
+# Be sure to make a delete promise if you are using timestamp backups.
    servers     => { "${server}" };
    source      => "${from}";
    encrypt     => "${encrypt}";
    compare     => "digest";
+
+   no_copy_from_backups::
+      copy_backup => 'false';
+   copy_from_backups_with_timestamp::
+      copy_backup => 'timestamp';
+}
+
+body edit_defaults efl_empty
+{
+# Be sure to make a delete promise if you are using timestamp backups.
+  empty_file_before_editing => 'true';
+
+  no_edit_file_backups::
+     edit_backup => 'false';
+  edit_file_backups_with_timestamp::
+     edit_backup => 'timestamp';
 }
 
 bundle agent efl_packages_via_cmd( ref )
@@ -1482,7 +1499,7 @@ bundle agent efl_service ( ref )
          classes         => efl_rkn( "${d[${i}][config_file]}", "efl_service_files_config_template" ),
          action          => efl_delta_reporting( "efl_service_files_config_template", "${d[${i}][config_file]}", "${d[${i}][promisee]}", "1" ),
          create          => "true",
-         edit_defaults   => empty,
+         edit_defaults   => efl_empty,
          ifvarclass      => canonify( "build_from_template_${param_file}_${i}" ),
          template_method => "${template_method[${i}]}",
          edit_template   => "${efl_c.cache}/${d[${i}][config_file_src]}";
@@ -2038,7 +2055,7 @@ bundle agent efl_edit_template ( ref )
          action     => efl_delta_reporting( "efl_edit_template_cache_template", "${efl_c.cache}/${d[${i}][promiser_file]}", "${d[${i}][promisee]}", "1" ),
          ifvarclass => "${d[${i}][class]}",
          create     => "true",
-         copy_from  => remote_dcp( "${d[${i}][template]}", "@{${d[${i}][server]}}" );
+         copy_from  => efl_cpf( "${d[${i}][template]}", "@{${d[${i}][server]}}", "true" );
 
       "${efl_c.cache}/${d[${i}][template]}" -> { "${d[${i}][promisee]}" }
          comment    => "Perms for locally cache template file.",
@@ -2056,7 +2073,7 @@ bundle agent efl_edit_template ( ref )
          ifvarclass      => "${d[${i}][class]}",
          create          => "true",
          template_method => "${template_method[${i}]}",
-         edit_defaults   => empty,
+         edit_defaults   => efl_empty,
          edit_template   => "${efl_c.cache}/${d[${i}][template]}";
 
       "${d[${i}][promiser_file]}" -> { "${d[${i}][promisee]}" }
