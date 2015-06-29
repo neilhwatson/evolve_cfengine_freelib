@@ -16,17 +16,20 @@
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -34,12 +37,15 @@
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Ensure data is ordered because read functions may not",
+            slist      => sort( i_unsorted, int );

@@ -94,17 +94,20 @@ bundle agent efl_sysctl_live( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -112,15 +115,18 @@ bundle agent efl_sysctl_live( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
       "efl_sysctl_live[${d[${i}][variable]}]"
          comment    => "Get current live value",
@@ -210,17 +216,20 @@ bundle agent efl_sysctl_conf_file( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -228,15 +237,18 @@ bundle agent efl_sysctl_conf_file( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -335,17 +347,20 @@ bundle agent efl_command ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -353,15 +368,18 @@ bundle agent efl_command ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -430,17 +448,20 @@ bundle agent efl_link ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -448,15 +469,18 @@ bundle agent efl_link ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -531,17 +555,20 @@ bundle agent efl_delete_files ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -549,15 +576,18 @@ bundle agent efl_delete_files ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -695,17 +725,20 @@ bundle agent efl_copy_files ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -713,15 +746,18 @@ bundle agent efl_copy_files ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -857,17 +893,20 @@ bundle agent efl_packages_via_cmd( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -875,15 +914,18 @@ bundle agent efl_packages_via_cmd( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
       debian::
          "package_mgr" string => "/usr/bin/apt-get";
@@ -1008,17 +1050,20 @@ bundle agent efl_packages( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -1026,15 +1071,18 @@ bundle agent efl_packages( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -1118,17 +1166,20 @@ bundle agent efl_start_service ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -1136,15 +1187,18 @@ bundle agent efl_start_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -1229,17 +1283,20 @@ bundle agent efl_service_recurse ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -1247,15 +1304,18 @@ bundle agent efl_service_recurse ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -1421,17 +1481,20 @@ bundle agent efl_service ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -1439,15 +1502,18 @@ bundle agent efl_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
       "template_method[${i}]"
          comment    => "Set template type base on file extension",
@@ -1600,17 +1666,20 @@ bundle agent efl_enable_service ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -1618,15 +1687,18 @@ bundle agent efl_enable_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
       # Use systemctl::
       _stdlib_path_exists_systemctl::
@@ -1722,17 +1794,20 @@ bundle agent efl_disable_service ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -1740,15 +1815,18 @@ bundle agent efl_disable_service ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
       # Use systemctl::
       _stdlib_path_exists_systemctl::
@@ -1857,17 +1935,20 @@ bundle agent efl_file_perms ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -1875,15 +1956,18 @@ bundle agent efl_file_perms ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -2020,17 +2104,20 @@ bundle agent efl_edit_template ( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -2038,15 +2125,18 @@ bundle agent efl_edit_template ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
       "template_method[${i}]"
          comment    => "Set template type base on file extension",
@@ -2378,17 +2468,20 @@ bundle agent efl_rcs_pull( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -2396,15 +2489,18 @@ bundle agent efl_rcs_pull( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
       "canonify[${i}]"
          comment => "Canonify for later use",
@@ -2523,17 +2619,20 @@ bundle agent efl_test_simple( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -2541,15 +2640,18 @@ bundle agent efl_test_simple( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
@@ -2628,17 +2730,20 @@ bundle agent efl_dump_strings( ref )
                "${efl_c.max_bytes}"
             );
 
-         "i" 
+         "t" 
             comment    => "index from csv file may not be in the correct order",
             ifvarclass => "parse_${param_file}_as_csv",
             slist      => getindices( "csv_data" );
 
-# Would like to transform this into a data container, but mergedata needs
-# fixing first.  See https://dev.cfengine.com/issues/4566
-         "d[${i}][${params[${p}]}]"
-            comment    => "Make final data set and deal with bug 2333",
+         "tmp[${t}][${params[${p}]}]"
+            comment    => "Transform to provide column labels",
             ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${i}][${p}]}";
+            string     => "${csv_data[${t}][${p}]}";
+
+         "d"
+            comment    => "Turn into a true data container",
+            ifvarclass => "parse_${param_file}_as_csv",
+            data       => mergedata( tmp );
 
       # parse_${param_file}_as_json::
          "json_data"
@@ -2646,15 +2751,18 @@ bundle agent efl_dump_strings( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
+      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
-         "i"
-            comment    => "Index data",
-            ifvarclass => "parse_${param_file}_as_json",
+         "i_unsorted"
+            comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
+
+         "i"
+            comment    => "Index data sorted",
+            slist      => sort( i_unsorted, int );
 
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
