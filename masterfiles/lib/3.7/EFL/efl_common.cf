@@ -156,7 +156,7 @@ bundle agent efl_main( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -174,6 +174,7 @@ bundle agent efl_main( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -181,7 +182,7 @@ bundle agent efl_main( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
    classes:
@@ -286,7 +287,7 @@ bundle agent efl_class_returnszero( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -304,6 +305,7 @@ bundle agent efl_class_returnszero( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -311,7 +313,7 @@ bundle agent efl_class_returnszero( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
    classes:
@@ -394,7 +396,7 @@ bundle agent efl_global_slists( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -412,6 +414,7 @@ bundle agent efl_global_slists( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -419,7 +422,7 @@ bundle agent efl_global_slists( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
 ## processing data
@@ -537,7 +540,7 @@ bundle agent efl_global_strings ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -555,6 +558,7 @@ bundle agent efl_global_strings ( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -562,7 +566,7 @@ bundle agent efl_global_strings ( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
       "${d[${i}][name]}" -> { "${d[${i}][promisee]}" }
@@ -634,7 +638,7 @@ bundle agent efl_class_cmd_regcmp( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -652,6 +656,7 @@ bundle agent efl_class_cmd_regcmp( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -659,7 +664,7 @@ bundle agent efl_class_cmd_regcmp( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
       "cmd_output_${i}" -> { "${d[${i}][promisee]}" }
@@ -743,7 +748,7 @@ bundle agent efl_class_expression( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -761,6 +766,7 @@ bundle agent efl_class_expression( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -768,7 +774,7 @@ bundle agent efl_class_expression( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
    classes:
@@ -830,7 +836,7 @@ bundle agent efl_class_classmatch( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -848,6 +854,7 @@ bundle agent efl_class_classmatch( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -855,7 +862,7 @@ bundle agent efl_class_classmatch( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
    classes:
@@ -918,7 +925,7 @@ bundle agent efl_class_iprange( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -936,6 +943,7 @@ bundle agent efl_class_iprange( ref )
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
@@ -943,7 +951,7 @@ bundle agent efl_class_iprange( ref )
             slist      => getindices( "d" );
 
          "i"
-            comment    => "Index data sorted",
+            comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
    classes:

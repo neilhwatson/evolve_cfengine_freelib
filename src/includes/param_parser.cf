@@ -22,7 +22,7 @@
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels",
+            comment    => "Transform to provide column labels, also exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -40,6 +40,7 @@
       # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
          "i_unsorted"
