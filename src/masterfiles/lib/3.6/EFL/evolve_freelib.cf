@@ -804,7 +804,7 @@ bundle agent efl_service_recurse ( ref )
          action       => efl_delta_reporting( "efl_service_recurse_copy",
             "${d[${i}][config_dir]}", "${d[${i}][promisee]}", "1"
          ),
-         depth_search => recurse( "inf" ),
+         depth_search => efl_recurse_and_exclude( "inf", @{efl_c.rcs_dirs} ),
          copy_from    => efl_cpf(
             "${efl_c.cache}/${d[${i}][config_dir]}",
             "localhost", "${d[${i}][encrypt]}"
@@ -1651,6 +1651,12 @@ bundle agent efl_rcs_pull( ref )
          contain    => in_dir_shell_and_silent( "${d[${i}][dest_dir]}" ),
          classes    => efl_rkn( "PROMISER=${i} ${d[${i}][update_cmd]}", "efl_rcs_pull_commands_update" ),
          action     => efl_delta_reporting( "efl_rcs_pull_commands_update", "PROMISER=${i} ${d[${i}][update_cmd]}", "${d[${i}][promisee]}", "1" );
+}
+
+body depth_search efl_recurse_and_exclude ( d, dirs )
+{
+   depth => "${d}";
+   exclude_dirs => { @{dirs} };
 }
 
 bundle agent efl_test_simple( ref )

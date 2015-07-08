@@ -46,6 +46,10 @@ bundle common efl_c
       "mustache_template"
          comment => "How to determine if param file is csv",
          string  => ".*\.mus(tache){0,1}";
+
+      "rcs_dirs"
+         comment => "RCS dirs that you may not want copied",
+         slist   => { "\.svn", "\.git", "git-core" };
 #
 #
 # Delta Reporting configs
