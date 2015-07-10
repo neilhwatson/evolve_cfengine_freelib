@@ -100,7 +100,7 @@ bundle agent efl_sysctl_live( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -238,7 +238,7 @@ bundle agent efl_sysctl_conf_file( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -385,7 +385,7 @@ bundle agent efl_command ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -502,7 +502,7 @@ bundle agent efl_link ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -625,7 +625,7 @@ bundle agent efl_delete_files ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -811,7 +811,7 @@ bundle agent efl_copy_files ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -995,7 +995,7 @@ bundle agent efl_packages_via_cmd( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -1168,7 +1168,7 @@ bundle agent efl_packages( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -1300,7 +1300,7 @@ bundle agent efl_start_service ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -1433,7 +1433,7 @@ bundle agent efl_service_recurse ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -1647,7 +1647,7 @@ bundle agent efl_service ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -1848,7 +1848,7 @@ bundle agent efl_enable_service ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -1992,7 +1992,7 @@ bundle agent efl_disable_service ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -2149,7 +2149,7 @@ bundle agent efl_file_perms ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -2334,7 +2334,7 @@ bundle agent efl_edit_template ( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -2714,7 +2714,7 @@ bundle agent efl_rcs_pull( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -2887,7 +2887,7 @@ bundle agent efl_test_simple( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 
@@ -3014,7 +3014,7 @@ bundle agent efl_dump_strings( ref )
             slist      => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels, also exapnds vars",
+            comment    => "Transform to provide column labels and exapnds vars",
             ifvarclass => "parse_${param_file}_as_csv",
             string     => "${csv_data[${t}][${p}]}";
 

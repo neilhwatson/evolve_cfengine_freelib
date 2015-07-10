@@ -157,6 +157,17 @@ bundle agent efl_main( ref )
             "${d[${i}][bundle]}",
             "${d[${i}][parameter]}"
          );
+
+   reports:
+      efl_debug::
+         "
+class     => ${d[${i}][class]}
+ifelapsed => ${d[${i}][ifelapsed]}
+promiser  => ${d[${i}][promiser]}_${i}
+promisee  => ${d[${i}][promisee]}
+bundle    => ${d[${i}][bundle]}
+parameter => ${d[${i}][parameter]}";
+
 }
 
 bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
