@@ -37,12 +37,23 @@
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );

@@ -39,12 +39,16 @@ bundle common efl_c
          comment => "How to determine if param file is csv",
          string  => ".*\.(txt|csv)";
 
+      "yaml_file"
+         comment => "How to determine if param file is yaml",
+         string  => ".*\.(ya?ml)";
+
       "cfengine_template"
-         comment => "How to determine if param file is csv",
+         comment => "How to determine if the file is a template",
          string  => ".*\.(tmp|template)";
 
       "mustache_template"
-         comment => "How to determine if param file is csv",
+         comment => "How to determine if the file is mustache",
          string  => ".*\.mus(tache){0,1}";
 
       "rcs_dirs"

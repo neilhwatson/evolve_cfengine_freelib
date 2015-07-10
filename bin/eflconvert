@@ -1,0 +1,379 @@
+#!/usr/bin/perl
+#
+use strict;
+use warnings;
+use feature 'say';
+use Getopt::Long;
+use Pod::Usage;
+use JSON;
+use YAML;
+use Carp;
+#use Data::Dumper; # TODO remove for prod
+
+=head1 SYNOPSIS
+
+Convert CSV file to JSON file as a filter.
+eflconvert < input.csv > output.json
+[ -h | --help | -? ] help
+[ -v | -- version ] version
+[ -s | --sample] <commands|server> print sample data
+[ -d | --delimitier] '<delimiter regex>' defaults to ';;'
+[ -a | --array_delimitier] '<delimiter regex>' defaults to ','
+[ -b | --bundle] <bundle name> convert file for this EFL bundle
+
+One of the following:
+[ -ctj ] convert csv to JSON
+[ -cty ] convert csv to YAML
+[ -jty ] convert JSON to YAML
+[ -ytj ] convert YAML to JSON
+
+Use perldoc to see full documentation.
+
+=head1 DESCRIPTION
+
+Any commas found in a field and program will treat field as an array.
+
+=head1 EXAMPLES
+
+Read a csv file and output a JSON file:
+
+  # context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
+  am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell      ;; false  ;;         1 ;; efl_update for cfengine
+  backup_host ;; /usr/local/bin/backup              ;; nohell         ;; false  ;;         1 ;; my backups
+
+  eflconvert -b efl_command -ctj < efl_command.txt > efl_command.json
+
+  cat efl_command.json
+  [
+   {
+      "context"   : "am_policy_hub",
+      "command"   : "${sys.workdir}/modules/cf-manifest",
+      "useshell"  : "noshell",
+      "module"    : "false",
+      "ifelapsed" : "1",
+      "promisee"  : "efl_update for cfengine"
+   },
+   {
+      "context"   : "backup_host",
+      "command"   : "usr/local/bin/backup",
+      "useshell"  : "noshell",
+      "module"    : "false",
+      "ifelapsed" : "1",
+      "promisee"  : "my  backups"
+   }
+   ]
+
+   Show bundles currently support. If yours is missing assume it's WIP.
+
+   eflconvert -b all
+
+=head2 Using sample data
+
+Show sample data for efl_command bundle.
+   eflconvert -s efl_command
+
+=head1 VERSION
+
+1.0
+
+=head1 SEE ALSO
+
+=head1 AUTHOR
+
+Neil H. Watson, nwatson@evolvethinking.com
+
+=head1 COPYRIGHT and LICENSE
+
+Copyright 2014 Evolve Thinking Limited
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details
+<http://www.gnu.org/licenses/>.
+
+=cut
+
+# Sample data
+my %sample;
+$sample{efl_command} = <<'END';
+# For efl_command bundle, header must match new json bundle requirements
+#  context     ;; command                            ;; useshell       ;; module ;; ifelapsed ;; promisee
+  am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell      ;; false  ;;         1 ;; efl_update for cfengine
+  backup_host ;; /usr/local/bin/backup              ;; nohell         ;; false  ;;         1 ;; my backups
+END
+
+my %headers = (
+   'efl_main'              => [ qw/ class promiser bundle ifelapsed parameter promisee / ],
+   'efl_command'           => [ qw/ class command useshell module ifelapsed promisee / ],
+   'efl_server'            => [ qw/ class path admit promisee / ],
+   'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ],
+   'efl_test_simple'       => [ qw/ class class_to_test is_or_isnt name / ],
+   'efl_global_slists'     => [ qw/ class name contents shuffle promisee / ],
+   'efl_dump_strings'      => [ qw/ class name promisee / ],
+   'efl_global_strings'    => [ qw/ class name value promisee / ],
+   'efl_class_cmd_regcmp'  => [ qw/ class class_to_set expression command useshell regex promisee / ],
+   'efl_class_expression'  => [ qw/ class_to_set expression promisee / ],
+   'efl_class_classmatch'  => [ qw/ class_to_set regex promisee / ],
+   'efl_class_iprange'     => [ qw/ class_to_set ip_range promisee / ],
+   'efl_sysctl_live'       => [ qw/ class variable value promisee / ],
+   'efl_sysctl_conf_file'  => [ qw/ class variable value promisee / ],
+   'efl_link'              => [ qw/ class link_name target link_type promisee / ],
+   'efl_delete_files'      => [ qw/ class file_promiser recurse_level leaf_regex negate_match file_age promisee / ],
+   'efl_copy_files'        => [ qw/ class file_promiser leaf_regex file_source server encrypt mode owner group promisee / ],
+   'efl_packages_via_cmd'  => [ qw/ class package_policy package_name package_version architecture promisee / ],
+   'efl_packages'          => [ qw/ class package_policy package_name package_version architecture promisee / ],
+   'efl_start_service'     => [ qw/ class process_regex restart_cmd promisee / ],
+   'efl_service_recurse'   => [ qw/ class process_regex config_dir config_dir_src server encrypt mode owner group restart_cmd promisee / ],
+   'efl_service'           => [ qw/ class process_regex config_file config_file_src server template encrypt mode owner group restart_cmd promisee / ],
+   'efl_edit_template'     => [ qw/ class promiser_file template server mode owner group promisee / ],
+   'efl_enable_service'    => [ qw/ class service promisee / ],
+   'efl_disable_service'   => [ qw/ class service promisee / ],
+   'efl_file_perms'        => [ qw/ class file_promiser recurse_level leaf_regex negate mode owner group promisee / ],
+   'efl_rcs_pull'          => [ qw/ class update_cmd checkout_cmd dest_dir mode owner group promisee / ],
+);
+
+my $opt;
+
+##########################
+# subs
+
+sub _get_cli_args
+{
+# Get command options and switches
+   my %opt;
+   $opt{delimiter} = ';;';
+   $opt{array_delimiter} = ',';
+
+   my @convert_opts = qw/ ctj cty jty ytj/;
+   GetOptions (
+      \%opt,
+      'help|?',
+      'version',
+      'delimiter=s',
+      'array_delimiter=s',
+      'sample=s',
+      'bundle=s',
+      'ctj',
+      'cty',
+      'jty',
+      'ytj',
+      ) or croak "Error in GetOptions [$!]";
+
+   # Validate
+   if ( $opt{sample} && ! $sample{$opt{sample}} )
+   {
+      usage("Wrong sample arg: $opt{sample}" );
+      exit 2;
+   }
+
+   if ( $opt{bundle} && $opt{bundle} eq 'all' )
+   {
+      print "$_\n" for keys %headers;
+      exit;
+   }
+
+   for my $bundle ( qw/ enable disable / )
+   {
+      if ( exists $opt{bundle} and $opt{bundle} eq "efl_chkconfig_${bundle}_service" )
+      {
+         carp "Bundle $opt{bundle} has been replaceed with efl_${bundle}_service";
+      }
+   }
+
+   if ( $opt{bundle}  && ! grep { m/^$opt{bundle}$/ } keys %headers )
+   {
+      usage({ msg => "Wrong or missing bundle name: $opt{bundle}", exit => 3 });
+   }
+
+   # Wrap delimiter in whitespace to remove it from the fields
+   $opt{delimiter}       = qr/\s*$opt{delimiter}\s*/;
+   $opt{array_delimiter} = qr/\s*$opt{array_delimiter}\s*/;
+
+   my $err = 0;
+   for my $o ( @convert_opts  )
+   {
+      $err++ if defined $opt{$o};
+   }
+
+   if ( $err > 1 )
+   {
+      my $msg = join ', ', @convert_opts;
+      usage( "Options $msg are mutually exclusive" );
+      exit 1;
+   }
+   return \%opt;
+}
+
+# Prints usage and exits
+sub usage {
+   my $msg = shift;
+
+   # defaults
+   #          If option given   Then use   Or default
+   $msg =     defined $msg     ? $msg     : '';
+
+   pod2usage(
+      -verbose  => 99,
+      -sections =>"SYNOPSIS",
+      -msg      => $msg,
+   );
+   return;
+}
+
+sub trim_whitespace
+{
+   my ( $fields ) = @_;
+   my @trimmed_fields;
+
+   for my $f ( @{ $fields } )
+   {
+      $f =~ s/\A\s+//;
+      $f =~ s/\s+\Z//;
+      push @trimmed_fields, $f;
+   }
+
+   return \@trimmed_fields;
+}
+
+
+
+sub csv_to_data 
+{
+   my ( $lines ) = @_;
+   my @headers = @{ $headers{$opt->{bundle}} };
+   my @data;
+
+   # This will produce an array of hashes, possibly witn another array if hash
+   # contains an array e.g. myslist ;; value1, value2, value3, valuen+1
+   
+   for my $l ( @{ $lines } )
+   {
+      # Stip leading whitespace
+      $l =~ s/\A\s*//g;
+
+      my $hash = {};
+
+      my $i = 0;
+      my @fields = split m/$opt->{delimiter}/, $l;
+      for my $f ( @fields )
+      {
+         # If field is an array e.g. one, two, three.
+         if ( $f =~ m/$opt->{array_delimiter}/ and $headers[$i] ne 'promisee' )
+         {
+            my @array = split m/$opt->{array_delimiter}/, $f;
+            push @{ $hash->{ $headers[$i] } }, @array;
+         }
+         else
+         {
+            $hash->{ $headers[$i] } = $f;
+         }
+         $i++;
+      }
+      push @data, $hash;
+   }
+   return \@data;
+}
+
+sub read_from_stdin
+{
+   my @input_data;
+   while ( my $line = <>)
+   {
+     chomp $line;
+
+     # Remove in line comments.
+     $line =~ s/\s#.*?$//g;
+
+     # Remove new line, carrage returns in case it is a windows file, or any
+     # trailing white space
+     $line =~ s/[\n\r\s]$//;
+
+     # Skip comment lines.
+     next if $line =~ m/^#/;
+
+     # Skip whitespace lines.
+     next if $line =~ m/\A\s+\Z/;
+
+     push @input_data, $line
+   }
+   return \@input_data;
+}
+
+sub data_to_json
+{
+   my $data = shift;
+   my $j = JSON->new->pretty;
+   my $json = $j->encode( $data );
+   return $json;
+}
+
+sub data_to_yml
+{
+   my $data = shift;
+   my $yml = Dump $data;
+   return $yml;
+}
+
+sub json_to_data 
+{
+   my $json = shift;
+   my $json_string = join "\n", @{ $json };
+   my $data = decode_json( $json_string );
+   return $data;
+}
+
+sub yml_to_data
+{
+   my $yml = shift;
+   my $yml_string = join "\n", @{ $yml };
+   my $data = Load $yml_string;
+   return $data;
+}
+
+##########################
+# Main matter here
+
+$opt = _get_cli_args();
+
+if ( $opt->{help} ) { usage(); exit; }
+
+if ( $opt->{version} ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
+
+if ( $opt->{sample} ) { print $sample{$opt->{sample}}; exit; }
+
+# Read data from stdin
+my $input_data = read_from_stdin();
+
+# Build data structure from input.
+my $data;
+if ( $opt->{ctj} or $opt->{cty} )
+{
+   $data = csv_to_data( $input_data );
+}
+elsif ( $opt->{jty} )
+{
+   $data = json_to_data( $input_data );
+}
+elsif ( $opt->{ytj} )
+{
+   $data = yml_to_data( $input_data );
+}
+
+# Build final data from data structure 
+if ( $opt->{ctj} or $opt->{ytj} )
+{
+   $data = data_to_json( $data );
+}
+elsif ( $opt->{cty} or $opt->{jty} )
+{
+   $data = data_to_yml( $data );
+}
+
+# TODO needs a test suite?
+#
+say $data;

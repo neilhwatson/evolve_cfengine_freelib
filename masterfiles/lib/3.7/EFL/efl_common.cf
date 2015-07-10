@@ -39,12 +39,16 @@ bundle common efl_c
          comment => "How to determine if param file is csv",
          string  => ".*\.(txt|csv)";
 
+      "yaml_file"
+         comment => "How to determine if param file is yaml",
+         string  => ".*\.(ya?ml)";
+
       "cfengine_template"
-         comment => "How to determine if param file is csv",
+         comment => "How to determine if the file is a template",
          string  => ".*\.(tmp|template)";
 
       "mustache_template"
-         comment => "How to determine if param file is csv",
+         comment => "How to determine if the file is mustache",
          string  => ".*\.mus(tache){0,1}";
 
       "rcs_dirs"
@@ -175,12 +179,23 @@ bundle agent efl_main( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -199,6 +214,10 @@ bundle agent efl_main( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
    methods:
       "methods loop wrapper"
@@ -306,12 +325,23 @@ bundle agent efl_class_returnszero( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -330,6 +360,10 @@ bundle agent efl_class_returnszero( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "${d[${i}][class_to_set]}_non_zero" -> { "${d[${i}][promisee]}" }
          comment    => "Does class to set result from zero or non zero return value",
@@ -415,12 +449,23 @@ bundle agent efl_global_slists( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -475,6 +520,10 @@ bundle agent efl_global_slists( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "no_shuffle_${d[${i}][name]}"
          ifvarclass => "${d[${i}][class]}",
@@ -559,12 +608,23 @@ bundle agent efl_global_strings ( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -589,6 +649,10 @@ bundle agent efl_global_strings ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 }
 
 bundle agent efl_class_cmd_regcmp( ref )
@@ -657,12 +721,23 @@ bundle agent efl_class_cmd_regcmp( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -686,6 +761,10 @@ bundle agent efl_class_cmd_regcmp( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "use_not_for_${param_file}_${i}" -> { "${d[${i}][promisee]}" }
          comment    => "Use not rather than expression",
@@ -767,12 +846,23 @@ bundle agent efl_class_expression( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -791,6 +881,10 @@ bundle agent efl_class_expression( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if expression is true.",
@@ -855,12 +949,23 @@ bundle agent efl_class_classmatch( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -879,6 +984,10 @@ bundle agent efl_class_classmatch( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if classmatch function returns true.",
@@ -944,12 +1053,23 @@ bundle agent efl_class_iprange( ref )
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => readjson( "${ref}", "${efl_c.max_bytes}" );
 
-      # final data here from any param file::
          "d"
             comment    => "Expand vars inside of container",
             ifvarclass => "parse_${param_file}_as_json" ,
             data       => data_expand( "json_data" );
 
+      # parse_${param_file}_as_yaml::
+         "yaml_data"
+            comment    => "Parse yaml file",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
+
+         "d"
+            comment    => "Expand vars inside of container",
+            ifvarclass => "parse_${param_file}_as_yaml" ,
+            data       => data_expand( "yaml_data" );
+
+      # final data here from any param file::
          "i_unsorted"
             comment    => "Index data, but unsorted",
             slist      => getindices( "d" );
@@ -968,6 +1088,10 @@ bundle agent efl_class_iprange( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
    classes:
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }

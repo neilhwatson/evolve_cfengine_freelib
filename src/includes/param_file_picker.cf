@@ -7,3 +7,7 @@
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+
+      "parse_${param_file}_as_yaml"
+         comment    => "Is parameter file yaml?",
+         expression => regcmp( ${efl_c.yaml_file}, ${ref} );

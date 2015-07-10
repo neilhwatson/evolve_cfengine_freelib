@@ -4,7 +4,8 @@ VERSION     = 3.7
 LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
-CSVTOJSON   = ./bin/csvtojson
+CSVTOJSON   = ./bin/eflconvert -ctj
+CSVTOYAML   = ./bin/eflconvert -cty
 APT_GET     = /usr/bin/apt-get --quiet --yes
 
 # Don't changes this, it's hard coded in some CF policy data
@@ -815,7 +816,7 @@ clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
-	rm -fr /tmp/*efl_test* 
+	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
 	rm -f /etc/systemd/system/$(test_systemd_def)
 
