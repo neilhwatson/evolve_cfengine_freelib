@@ -1,14 +1,11 @@
 #!/usr/bin/perl
-#
+
 use strict;
 use warnings;
 use feature 'say';
 use Getopt::Long;
 use Pod::Usage;
-use JSON;
-use YAML;
 use Carp;
-#use Data::Dumper; # TODO remove for prod
 
 =head1 SYNOPSIS
 
@@ -20,12 +17,8 @@ eflconvert < input.csv > output.json
 [ -d | --delimitier] '<delimiter regex>' defaults to ';;'
 [ -a | --array_delimitier] '<delimiter regex>' defaults to ','
 [ -b | --bundle] <bundle name> convert file for this EFL bundle
-
-One of the following:
-[ -ctj ] convert csv to JSON
-[ -cty ] convert csv to YAML
-[ -jty ] convert JSON to YAML
-[ -ytj ] convert YAML to JSON
+[ -o | --output] csv|json|yaml Convert to this format
+[ -i | --inpuput] csv|json|yaml Convert from this format
 
 Use perldoc to see full documentation.
 
@@ -41,7 +34,7 @@ Read a csv file and output a JSON file:
   am_policy_hub ;; ${sys.workdir}/modules/cf-manifest ;; noshell      ;; false  ;;         1 ;; efl_update for cfengine
   backup_host ;; /usr/local/bin/backup              ;; nohell         ;; false  ;;         1 ;; my backups
 
-  eflconvert -b efl_command -ctj < efl_command.txt > efl_command.json
+  eflconvert -b efl_command -i csv -o json < efl_command.txt > efl_command.json
 
   cat efl_command.json
   [
@@ -139,17 +132,19 @@ my %headers = (
 
 my $opt;
 
-##########################
-# subs
+=head2 SUBS
 
+=head3 _get_cli_args
+Read in command line args.
+=cut
 sub _get_cli_args
 {
 # Get command options and switches
    my %opt;
    $opt{delimiter} = ';;';
    $opt{array_delimiter} = ',';
+   $opt{bundle} = 'efl_command';
 
-   my @convert_opts = qw/ ctj cty jty ytj/;
    GetOptions (
       \%opt,
       'help|?',
@@ -158,20 +153,19 @@ sub _get_cli_args
       'array_delimiter=s',
       'sample=s',
       'bundle=s',
-      'ctj',
-      'cty',
-      'jty',
-      'ytj',
+      'input=s',
+      'output=s'
       ) or croak "Error in GetOptions [$!]";
 
-   # Validate
-   if ( $opt{sample} && ! $sample{$opt{sample}} )
-   {
-      usage("Wrong sample arg: $opt{sample}" );
-      exit 2;
-   }
+   return \%opt;
+}
 
-   if ( $opt{bundle} && $opt{bundle} eq 'all' )
+=head3 _validate_args
+Validate command line args.
+=cut
+sub _validate_args
+{
+   if ( $opt->{bundle} && $opt->{bundle} eq 'all' )
    {
       print "$_\n" for keys %headers;
       exit;
@@ -179,73 +173,202 @@ sub _get_cli_args
 
    for my $bundle ( qw/ enable disable / )
    {
-      if ( exists $opt{bundle} and $opt{bundle} eq "efl_chkconfig_${bundle}_service" )
+      if ( exists $opt->{bundle} and $opt->{bundle} eq "efl_chkconfig_${bundle}_service" )
       {
-         carp "Bundle $opt{bundle} has been replaceed with efl_${bundle}_service";
+         carp "Bundle $opt->{bundle} has been replaceed with efl_${bundle}_service";
       }
    }
 
-   if ( $opt{bundle}  && ! grep { m/^$opt{bundle}$/ } keys %headers )
+   if ( $opt->{bundle}  && ! grep { m/^$opt->{bundle}$/ } keys %headers )
    {
-      usage({ msg => "Wrong or missing bundle name: $opt{bundle}", exit => 3 });
+      usage({ msg => "Wrong or missing bundle name: $opt->{bundle}", exit => 3 });
    }
 
    # Wrap delimiter in whitespace to remove it from the fields
-   $opt{delimiter}       = qr/\s*$opt{delimiter}\s*/;
-   $opt{array_delimiter} = qr/\s*$opt{array_delimiter}\s*/;
-
-   my $err = 0;
-   for my $o ( @convert_opts  )
+   $opt->{delimiter}       = qr/\s*$opt->{delimiter}\s*/;
+   $opt->{array_delimiter} = qr/\s*$opt->{array_delimiter}\s*/;
+   
+   if ( defined $opt->{input} and defined $opt->{output} )
    {
-      $err++ if defined $opt{$o};
+      my @input_output = qw/ yaml yml json csv /;
+      for my $x ( qw/ input output / )
+      {
+         if ( !grep { m/\A $opt->{$x} \Z/x } @input_output )
+         {
+            usage({ msg => "Invalid $x string: [$opt->{$x}]", exit => 4});
+         }
+      }
    }
-
-   if ( $err > 1 )
+   else
    {
-      my $msg = join ', ', @convert_opts;
-      usage( "Options $msg are mutually exclusive" );
-      exit 1;
+      usage({ msg => "Missing input/output options", exit => 5});
    }
-   return \%opt;
+   return 1;
 }
 
-# Prints usage and exits
+=head3 usage
+Prints usage and exits
+=cut
 sub usage {
-   my $msg = shift;
+   my ( $arg ) = shift;
 
    # defaults
-   #          If option given   Then use   Or default
-   $msg =     defined $msg     ? $msg     : '';
+   #          If option given      Then use       Or default
+   my $msg  = defined $arg->{msg}  ? $arg->{msg}  : '';
+   my $exit = defined $arg->{exit} ? $arg->{exit} : '';
 
    pod2usage(
       -verbose  => 99,
       -sections =>"SYNOPSIS",
       -msg      => $msg,
+      -ext      => $exit,
    );
    return;
 }
 
-sub trim_whitespace
-{
-   my ( $fields ) = @_;
-   my @trimmed_fields;
+##########################
+# Main matter here
 
-   for my $f ( @{ $fields } )
+$opt = _get_cli_args();
+
+if ( $opt->{help} ) { usage(); exit; }
+
+if ( $opt->{version} ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
+
+if ( $opt->{sample} ) {
+
+   if ( $sample{$opt->{sample}} )
    {
-      $f =~ s/\A\s+//;
-      $f =~ s/\s+\Z//;
-      push @trimmed_fields, $f;
+      print $sample{$opt->{sample}}; exit; 
    }
-
-   return \@trimmed_fields;
+   else
+   {
+      usage("Wrong sample arg: $opt->{sample}" );
+      exit 2;
+   }
 }
 
+_validate_args();
 
+# TODO needs a test suite?
+#
+my $d = EFL::Convert->new({
+      input => $opt->{input},
+      headers => $headers{ $opt->{bundle} }
+   });
 
-sub csv_to_data 
+my $data;
+$data = $d->to_json if $opt->{output} eq 'json';
+$data = $d->to_yaml if $opt->{output} eq 'yaml';
+$data = $d->to_csv  if $opt->{output} eq 'csv';
+
+say $data;
+
+package EFL::Convert;
+
+=head1 PACKAGE EFL::Convert
+
+=head2 SYNOPSIS
+
+This package is overs an OO approach to converting EFL data files. Normal users
+do not need to know how this works.
+
+=cut
+
+use strict;
+use warnings;
+use JSON qw/ decode_json encode_json /;
+use YAML;
+use Carp;
+use Data::Dumper;
+
+sub new
 {
-   my ( $lines ) = @_;
-   my @headers = @{ $headers{$opt->{bundle}} };
+   my ( $class, $arg ) = @_;
+
+   my $type    = $arg->{input};
+   my $headers = $arg->{headers};
+
+   croak "Wrong input type" unless $type =~ m/ csv | json | yaml | yml /ix;
+
+   $type = lc( $type );
+   $type = 'yaml' if $type eq 'yml';
+
+   my %types = (
+      yaml => \&_read_yaml,
+      csv  => \&_read_csv,
+      json => \&_read_json,
+   );
+
+   $arg->{data} = $types{$type}->( $headers );
+
+   my $self = bless $arg, $class;
+   return $self;
+}
+
+=head2 METHODS
+
+=head3 to_json
+Converts data to json
+=cut
+sub to_json
+{
+   my $self = shift;
+   my $j = JSON->new->pretty;
+   return $j->encode( $self->{data} );
+}
+
+=head3 to_yaml
+Converts data to yaml.
+=cut
+sub to_yaml
+{
+   my $self = shift;
+   return Dump $self->{data};
+}
+
+=head3 to_csv
+Converts data to csv. Not supported because why bother when YAML is nicer?
+=cut
+sub to_csv
+{
+   my $self = shift;
+   return "Converting to csv currently not supported. Use yaml instead.";
+}
+
+#
+# subs
+#
+
+=head2 SUBS
+
+Subs that this packages uses, but are not called as methods
+
+=head3 _read_json
+Reads json from stdin and converts to a Perl data structure.
+=cut
+sub _read_json
+{
+   my $json_string = join "\n", @{ _read_stdin() };
+   return decode_json( $json_string );
+}
+
+=head3 _read_yaml
+Reads yaml from stdin and converts to a Perl data structure.
+=cut
+sub _read_yaml
+{
+   my $yml_string = join "\n", @{ _read_stdin() };
+   return Load $yml_string;
+}
+
+=head3 _read_csv
+Reads csv from stdin and converts to a Perl data structure.
+=cut
+sub _read_csv
+{
+   my $headers = shift;
+   my ( $lines ) = _read_stdin();
    my @data;
 
    # This will produce an array of hashes, possibly witn another array if hash
@@ -263,14 +386,14 @@ sub csv_to_data
       for my $f ( @fields )
       {
          # If field is an array e.g. one, two, three.
-         if ( $f =~ m/$opt->{array_delimiter}/ and $headers[$i] ne 'promisee' )
+         if ( $f =~ m/$opt->{array_delimiter}/ and $headers->[$i] ne 'promisee' )
          {
             my @array = split m/$opt->{array_delimiter}/, $f;
-            push @{ $hash->{ $headers[$i] } }, @array;
+            push @{ $hash->{ $headers->[$i] } }, @array;
          }
          else
          {
-            $hash->{ $headers[$i] } = $f;
+            $hash->{ $headers->[$i] } = $f;
          }
          $i++;
       }
@@ -279,7 +402,10 @@ sub csv_to_data
    return \@data;
 }
 
-sub read_from_stdin
+=head3 _read_stdin
+Read data, csv, json, or yaml from STDIN.
+=cut
+sub _read_stdin
 {
    my @input_data;
    while ( my $line = <>)
@@ -303,77 +429,4 @@ sub read_from_stdin
    }
    return \@input_data;
 }
-
-sub data_to_json
-{
-   my $data = shift;
-   my $j = JSON->new->pretty;
-   my $json = $j->encode( $data );
-   return $json;
-}
-
-sub data_to_yml
-{
-   my $data = shift;
-   my $yml = Dump $data;
-   return $yml;
-}
-
-sub json_to_data 
-{
-   my $json = shift;
-   my $json_string = join "\n", @{ $json };
-   my $data = decode_json( $json_string );
-   return $data;
-}
-
-sub yml_to_data
-{
-   my $yml = shift;
-   my $yml_string = join "\n", @{ $yml };
-   my $data = Load $yml_string;
-   return $data;
-}
-
-##########################
-# Main matter here
-
-$opt = _get_cli_args();
-
-if ( $opt->{help} ) { usage(); exit; }
-
-if ( $opt->{version} ) { pod2usage(-verbose=>99, -sections=>"VERSION" ) }
-
-if ( $opt->{sample} ) { print $sample{$opt->{sample}}; exit; }
-
-# Read data from stdin
-my $input_data = read_from_stdin();
-
-# Build data structure from input.
-my $data;
-if ( $opt->{ctj} or $opt->{cty} )
-{
-   $data = csv_to_data( $input_data );
-}
-elsif ( $opt->{jty} )
-{
-   $data = json_to_data( $input_data );
-}
-elsif ( $opt->{ytj} )
-{
-   $data = yml_to_data( $input_data );
-}
-
-# Build final data from data structure 
-if ( $opt->{ctj} or $opt->{ytj} )
-{
-   $data = data_to_json( $data );
-}
-elsif ( $opt->{cty} or $opt->{jty} )
-{
-   $data = data_to_yml( $data );
-}
-
-# TODO needs a test suite?
-#
-say $data;
+1;
