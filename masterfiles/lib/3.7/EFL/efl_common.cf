@@ -173,27 +173,16 @@ bundle agent efl_main( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -207,17 +196,9 @@ bundle agent efl_main( ref )
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
    methods:
       "methods loop wrapper"
@@ -330,27 +311,16 @@ bundle agent efl_class_returnszero( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -364,17 +334,9 @@ bundle agent efl_class_returnszero( ref )
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "${d[${i}][class_to_set]}_non_zero" -> { "${d[${i}][promisee]}" }
          comment    => "Does class to set result from zero or non zero return value",
@@ -454,27 +416,16 @@ bundle agent efl_global_slists( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -524,17 +475,9 @@ bundle agent efl_global_slists( ref )
 	classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "no_shuffle_${d[${i}][name]}"
          ifvarclass => "${d[${i}][class]}",
@@ -613,27 +556,16 @@ bundle agent efl_global_strings ( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -653,17 +585,9 @@ bundle agent efl_global_strings ( ref )
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 }
 
 bundle agent efl_class_cmd_regcmp( ref )
@@ -726,27 +650,16 @@ bundle agent efl_class_cmd_regcmp( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -765,17 +678,9 @@ bundle agent efl_class_cmd_regcmp( ref )
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "use_not_for_${param_file}_${i}" -> { "${d[${i}][promisee]}" }
          comment    => "Use not rather than expression",
@@ -851,27 +756,16 @@ bundle agent efl_class_expression( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -885,17 +779,9 @@ bundle agent efl_class_expression( ref )
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if expression is true.",
@@ -954,27 +840,16 @@ bundle agent efl_class_classmatch( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -988,17 +863,9 @@ bundle agent efl_class_classmatch( ref )
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if classmatch function returns true.",
@@ -1058,27 +925,16 @@ bundle agent efl_class_iprange( ref )
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
@@ -1092,17 +948,9 @@ bundle agent efl_class_iprange( ref )
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
-      "parse_${param_file}_as_json"
-         comment    => "Is parameter file json?",
-         expression => regcmp( ${efl_c.json_file}, ${ref} );
-
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
-
-      "parse_${param_file}_as_yaml"
-         comment    => "Is parameter file yaml?",
-         expression => regcmp( ${efl_c.yaml_file}, ${ref} );
 
    classes:
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }

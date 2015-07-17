@@ -31,27 +31,16 @@
             ifvarclass => "parse_${param_file}_as_csv",
             data       => mergedata( tmp );
 
-      # parse_${param_file}_as_json::
-         "json_data"
+      # !parse_${param_file}_as_csv::
+         "data"
             comment    => "Parse json file",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => readdata( "${ref}", "auto" );
 
          "d"
             comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_json" ,
-            data       => data_expand( "json_data" );
-
-      # parse_${param_file}_as_yaml::
-         "yaml_data"
-            comment    => "Parse yaml file",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => readyaml( "${ref}", "${efl_c.max_bytes}" );
-
-         "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "parse_${param_file}_as_yaml" ,
-            data       => data_expand( "yaml_data" );
+            ifvarclass => "!parse_${param_file}_as_csv" ,
+            data       => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
