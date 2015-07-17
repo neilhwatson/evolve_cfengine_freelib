@@ -336,10 +336,6 @@ sub to_csv
    return "Converting to csv currently not supported. Use yaml instead.";
 }
 
-#
-# subs
-#
-
 =head2 SUBS
 
 Subs that this packages uses, but are not called as methods
