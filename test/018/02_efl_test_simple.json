@@ -1,0 +1,20 @@
+[
+   {
+      "class_to_test" : "018_test_class_01",
+      "name" : "pass efl_class_hostname2 01",
+      "class" : "any",
+      "is_or_isnt" : "is"
+   },
+   {
+      "class_to_test" : "018_test_class_02",
+      "name" : "pass efl_class_hostname2 02",
+      "class" : "any",
+      "is_or_isnt" : "is"
+   },
+   {
+      "class_to_test" : "never",
+      "name" : "pass if never defined",
+      "class" : "any",
+      "is_or_isnt" : "isnt"
+   }
+]

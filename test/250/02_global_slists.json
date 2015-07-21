@@ -1,0 +1,9 @@
+[
+   {
+      "class" : "any",
+      "name" : "nameservers",
+      "contents" : [ "2001:DB8::1", "2001:DB8::2", "2001:DB8::3" ],
+      "shuffle": "n",
+      "promisee" : "efl development"
+   }
+]

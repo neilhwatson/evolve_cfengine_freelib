@@ -277,9 +277,9 @@ bundle agent efl_global_slists( ref )
 
 ## processing data
       "pre_shuffle_${d[${i}][name]}"
-         comment    => "List is in json, no preprocessing needed",
-         ifvarclass => "process_list_from_json_${d[${i}][name]}",
-         slist      => getvalues( "json_data[${i}][contents]" );
+         comment => "List is in json, no preprocessing needed",
+         unless  => "split_csv_list_${d[${i}][name]}",
+         slist   => getvalues( "d[${i}][contents]" );
 
       "pre_shuffle_${d[${i}][name]}"
          comment    => "Get slist from csv list inside data container",

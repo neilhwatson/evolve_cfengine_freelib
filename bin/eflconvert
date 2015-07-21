@@ -18,7 +18,7 @@ eflconvert < input.csv > output.json
 [ -a | --array_delimitier] '<delimiter regex>' defaults to ','
 [ -b | --bundle] <bundle name> convert file for this EFL bundle
 [ -o | --output] csv|json|yaml Convert to this format
-[ -i | --inpuput] csv|json|yaml Convert from this format
+[ -i | --input] csv|json|yaml Convert from this format
 
 Use perldoc to see full documentation.
 

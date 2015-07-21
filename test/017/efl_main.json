@@ -1,0 +1,18 @@
+[
+   {
+      "promiser" : "Testing efl_class_hostname",
+      "bundle" : "efl_class_hostname",
+      "class" : "017_efl_test",
+      "ifelapsed" : "1",
+      "promisee" : "efl development",
+      "parameter" : "../017/01_hostname_class-017_test_class.txt"
+   },
+   {
+      "parameter" : "../017/02_efl_test_simple.json",
+      "promisee" : "efl development",
+      "ifelapsed" : "1",
+      "bundle" : "efl_test_simple",
+      "promiser" : "Testing efl_class_hostname",
+      "class" : "017_efl_test"
+   }
+]

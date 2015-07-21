@@ -4,8 +4,8 @@ VERSION     = 3.7
 LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
-CSVTOJSON   = ./bin/eflconvert -ctj
-CSVTOYAML   = ./bin/eflconvert -cty
+CSVTOJSON   = ./bin/eflconvert -i csv -o json
+CSVTOYAML   = ./bin/eflconvert -i csv -o yaml
 APT_GET     = /usr/bin/apt-get --quiet --yes
 
 # Don't changes this, it's hard coded in some CF policy data
@@ -39,12 +39,12 @@ cfstdlib    = \
 	test/$(LIB)/monitor.cf \
 	test/$(LIB)/stdlib.cf
 
+# 1003_efl_test
 tests       =   \
 	version      \
 	syntax       \
 	1001_efl_test \
 	1002_efl_test \
-	1003_efl_test \
 	003_efl_test \
 	004_efl_test \
 	005_efl_test \
@@ -101,6 +101,10 @@ tests       =   \
 	291_efl_test \
 	292_efl_test \
 	293_efl_test \
+
+test_files = \
+	test/020/01_efl_sysctl_live.json \
+	test/251/03_cfengine_templates.json \
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -348,21 +352,22 @@ test/1002/efl_main.json: test/1001/efl_main.csv
 test/1002/%_efl_test_simple.json: test/1001/%_efl_test_simple.csv
 	$(CSVTOJSON) -b efl_test_simple < $^ > $@
 
-.PHONY: 1003_efl_test
-1001_csv_test_files  = $(wildcard test/1001/*.csv)
-1003_csv_test_files  = $(subst 1001,1003,$(1001_csv_test_files))
-1003_yaml_test_files = $(patsubst %.csv,%.yaml,$(1003_csv_test_files))
-
-1003_efl_test: 1001_efl_test test/1003/efl_main.yaml $(1003_yaml_test_files)
-	$(call cf_agent_grep_test, $@,$(1001_1002_1003_efl_test_result))
-
-test/1003/efl_main.yaml: test/1001/efl_main.csv
-	$(CSVTOYAML) -b efl_main < $< > $@
-	$(call search_and_replace,1001,1003,$@) 
-	$(call search_and_replace,\.csv,\.yaml,$@) 
-
-test/1003/%_efl_test_simple.yaml: test/1001/%_efl_test_simple.csv
-	$(CSVTOYAML) -b efl_test_simple < $^ > $@
+# Disabled due to bug 7372
+#.PHONY: 1003_efl_test
+#1001_csv_test_files  = $(wildcard test/1001/*.csv)
+#1003_csv_test_files  = $(subst 1001,1003,$(1001_csv_test_files))
+#1003_yaml_test_files = $(patsubst %.csv,%.yaml,$(1003_csv_test_files))
+#
+#1003_efl_test: 1001_efl_test test/1003/efl_main.yaml $(1003_yaml_test_files)
+#	$(call cf_agent_grep_test, $@,$(1001_1002_1003_efl_test_result))
+#
+#test/1003/efl_main.yaml: test/1001/efl_main.csv
+#	$(CSVTOYAML) -b efl_main < $< > $@
+#	$(call search_and_replace,1001,1003,$@) 
+#	$(call search_and_replace,\.csv,\.yaml,$@) 
+#
+#test/1003/%_efl_test_simple.yaml: test/1001/%_efl_test_simple.csv
+#	$(CSVTOYAML) -b efl_test_simple < $^ > $@
 
 #
 #
@@ -844,6 +849,7 @@ clean:
 	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
 	rm -f /etc/systemd/system/$(test_systemd_def)
+	rm -f $(test_files)
 
 
 .PHONY: help

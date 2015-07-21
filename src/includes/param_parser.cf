@@ -6,9 +6,9 @@
 
       # parse_${param_file}_as_csv::
          "csv_data"
-            comment    => "Parse csv file",
-            ifvarclass => "parse_${param_file}_as_csv",
-            data       => data_readstringarrayidx(
+            comment => "Parse csv file",
+            if      => "parse_${param_file}_as_csv",
+            data    => data_readstringarrayidx(
                "${ref}",
                "${efl_c.comment}",
                "${efl_c.array_delimiter}",
@@ -17,30 +17,30 @@
             );
 
          "t" 
-            comment    => "index from csv file may not be in the correct order",
-            ifvarclass => "parse_${param_file}_as_csv",
-            slist      => getindices( "csv_data" );
+            comment => "index from csv file may not be in the correct order",
+            if      => "parse_${param_file}_as_csv",
+            slist   => getindices( "csv_data" );
 
          "tmp[${t}][${params[${p}]}]"
-            comment    => "Transform to provide column labels and exapnds vars",
-            ifvarclass => "parse_${param_file}_as_csv",
-            string     => "${csv_data[${t}][${p}]}";
+            comment => "Transform to provide column labels and exapnds vars",
+            if      => "parse_${param_file}_as_csv",
+            string  => "${csv_data[${t}][${p}]}";
 
          "d"
-            comment    => "Turn into a true data container",
-            ifvarclass => "parse_${param_file}_as_csv",
-            data       => mergedata( tmp );
+            comment => "Turn into a true data container",
+            if      => "parse_${param_file}_as_csv",
+            data    => mergedata( tmp );
 
       # !parse_${param_file}_as_csv::
          "data"
-            comment    => "Parse json file",
-            ifvarclass => "!parse_${param_file}_as_csv" ,
-            data       => readdata( "${ref}", "auto" );
+            comment => "Parse json file",
+            unless  => "parse_${param_file}_as_csv" ,
+            data    => readdata( "${ref}", "auto" );
 
          "d"
-            comment    => "Expand vars inside of container",
-            ifvarclass => "!parse_${param_file}_as_csv" ,
-            data       => data_expand( "data" );
+            comment => "Expand vars inside of container",
+            unless  => "parse_${param_file}_as_csv" ,
+            data    => data_expand( "data" );
 
       # final data here from any param file::
          "i_unsorted"
