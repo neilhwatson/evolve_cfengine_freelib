@@ -1,0 +1,344 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Find;
+use POSIX qw/ WIFEXITED /;
+use Pod::Usage;
+use Getopt::Long;
+use Data::Dumper;
+
+my $VERSION = 1;
+
+my $cli_arg_ref;
+
+#
+# subs
+#
+
+sub _get_cli_args {
+
+   # Set default CLI args here. Getopts will override.
+   my $cli_arg_ref = {
+      sys_workdir   => '/var/cfengine',
+      update_policy => 'update.cf',
+      policy_server => '',
+   };
+
+   # Define ways to valid your arguments using anonymous subs or regexes.
+   my $valid_arg_ref = {
+      sys_workdir => {
+         constraint => sub { my ( $workdir ) = @_; return ( -d  $workdir ) },
+         error      => 'sys_workdir not a directory'
+      },
+      update_policy => {
+         constraint => qr/\A \S+ \z/xms,
+         error      => 'update_policy is invalid'
+      },
+      policy_server => {
+         constraint => qr/\A \S+ \z/xms,
+         error      => 'policy_server is invalid'
+      },
+   };
+
+   # Read, process, and validate cli args
+   GetOptions(
+      $cli_arg_ref,
+      'sys_workdir=s',
+      'update_policy=s',
+      'policy_server=s',
+      'boostrap',
+
+      'version'  => sub { say $VERSION; exit                            },
+      #'test'     => sub { _run_tests(); exit                            },
+      'man'      => sub { pod2usage( -verbose => 2, -exitval => 0 )     },
+
+      'dumpargs' => sub {
+         print '$cli_arg_ref = '. Dumper( $cli_arg_ref ); exit
+      },
+      'help|?'   => sub {
+         pod2usage( -sections => ['OPTIONS'],  -exitval => 0, -verbose => 99)
+      },
+      'usage'    => sub {
+         pod2usage( -sections => ['SYNOPSIS'], -exitval => 0, -verbose => 99)
+      },
+      'examples' => sub {
+         pod2usage( -sections => 'EXAMPLES',   -exitval => 0, -verbose => 99)
+      },
+   ) or die "CLI argument error: [$!]";
+
+   # Futher, more complex cli arg validation
+   _validate_cli_args({
+         cli_inputs   => $cli_arg_ref,
+         valid_inputs => $valid_arg_ref
+   });
+
+   return $cli_arg_ref;
+}
+
+sub _validate_cli_args {
+   my ( $arg )     = @_;
+   my $cli         = $arg->{cli_inputs};
+   my $valid_input = $arg->{valid_inputs};
+   my $error_counts      = q{};
+
+   # Process cli args and test against the given contraint
+   for my $arg ( keys %{ $cli }) {
+      if ( defined $valid_input->{$arg} ) {
+         my $constraint = $valid_input->{$arg}->{constraint};
+         my $error_count      = $valid_input->{$arg}->{error};
+         my $ref        = ref $constraint;
+
+         # Test when constraint is a code reference.
+         if ( $ref eq 'CODE' ) {
+            $error_counts
+               .= "\n" . $error_count unless ( ${constraint}->( $cli->{$arg} ) );
+         }
+
+         # Test when contraint is a regular expression.
+         elsif ( $ref eq 'Regexp' ) {
+            $error_counts .= "\n" . $error_count unless ( $cli->{$arg} =~ $constraint );
+         }
+      }
+   }
+
+   # Report any invalid cli args 
+   pod2usage( -msg => $error_counts, -exitval => 2 ) if length $error_counts > 0;
+
+   return 1;
+}
+
+sub _get_pids
+{
+   my $egrep_for = shift;
+   my @matched_pids;
+
+   # read out from ps command
+   open( my $fh, "ps -e|egrep $egrep_for |" ) or warn "Cannot open ps:[$!]";
+   my @procs = <$fh>;
+   close $fh;
+
+   # get pids from the ps command
+   for my $next_proc ( @procs )
+   {
+      if ( $next_proc =~ m/\A\s*(\d+)/ )
+      {
+         my $proc = $1;
+         push @matched_pids, $proc;
+      }
+   }
+
+   return \@matched_pids;
+}
+
+sub kill_cfegngine {
+   my $egrep_for = 'cf-(agent|serverd|exed|monitord)';
+
+   my $pids_ref = _get_pids( $egrep_for );
+
+   # kill all pids
+   kill 'KILL', @{ $pids_ref };
+   return;
+}
+
+sub make_test_policy {
+   
+   # Make a test policy to test client server connections
+   return unless open( my $test_policy, '>', '/tmp/cf-cron.cf' );
+   for my $line (<DATA>) { print $test_policy $line }
+   close $test_policy;
+
+   return 1;
+}
+
+sub run_test_policy {
+   my $test_file = '/tmp/promise.cf';
+
+   # remove any old test file
+   return unless unlink $test_file;
+
+   # try to make new one with cfengine policy.
+   return unless WIFEXITED( system "$cli_arg_ref->{sys_workdir}/bin/cf-agent"
+      . " -Kf /tmp/cf-cron.cf" );
+
+   # test if new test file exist
+   return unless -e $test_file;
+
+   # success
+   return 1;
+}
+
+sub purge_db_files {
+   my $db_files = qr/lmdb/;
+
+   # Delete cfengine lmdb files.
+   find( sub { unlink $_ if m/$db_files/ }, $cli_arg_ref->{sys_workdir} );
+   return;
+}
+
+sub purge_inputs{
+
+   # Delete cfengine inputs/*
+   find( sub { unlink $_  }, "$cli_arg_ref->{sys_workdir}/inputs" );
+   return;
+}
+
+sub bootstrap_to {
+
+   my $policy_server = shift;
+
+   kill_cfengine();
+   purge_db_files();
+   purge_inputs();
+
+   # Now bootstrap
+   WIFEXITED(
+      system "$cli_arg_ref->{sys_workdir}/bin/cf-agent -B $policy_server" )
+      or return;
+
+   return  1;
+}
+#
+# Main matter
+#
+
+$cli_arg_ref = _get_cli_args();
+
+my $error_count = 0;
+
+# Run normal update
+if ( ! $cli_arg_ref->{bootstrap} ){
+
+   # Test cfengine with a file copy
+   make_test_policy() or $error_count++;
+   run_test_policy()  or $error_count++; 
+
+   # Run update
+   WIFEXITED( system "$cli_arg_ref->{sys_workdir}/bin/cf-agent"
+      ." -f $cli_arg_ref->{sys_workdir}/inputs/$cli_arg_ref->{update_policy}"
+      ) or $error_count++;
+
+   # Regular CFEngine run
+   WIFEXITED( system "$cli_arg_ref->{sys_workdir}/bin/cf-agent" )
+      or $error_count++;
+}
+# Rebootstrap if other commanded exited above zero or if bootstrap option
+elsif ( $error_count > 0 or $cli_arg_ref->{bootstrap} ){
+
+   bootstrap_to( $cli_arg_ref->{policy_server} )
+      or die "Failed to bootstrap to [$cli_arg_ref->{policy_server}]";
+}
+
+=head1 NAME
+
+cf-cron - Run CFEngine outside of cf-execd and repair failures.
+
+=head1 SYNOPSIS
+
+cf-cron
+
+Runs the agent and rebootstraps if something goes wrong. Best run from
+cron.hourly.
+
+=head1 OPTIONS
+
+=over 4
+
+=item
+[-s|--sys_workdir]
+Location of CFEngine workdir, defaults to /var/cfengine/.
+
+=item
+[-p|--policy_server]
+Policy server to bootstrap to.
+
+=item
+[-u|--update_policy]
+update.cf file. Defaults to sys_workdir/update.cf.
+
+=item
+[-b|--bootstrap]
+Run bootstrap anyway
+
+=back
+
+=head1 EXAMPLES
+
+=over 4
+
+=item
+
+Update or bootstrap to given server on failure.
+
+C<< cf-cron -p 2001:0DB8::2 >>
+
+=item
+
+Use efl_update.cf for updating or bootstrap if failure.
+
+C<< cf-cron -up lib/3.7/EFL/efl_update.cf -p 2001:0DB8::2 >>
+
+=item
+
+Bootstrap this hosts to the given server.
+
+C<< cf-cron -b -p 2001:0DB8::2 >>
+
+=back
+
+=head1 AUTHOR
+
+Neil H. Watson, C<< <nwatson@evolvethinking.com> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2014 Evolve Thinking Limited
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details
+<http://www.gnu.org/licenses/>.
+
+=cut
+
+__DATA__
+body common control
+{
+	bundlesequence => { "main", };
+}
+
+bundle agent main
+{
+   files:
+      "/tmp/promises.cf"
+         comment   => "Test copy",
+         create    => 'true',
+         copy_from => secure_cp(
+            "${sys.masterdir}/promises.cf", ${sys.policy_hub}
+            ),
+         classes   => if_notkept( 'report_not_kept' );   
+
+   reports:
+      report_not_kept::
+         "copy test failed please rebootstrap";
+}
+
+body copy_from secure_cp(from,server)
+{
+      source  => "$(from)";
+      servers => { "$(server)" };
+      compare => "digest";
+      encrypt => "true";
+      verify  => "true";
+}
+body classes if_notkept(x)
+{
+      repair_failed  => { "$(x)" };
+      repair_denied  => { "$(x)" };
+      repair_timeout => { "$(x)" };
+}
