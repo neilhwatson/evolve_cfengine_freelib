@@ -1297,6 +1297,10 @@ bundle agent efl_edit_template ( ref )
          ifvarclass => "${d[${i}][class]}",
          expression => regcmp( "${efl_c.mustache_template}", "${d[${i}][template]}" );
 
+      "report_wrong_template_file_${param_file}_${i}"
+         ifvarclass => "${d[${i}][class]}",
+         not        => "use_mustache_template_${param_file}_${i}|use_cfengine_template_${param_file}_${i}";
+
    files:
       "${efl_c.cache}/${d[${i}][template]}" -> { "${d[${i}][promisee]}" }
          comment    => "Locally cache template file.",
@@ -1336,7 +1340,7 @@ bundle agent efl_edit_template ( ref )
 
    reports:
       "ERROR invalid template filename [${d[${i}][template]}] required: <filename.(${efl_c.cfengine_template}|${efl_c.mustache_template})>"
-      ifvarclass => "!(use_cfengine_template_${param_file}_${i}|use_mustache_template_${param_file}_${i}).(${d[${i}][class]})";
+      if => "report_wrong_template_file_${param_file}_${i}";
 }
 
 bundle agent efl_lastseen
