@@ -664,6 +664,79 @@ bundle agent efl_packages( ref )
          package_architectures => { "${d[${i}][architecture]}" };
 }
 
+bundle agent efl_packages_new( ref )
+{
+   meta:
+      "purpose" string => "Promises packages using generic method.";
+      "field_0" string => "Class";
+      "field_1" string => "Package policy";
+      "field_2" string => "Package name regex";
+      "field_3" string => "version string";
+      "field_4" string => "arch, '*' seems to work to imply any arch";
+      "field_5" string => "promisee";
+      "ReadMe"  string => "Specify a version of '0' when version does not matter.";
+
+   vars:
+     "params"   
+         comment    => "Parameter field names and positions needef for csv parsing.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "package_policy",
+            "2" : "package_name",
+            "3" : "package_version",
+            "4" : "architecture",
+            "5" : "promisee"
+         }');
+
+      <efl param_parser efl/>
+
+   classes:
+      <efl param_file_picker efl/>
+
+      "report_wrong_policy_${param_file}_${i}"
+         comment    => "Polcy must be absent|present",
+         if         => "${d[${i}][class]}",
+         expression => regcmp( "(?msxi) \Z (?:absent|present) \z"
+            , "${d[${i}][package_policy]}" );
+
+      "promise_latest_version_${param_file}_${i}"
+         comment    => "If version is 0 then promise latest version",
+         if         => "${d[${i}][class]}",
+         expression => strcmp( "0", "${d[${i}][package_version]}" );
+
+      "promise_specific_version_${param_file}_${i}"
+         comment => "If version isn't 0 then promise the provided version",
+         if      => "${d[${i}][class]}",
+         not     => strcmp( "0", "${d[${i}][package_version]}" );
+
+   packages:
+      "${d[${i}][package_name]}" -> { "${d[${i}][promisee]}" }
+         comment      => "Promise package without version.",
+         handle       => "efl_packages_new_packages_version",
+         classes      => efl_rkn( "${this.promiser}", "${this.handle}" ),
+         action       => efl_delta_reporting( "${this.handle}"
+            , "${this.promiser}", "${d[${i}][promisee]}", "1" ),
+         if           => "promise_specific_version_${param_file}_${i}",
+         policy       => "${d[${i}][package_policy]}",
+         version      => "${d[${i}][package_version]}",
+         architecture => "${d[${i}][architecture]}";
+
+      "${d[${i}][package_name]}" -> { "${d[${i}][promisee]}" }
+         comment      => "Promise package without version.",
+         handle       => "efl_packages_new_packages_lastest",
+         classes      => efl_rkn( "${this.promiser}", "${this.handle}" ),
+         action       => efl_delta_reporting( "${this.handle}"
+            , "${this.promiser}", "${d[${i}][promisee]}", "1" ),
+         if           => "promise_latest_version_${param_file}_${i}",
+         policy       => "${d[${i}][package_policy]}",
+         architecture => "${d[${i}][architecture]}";
+
+   reports:
+      "Wrong policy [${d[${i}][package_policy]}], must be present or absent."
+         if => "report_wrong_policy_${param_file}_${i}";
+}
+
 bundle agent efl_start_service ( ref )
 {
    meta:

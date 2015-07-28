@@ -22,12 +22,13 @@ sub _get_cli_args {
    my $cli_arg_ref = {
       sys_workdir   => '/var/cfengine',
       update_policy => 'update.cf',
-      policy_server => '',
+      policy_server => _get_policy_server(),
+      quiet         => 1,
    };
 
    # Define ways to valid your arguments using anonymous subs or regexes.
    my $valid_arg_ref = {
-      sys_workdir => {
+      sys_workdir   => {
          constraint => sub { my ( $workdir ) = @_; return ( -d  $workdir ) },
          error      => 'sys_workdir not a directory'
       },
@@ -39,6 +40,10 @@ sub _get_cli_args {
          constraint => qr/\A \S+ \z/xms,
          error      => 'policy_server is invalid'
       },
+      quiet         => {
+         constraint => qr/\A [01] \z/xms,
+         error      => 'quiet must be 0 or 1'
+      },
    };
 
    # Read, process, and validate cli args
@@ -48,6 +53,7 @@ sub _get_cli_args {
       'update_policy=s',
       'policy_server=s',
       'boostrap',
+      'quiet=i',
 
       'version'  => sub { say $VERSION; exit                            },
       #'test'     => sub { _run_tests(); exit                            },
@@ -85,9 +91,9 @@ sub _validate_cli_args {
    # Process cli args and test against the given contraint
    for my $arg ( keys %{ $cli }) {
       if ( defined $valid_input->{$arg} ) {
-         my $constraint = $valid_input->{$arg}->{constraint};
-         my $error_count      = $valid_input->{$arg}->{error};
-         my $ref        = ref $constraint;
+         my $constraint  = $valid_input->{$arg}->{constraint};
+         my $error_count = $valid_input->{$arg}->{error};
+         my $ref         = ref $constraint;
 
          # Test when constraint is a code reference.
          if ( $ref eq 'CODE' ) {
@@ -108,8 +114,16 @@ sub _validate_cli_args {
    return 1;
 }
 
-sub _get_pids
-{
+sub _get_policy_server {
+   # Read in current policy server
+   if ( open my $psd, '<', '/var/cfengine/policy_server.dat' ){
+      my $policy_server = do { local $\; <$psd> };
+      close $psd;
+      return $policy_server;
+   }
+}
+
+sub _get_pids {
    my $egrep_for = shift;
    my @matched_pids;
 
@@ -158,8 +172,10 @@ sub run_test_policy {
    return unless unlink $test_file;
 
    # try to make new one with cfengine policy.
-   return unless WIFEXITED( system "$cli_arg_ref->{sys_workdir}/bin/cf-agent"
-      . " -Kf /tmp/cf-cron.cf" );
+   my $command = "$cli_arg_ref->{sys_workdir}/bin/cf-agent " 
+      ."-Kf /tmp/cf-cron.cf";
+   $command .= ' > /dev/null 2>&1' if $cli_arg_ref->{quiet};
+   return unless WIFEXITED( system $command );
 
    # test if new test file exist
    return unless -e $test_file;
@@ -214,13 +230,15 @@ if ( ! $cli_arg_ref->{bootstrap} ){
    run_test_policy()  or $error_count++; 
 
    # Run update
-   WIFEXITED( system "$cli_arg_ref->{sys_workdir}/bin/cf-agent"
-      ." -f $cli_arg_ref->{sys_workdir}/inputs/$cli_arg_ref->{update_policy}"
-      ) or $error_count++;
+   my $command = "$cli_arg_ref->{sys_workdir}/bin/cf-agent"
+      ." -f $cli_arg_ref->{sys_workdir}/inputs/$cli_arg_ref->{update_policy}";
+   $command .= ' > /dev/null 2>&1' if $cli_arg_ref->{quiet};
+   WIFEXITED( system $command) or $error_count++;
 
    # Regular CFEngine run
-   WIFEXITED( system "$cli_arg_ref->{sys_workdir}/bin/cf-agent" )
-      or $error_count++;
+   $command = "$cli_arg_ref->{sys_workdir}/bin/cf-agent";
+   $command .= ' > /dev/null 2>&1' if $cli_arg_ref->{quiet};
+   WIFEXITED( system $command ) or $error_count++;
 }
 # Rebootstrap if other commanded exited above zero or if bootstrap option
 elsif ( $error_count > 0 or $cli_arg_ref->{bootstrap} ){
@@ -250,7 +268,7 @@ Location of CFEngine workdir, defaults to /var/cfengine/.
 
 =item
 [-p|--policy_server]
-Policy server to bootstrap to.
+Policy server to bootstrap to. Defaults to what is found in policy_server.dat.
 
 =item
 [-u|--update_policy]
@@ -259,6 +277,10 @@ update.cf file. Defaults to sys_workdir/update.cf.
 =item
 [-b|--bootstrap]
 Run bootstrap anyway
+
+=item
+[-q|--quiet]=[1|0]
+/dev/null agent output. Set to 1 by default.
 
 =back
 

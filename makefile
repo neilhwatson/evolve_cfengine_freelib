@@ -74,6 +74,8 @@ tests       =   \
 	029_efl_test \
 	030_efl_test \
 	031_efl_test \
+	031a_efl_test \
+	031b_efl_test \
 	032_efl_test \
 	033_efl_test \
 	034_efl_test \
@@ -659,6 +661,14 @@ PHONY: 031_efl_test
 031_efl_test:
 	$(packages_test)
 
+PHONY: 031a_efl_test
+031a_efl_test:
+	$(packages_test)
+
+PHONY: 031b_efl_test
+031b_efl_test: 033_efl_test test/031b/01_packages.json
+	$(packages_test)
+
 PHONY: 034_efl_test
 034_efl_test: 033_efl_test test/032/01_packages.json
 	$(packages_test)
@@ -668,6 +678,9 @@ PHONY: 033_efl_test
 	$(packages_test)
 
 test/032/01_packages.json: test/031/01_packages.csv
+	$(CSVTOJSON) -b efl_packages < $^ > $@
+
+test/031b/01_packages.json: test/031a/01_packages.csv
 	$(CSVTOJSON) -b efl_packages < $^ > $@
 
 test_daemon          = efl_test_daemon

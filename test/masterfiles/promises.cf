@@ -5,6 +5,9 @@ body common control
       "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/EFL/evolve_freelib.cf",
       "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/EFL/efl_common.cf"
    };
+
+   debian|redhat::
+      package_module => $(package_module_knowledge.platform_default);
 }
 
 bundle common cfengine_stdlib
@@ -108,6 +111,10 @@ bundle agent main
       "any" usebundle => efl_packages( "../031/01_packages.csv" );
    034_efl_test::
       "any" usebundle => efl_packages( "../032/01_packages.json" );
+   031a_efl_test::
+      "any" usebundle => efl_packages_new( "../031a/01_packages.csv" );
+   031b_efl_test::
+      "any" usebundle => efl_packages_new( "../031b/01_packages.json" );
    035_efl_test::
       "any" usebundle => efl_start_service( "../035/01_efl_start_service.csv" );
    036_efl_test::
