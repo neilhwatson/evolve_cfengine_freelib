@@ -724,7 +724,7 @@ bundle agent efl_packages_new( ref )
 
       "${d[${i}][package_name]}" -> { "${d[${i}][promisee]}" }
          comment      => "Promise package without version.",
-         handle       => "efl_packages_new_packages_lastest",
+         handle       => "efl_packages_new_packages_latest",
          classes      => efl_rkn( "${this.promiser}", "${this.handle}" ),
          action       => efl_delta_reporting( "${this.handle}"
             , "${this.promiser}", "${d[${i}][promisee]}", "1" ),
