@@ -11,8 +11,8 @@
 
 body common control
 {
-   inputs => { "lib/3.7/EFL/efl_common.cf" };
-   bundlesequence => { "list_backup", "efl_c", "main" };
+   inputs => { "${sys.inputdir}/lib/3.7/EFL/efl_common.cf" };
+   bundlesequence => { "efl_c", "main" };
 }
 
 bundle agent config
@@ -45,7 +45,7 @@ bundle agent config
 
    reports:
       report_policy_servers::
-         "${list_backup.policy_servers}";
+         "${efl_global_slists.policy_servers}";
 }
 
 bundle agent main
@@ -99,7 +99,7 @@ bundle agent download_manifest( ref )
          copy_from => secure_cp( 
             "${efl_global_strings.masterfiles}/${ref}",
             # "@{eflu:config.policy_servers}" # prefix with namespace because of bug
-            "@{list_backup.policy_servers}" 
+            "@{efl_global_slists.policy_servers}" 
             );
 }
 
@@ -114,7 +114,7 @@ bundle agent inputs_purge
          perms        => mog( "600", "root", "root" ),
          classes      => if_repaired( "kill_cf_procs" ),
          depth_search => recurse( "inf" ),
-         copy_from    => secure_sync( "${efl_global_strings.masterfiles}", "@{list_backup.policy_servers}" );
+         copy_from    => secure_sync( "${efl_global_strings.masterfiles}", "@{efl_global_slists.policy_servers}" );
 
    processes:
       kill_cf_procs::
@@ -172,7 +172,7 @@ bundle agent inputs_and_modules( ref )
          comment    => "Download file shown to be new by the mainfest",
          ifvarclass => "download_${manifest_file_canon[${i}]}",
          classes    => if_repaired( "kill_cf_procs" ),
-         copy_from  => secure_cp( "${efl_global_strings.masterfiles}/${${manifest_file[${i}]}}", "@{list_backup.policy_servers}" );
+         copy_from  => secure_cp( "${efl_global_strings.masterfiles}/${${manifest_file[${i}]}}", "@{efl_global_slists.policy_servers}" );
       
       "${sys.workdir}/inputs/${${manifest_file[${i}]}}"
          handle     => "inputs_and_modules_files_inputs_permissions",
@@ -184,7 +184,7 @@ bundle agent inputs_and_modules( ref )
          handle    => "inputs_and_modules_files_modules_download",
          comment   => "Update modules",
          perms     => mog( "700", "root", "root" ),
-         copy_from => secure_cp( "${config.modules_path}/${config.modules}", "@{list_backup.policy_servers}" );
+         copy_from => secure_cp( "${config.modules_path}/${config.modules}", "@{efl_global_slists.policy_servers}" );
 
    processes:
       kill_cf_procs::

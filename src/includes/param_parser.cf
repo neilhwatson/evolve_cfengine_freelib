@@ -31,15 +31,15 @@
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::

@@ -109,15 +109,15 @@ bundle agent efl_sysctl_live( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -143,6 +143,10 @@ bundle agent efl_sysctl_live( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "set_live_sysctl_${d[${i}][variable]}"
          comment    => "Set class if live sysctl variable not equal to promised value",
@@ -228,15 +232,15 @@ bundle agent efl_sysctl_conf_file( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -254,6 +258,10 @@ bundle agent efl_sysctl_conf_file( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "promise_sysctl_conf_for_${param_file}"
          comment    => "Ensure files promises are not evaluated prematurely.",
@@ -356,15 +364,15 @@ bundle agent efl_command ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -382,6 +390,10 @@ bundle agent efl_command ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
    commands:
       "${d[${i}][command]}" -> { "${d[${i}][promisee]}" }
@@ -454,15 +466,15 @@ bundle agent efl_link ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -480,6 +492,10 @@ bundle agent efl_link ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
    files:
       "${d[${i}][link_name]}" -> { "${d[${i}][promisee]}" }
@@ -558,15 +574,15 @@ bundle agent efl_delete_files ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -584,6 +600,10 @@ bundle agent efl_delete_files ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
         "${param_file}_${i}_positive_match"
             ifvarclass => "${d[${i}][class]}",
@@ -725,15 +745,15 @@ bundle agent efl_copy_files ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -751,6 +771,10 @@ bundle agent efl_copy_files ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "recurse_${param_file}_${i}"
          comment    => "Set if promiser is a directory",
@@ -890,15 +914,15 @@ bundle agent efl_packages_via_cmd( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -932,6 +956,10 @@ bundle agent efl_packages_via_cmd( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "without_version_${param_file}_${i}"
          ifvarclass => "${d[${i}][class]}",
@@ -1044,15 +1072,15 @@ bundle agent efl_packages( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -1070,6 +1098,10 @@ bundle agent efl_packages( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "do_not_specify_version_${param_file}_${i}"
          comment    => "If version is '0' then do not specify version string",
@@ -1162,15 +1194,15 @@ bundle agent efl_packages_new( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -1188,6 +1220,10 @@ bundle agent efl_packages_new( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "report_wrong_policy_${param_file}_${i}"
          comment    => "Polcy must be absent|present",
@@ -1285,15 +1321,15 @@ bundle agent efl_start_service ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -1311,6 +1347,10 @@ bundle agent efl_start_service ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
    processes:
       "${d[${i}][process_regex]}" -> { "${d[${i}][promisee]}" }
@@ -1399,15 +1439,15 @@ bundle agent efl_service_recurse ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -1425,6 +1465,10 @@ bundle agent efl_service_recurse ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
    files:
       "${efl_c.cache}/${d[${i}][config_dir]}/." -> { "${d[${i}][promisee]}" }
@@ -1594,15 +1638,15 @@ bundle agent efl_service ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -1630,6 +1674,10 @@ bundle agent efl_service ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "copy_config_${param_file}_${i}" 
          comment    => "If configuration file is a straight copy",
@@ -1776,15 +1824,15 @@ bundle agent efl_enable_service ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -1821,6 +1869,10 @@ bundle agent efl_enable_service ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "enable_service_${param_file}_${i}"
          comment    => "Set action to enable if service not enabled",
@@ -1901,15 +1953,15 @@ bundle agent efl_disable_service ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -1946,6 +1998,10 @@ bundle agent efl_disable_service ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "disable_service_${param_file}_${i}"
          comment    => "Set action to disable if service not disabled",
@@ -2039,15 +2095,15 @@ bundle agent efl_file_perms ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -2065,6 +2121,10 @@ bundle agent efl_file_perms ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "recurse_${param_file}_${i}"
          comment    => "Is recursion desired?",
@@ -2205,15 +2265,15 @@ bundle agent efl_edit_template ( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -2241,6 +2301,10 @@ bundle agent efl_edit_template ( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "use_cfengine_template_${param_file}_${i}"
          ifvarclass => "${d[${i}][class]}",
@@ -2570,15 +2634,15 @@ bundle agent efl_rcs_pull( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -2600,6 +2664,10 @@ bundle agent efl_rcs_pull( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "promise_permissions_${i}"
          comment => "Fix perms if update or checkout was made",
@@ -2724,15 +2792,15 @@ bundle agent efl_test_simple( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -2750,6 +2818,10 @@ bundle agent efl_test_simple( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
       "class_isnt_${param_file}_${i}"
         ifvarclass => "${d[${i}][class]}",
@@ -2832,15 +2904,15 @@ bundle agent efl_dump_strings( ref )
             if      => "parse_${param_file}_as_csv",
             data    => mergedata( tmp );
 
-      # !parse_${param_file}_as_csv::
+      # !readdata_${param_file}
          "data"
             comment => "Parse json file",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => readdata( "${ref}", "auto" );
 
          "d"
             comment => "Expand vars inside of container",
-            unless  => "parse_${param_file}_as_csv" ,
+            if      => "readdata_${param_file}",
             data    => data_expand( "data" );
 
       # final data here from any param file::
@@ -2858,6 +2930,10 @@ bundle agent efl_dump_strings( ref )
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
    reports:
       "Name => [${d[${i}][name]}] Value => [${${d[${i}][name]}}] Promisee => [${d[${i}][promisee]}]"

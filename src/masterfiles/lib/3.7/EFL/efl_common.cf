@@ -332,7 +332,7 @@ bundle agent efl_global_slists( ref )
 
       "split_csv_list_${d[${i}][name]}"
          ifvarclass => "${d[${i}][class]}.parse_${param_file}_as_csv",
-         expression => regcmp( "[^,]+,.*", "${d[${i}][contents]}" );
+         not        => fileexists( "${d[${i}][contents]}" );
 
       "process_list_from_json_${d[${i}][name]}"
          expression => "${d[${i}][class]}.parse_${param_file}_as_json";

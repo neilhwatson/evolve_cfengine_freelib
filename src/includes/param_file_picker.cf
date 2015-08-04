@@ -3,3 +3,7 @@
       "parse_${param_file}_as_csv"
          comment    => "Is parameter file csv?",
          expression => regcmp( ${efl_c.csv_file}, ${ref} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
