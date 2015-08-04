@@ -16,6 +16,8 @@ EFL_FILES   = \
 	$(EFL_LIB)/evolve_freelib.cf \
 	$(EFL_LIB)/efl_update.cf
 
+AUTORUN = masterfiles/services/autorun/efl.cf
+
 eflmaker    = ./bin/eflmaker
 cfstdlib    = \
 	test/$(LIB)/commands.cf \
@@ -287,7 +289,7 @@ endef
 print-%: ; @echo $* is $($*)
 
 .PHONY: all
-all: $(EFL_FILES)
+all: $(EFL_FILES) $(AUTORUN)
 
 $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_picker.cf src/$@
 	cp src/$@ $@
@@ -298,6 +300,10 @@ $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_pi
 
 $(EFL_LIB):
 	mkdir -p $@
+
+$(AUTORUN): src/masterfiles/services/autorun src/$@
+	mkdir -p masterfiles/services/autorun
+	cp -r src/$@ $@
 
 .PHONY: check
 check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
