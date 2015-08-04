@@ -565,7 +565,7 @@ The _zero_ parameter means set class if returns zero (yes) or non-zero (no).
 
 ### Cf-serverd ACL's
 
-As your infrastructure grows you'll need more than the simple cf-serverd ACL's that masterfiles provides. EFL allow you to configure extra rules, by reading the file sys_workdir/inputs/efl_data/bundle_params/efl_server.json if it exists. The file looks like this:
+As your infrastructure grows you'll need more than the simple cf-serverd ACL's that masterfiles provides. EFL allows you to configure extra rules, by reading the file sys_workdir/inputs/efl_data/bundle_params/efl_server.json if it exists. The file looks like this:
 
 ```
 [
