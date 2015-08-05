@@ -1,7 +1,7 @@
 ## Installation using autorun
 
 1. Copy the contents of masterfiles into your masterfiles or equivalent repository.
-1. Enable autorun, if you have not do so already, by adding this class to your def.json file.
+1. Enable autorun, if you have not do so already, by adding this class to your ```def.json``` file.
 ```
 {
    "classes" :
@@ -11,9 +11,9 @@
 }
 ```
 
-This setup will run the bundle efl_main with the data file masterfiles/efl_data/bundle_params/efl_main.json'
+This setup will run the bundle efl_main with the data file ```masterfiles/efl_data/bundle_params/efl_main.json```
 
-Next, build your data files to feed the bundles. Typically store the data files in masterfiles/efl_data.
+Next, build your data files to feed the bundles. Typically store the data files in ```masterfiles/efl_data```.
 
 ## Building data files
 
