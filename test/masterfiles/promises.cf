@@ -40,6 +40,11 @@ bundle agent main
 
       "efl init" usebundle => efl_c;
 
+  iteration_order_csv:: 
+		"any" usebundle => efl_main( "../iteration_order/efl_main.csv" );
+  iteration_order_json::
+		"any" usebundle => efl_main( "../iteration_order/efl_main.json" );
+
    1001_efl_test::
 		"any" usebundle => efl_main( "../1001/efl_main.csv" );
    1002_efl_test::

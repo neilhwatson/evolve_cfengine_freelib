@@ -1,4 +1,3 @@
-CF_PROMISES = $(HOME)/bin/cf-promises
 CF_AGENT    = $(HOME)/bin/cf-agent
 VERSION     = 3.7
 LIB         = lib/$(VERSION)
@@ -41,12 +40,10 @@ cfstdlib    = \
 	test/$(LIB)/monitor.cf \
 	test/$(LIB)/stdlib.cf
 
-# 1003_efl_test
 tests       =   \
 	version      \
 	syntax       \
-	1001_efl_test \
-	1002_efl_test \
+	iteration_order \
 	003_efl_test \
 	004_efl_test \
 	005_efl_test \
@@ -321,61 +318,23 @@ $(cfstdlib): .stdlib
 
 .PHONY: version
 version:
-	$(CF_PROMISES) -V | grep $(VERSION) && echo PASS: $@
+	prove t/00_version.t
 
 .PHONY: syntax
 syntax: $(cfstdlib) test/$(EFL_LIB)
-	OUTPUT=$$($(CF_PROMISES) -cf ./test/masterfiles/promises.cf 2>&1) ;\
-	if [ -z "$$OUTPUT" ] ;\
-	then                  \
-		echo PASS: $@     ;\
-	else                  \
-		echo FAIL: $@     ;\
-		echo $$OUTPUT     ;\
-		exit 1            ;\
-	fi                    
+	prove t/01_syntax.t
 
 #
-# Test order of iteration
+# iteration order tests and dependencies
 #
-1001_1002_1003_efl_test_result = R: PASS, any, efl_main order 1\nR: PASS, any, efl_main order 2\nR: PASS, any, efl_main order 3\nR: PASS, any, efl_main order 4\nR: PASS, any, efl_main order 5\nR: PASS, any, efl_main order 6\nR: PASS, any, efl_main order 7\nR: PASS, any, efl_main order 8\nR: PASS, any, efl_main order 9\nR: PASS, any, efl_main order 10\nR: PASS, any, efl_main order 11\nR: PASS, any, efl_main order 12\nR: PASS, any, efl_main order 13\nR: PASS, any, efl_main order 14\nR: PASS, any, efl_main order 15\nR: PASS, any, efl_main order 16
+.PHONY: iteration_order
+iteration_order: version syntax test/iteration_order/efl_main.json 
+	prove t/iteration_order.t
 
-.PHONY: 1001_efl_test
-1001_efl_test: syntax
-	$(call cf_agent_grep_test, $@,$(1001_1002_1003_efl_test_result))
-
-.PHONY: 1002_efl_test
-1001_csv_test_files  = $(wildcard test/1001/*.csv)
-1002_csv_test_files  = $(subst 1001,1002,$(1001_csv_test_files))
-1002_json_test_files = $(patsubst %.csv,%.json,$(1002_csv_test_files))
-
-1002_efl_test: 1001_efl_test test/1002/efl_main.json $(1002_json_test_files)
-	$(call cf_agent_grep_test, $@,$(1001_1002_1003_efl_test_result))
-
-test/1002/efl_main.json: test/1001/efl_main.csv
+test/iteration_order/efl_main.json: test/iteration_order/efl_main.csv
 	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,1001,1002,$@) 
-	$(call search_and_replace,\.csv,\.json,$@) 
 
-test/1002/%_efl_test_simple.json: test/1001/%_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
-
-# Disabled due to bug 7372
-#.PHONY: 1003_efl_test
-#1001_csv_test_files  = $(wildcard test/1001/*.csv)
-#1003_csv_test_files  = $(subst 1001,1003,$(1001_csv_test_files))
-#1003_yaml_test_files = $(patsubst %.csv,%.yaml,$(1003_csv_test_files))
-#
-#1003_efl_test: 1001_efl_test test/1003/efl_main.yaml $(1003_yaml_test_files)
-#	$(call cf_agent_grep_test, $@,$(1001_1002_1003_efl_test_result))
-#
-#test/1003/efl_main.yaml: test/1001/efl_main.csv
-#	$(CSVTOYAML) -b efl_main < $< > $@
-#	$(call search_and_replace,1001,1003,$@) 
-#	$(call search_and_replace,\.csv,\.yaml,$@) 
-#
-#test/1003/%_efl_test_simple.yaml: test/1001/%_efl_test_simple.csv
-#	$(CSVTOYAML) -b efl_test_simple < $^ > $@
+# TODO yaml order test;
 
 #
 #
