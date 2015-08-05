@@ -1,30 +1,18 @@
-## Installation
+## Installation using autorun
 
 1. Copy the contents of masterfiles into your masterfiles or equivalent repository.
-1. Include all EFL .cf files in your inputs list in the common control body. Example:
-
+1. Enable autorun, if you have not do so already, by adding this class to your def.json file.
 ```
-bundle common efl_lib
 {
-   vars:
-      cfengine_3_7::
-         'lib_dir' string => 'lib/3.7/EFL';
-         'inputs'   slist => {
-            '${lib_dir}/efl_common.cf',
-            '${lib_dir}/efl_update.cf',
-            '${lib_dir}/evolve_freelib.cf'
-         };
-}
-
-body common control
-{
-   inputs => {
-      ....
-      '@{efl_lib.inputs}',
-      ....
-   };
+   "classes" :
+   {
+      "services_autorun" : "any"
+   }
 }
 ```
+
+This setup will run the bundle efl_main with the data file masterfiles/efl_data/bundle_params/efl_main.json'
+
 Next, build your data files to feed the bundles. Typically store the data files in masterfiles/efl_data.
 
 ## Building data files
@@ -79,24 +67,5 @@ vim mastefiles/efl_data/bundle_params/efl_main.json
 ]
 ```
 
-Elsewhere in your policy call the bundle efl_main with the parameter of the path to efl_main.json. Examples:
-
-```
-body common control
-{
-   bundlesequence => { .... "efl_main( '${sys.inputdir}/efl_data/bundle_params/efl_main.json' )", ... };
-   ...
-}
-```
-
-OR
-
-```
-bundle agent mymain
-{
-   methods:
-      "EFL" usebundle => efl_main( "${sys.inputdir}/efl_data/bundle_params/efl_main.json" );
-      ...
-}
-```
+Once you deploy this to masterfiles your agents will pick them up and run EFL.
 
