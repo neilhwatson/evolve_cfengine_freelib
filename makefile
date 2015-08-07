@@ -15,6 +15,11 @@ EFL_FILES   = \
 	$(EFL_LIB)/evolve_freelib.cf \
 	$(EFL_LIB)/efl_update.cf
 
+EFL_TEST_FILES   = \
+	test/$(EFL_LIB)/efl_common.cf \
+	test/$(EFL_LIB)/evolve_freelib.cf \
+	test/$(EFL_LIB)/efl_update.cf
+
 AUTORUN = masterfiles/services/autorun/efl.cf
 
 eflmaker    = ./bin/eflmaker
@@ -41,11 +46,6 @@ cfstdlib    = \
 	test/$(LIB)/stdlib.cf
 
 tests       =   \
-	version      \
-	syntax       \
-	iteration_order \
-	003_efl_test \
-	004_efl_test \
 	005_efl_test \
 	006_efl_test \
 	007_efl_test \
@@ -286,7 +286,7 @@ endef
 print-%: ; @echo $* is $($*)
 
 .PHONY: all
-all: $(EFL_FILES) $(AUTORUN)
+all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES)
 
 $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_picker.cf src/$@
 	cp src/$@ $@
@@ -295,26 +295,29 @@ $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_pi
 	$(eflmaker) --tar $@ \
 		--tag param_file_picker -i src/includes/param_file_picker.cf
 
+$(EFL_TEST_FILES): $(EFL_FILES) $(cfstdlib) test/$(EFL_LIB)
+	cp -r $(EFL_LIB)/$(notdir $@) test/$(EFL_LIB)
+
 $(EFL_LIB):
+	mkdir -p $@
+
+test/$(EFL_LIB):
 	mkdir -p $@
 
 $(AUTORUN): src/masterfiles/services/autorun src/$@
 	mkdir -p masterfiles/services/autorun
 	cp -r src/$@ $@
 
-.PHONY: check
-check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
-	@echo PASSED ALL TESTS
-
-test/$(EFL_LIB): $(EFL_FILES)
-	mkdir -p $@
-	cp -r $(EFL_LIB)/* test/$(EFL_LIB)/
-
 $(cfstdlib): .stdlib
 
 .stdlib:
 	cd test/masterfiles/lib; svn export --force $(CF_REPO)/masterfiles/trunk/lib/$(VERSION)
 	touch $@
+
+.PHONY: check
+check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
+	prove 
+	@echo PASSED ALL TESTS
 
 .PHONY: version
 version:
@@ -327,6 +330,7 @@ syntax: $(cfstdlib) test/$(EFL_LIB)
 #
 # iteration order tests and dependencies
 #
+# TODO yaml order test
 .PHONY: iteration_order
 iteration_order: version syntax test/iteration_order/efl_main.json 
 	prove t/iteration_order.t
@@ -334,34 +338,140 @@ iteration_order: version syntax test/iteration_order/efl_main.json
 test/iteration_order/efl_main.json: test/iteration_order/efl_main.csv
 	$(CSVTOJSON) -b efl_main < $< > $@
 
-# TODO yaml order test;
+#
+# efl_class_.* bundle testing
+#  # TODO start here.
+#
+efl_class_bundles = \
+  efl_class_returnszero \
+  efl_class_cmd_regcmp \
+  efl_class_expression
 
-#
-#
-#
-.PHONY: 004_efl_test
-004_efl_test_result = R: PASS, 004_true_true, Class if /bin/true\nR: PASS, 004_true_false, Class if /bin/false\nR: PASS, 004_false_false, Is not true
-004_efl_test: 003_efl_test test/004/efl_main.json test/004/01_efl_returnszero.json test/004/02_efl_test_simple.json
-	$(call cf_agent_grep_test, $@,$(004_efl_test_result))
+.PHONY: $(efl_class_bundles)
+$(efl_class_bundles): version syntax \
+  test/$@/efl_main.json \
+  test/$@/01_$@.json \
+  test/$@/02_efl_test_simple.json
+	prove t/efl_class_$@_csv.t
+	prove t/efl_class_$@_json.t
 
-test/004/efl_main.json: test/003/efl_main.csv
+test/%/efl_main.json: test/%/efl_main.csv
 	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,003,004,$@) 
+	perl -pi -e 's/csv/json/' $@
+
+test/efl_class_returnszero/01_efl_class_returnszero.json: \
+  test/efl_class_returnszero/01_efl_class_returnszero.csv
+	$(CSVTOJSON) -b efl_class_returnszero < $^ > $@
+
+test/efl_class_returnszero/02_efl_test_simple.json: \
+  test/efl_class_returnszero/02_efl_test_simple.csv
+	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+
+
+#
+# efl_class_returnszero
+#
+# TODO yaml data
+#.PHONY: efl_class_returnszero
+#efl_class_returnszero: version syntax test/efl_class_returnszero/efl_main.json \
+#  test/efl_class_returnszero/01_efl_class_returnszero.json \
+#  test/efl_class_returnszero/02_efl_test_simple.json
+#	prove t/efl_class_returnszero_csv.t
+#	prove t/efl_class_returnszero_json.t
+#
+#test/efl_class_returnszero/efl_main.json: test/efl_class_returnszero/efl_main.csv
+#	$(CSVTOJSON) -b efl_main < $< > $@
+#	perl -pi -e 's/csv/json/' $@
+#
+#test/efl_class_returnszero/01_efl_class_returnszero.json: \
+#  test/efl_class_returnszero/01_efl_class_returnszero.csv
+#	$(CSVTOJSON) -b efl_class_returnszero < $^ > $@
+#
+#test/efl_class_returnszero/02_efl_test_simple.json: \
+#  test/efl_class_returnszero/02_efl_test_simple.csv
+#	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+#
+#
+# efl_class_cmd_regcmp
+#
+.PHONY: efl_class_cmd_regcmp
+efl_class_cmd_regcmp: version syntax \
+  test/efl_class_cmd_regcmp/efl_main.json \
+  test/efl_class_cmd_regcmp/01_efl_class_cmd_regcmp.json \
+  test/efl_class_cmd_regcmp/02_efl_test_simple.json
+	prove t/efl_class_cmd_regcmp_csv.t
+	prove t/efl_class_cmd_regcmp_json.t
+
+test/efl_class_cmd_regcmp/efl_main.json: \
+	test/efl_class_cmd_regcmp/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	perl -pi -e 's/csv/json/' $@
+
+test/efl_class_cmd_regcmp/01_efl_class_cmd_regcmp.json: \
+  test/efl_class_cmd_regcmp/01_efl_class_cmd_regcmp.csv
+	$(CSVTOJSON) -b efl_class_cmd_regcmp < $^ > $@
+
+test/efl_class_cmd_regcmp/02_efl_test_simple.json: \
+  test/efl_class_cmd_regcmp/02_efl_test_simple.csv
+	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+
+#
+# efl_class_expression
+#
+.PHONY: efl_class_expression
+efl_class_expression: version syntax \
+  test/efl_class_expression/efl_main.json \
+  test/efl_class_expression/01_efl_class_expression.json \
+  test/efl_class_expression/02_efl_test_simple.json
+	prove t/efl_class_expression_csv.t
+	prove t/efl_class_expression_json.t
+
+test/efl_class_expression/efl_main.json: \
+	test/efl_class_expression/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	perl -pi -e 's/csv/json/' $@
+
+test/efl_class_expression/01_efl_class_expression.json: \
+  test/efl_class_expression/01_efl_class_expression.csv
+	$(CSVTOJSON) -b efl_class_expression < $^ > $@
+
+test/efl_class_expression/02_efl_test_simple.json: \
+  test/efl_class_expression/02_efl_test_simple.csv
+	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+
+#
+#
+#
+
+.PHONY: 012_efl_test
+012_efl_test: 012_efl_test_result = R: PASS, 012_test_class_01, pass if both classes match\nR: PASS, 012_test_class_02, pass if either class matches\nR: PASS, 012_test_class_03, pass if neither class matches
+
+012_efl_test: 011_efl_test test/012/01_efl_class_expression.json test/012/02_efl_test_simple.json test/012/efl_main.json
+	$(call cf_agent_grep_test, $@,$(012_efl_test_result))
+
+test/012/efl_main.json: test/011/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	$(call search_and_replace,011,012,$@) 
 	$(call search_and_replace,\.csv,\.json,$@)
 
-test/004/01_efl_returnszero.json: test/003/01_efl_returnszero.csv
-	$(CSVTOJSON) -b efl_class_returnszero < $^ > $@
-	$(call search_and_replace,003,004,$@) 
+test/012/01_efl_class_expression.json: test/011/01_efl_class_expression.csv
+	$(CSVTOJSON) -b efl_class_expression < $^ > $@
+	$(call search_and_replace,011,012,$@) 
 
-test/004/02_efl_test_simple.json: test/003/02_efl_test_simple.csv
+test/012/02_efl_test_simple.json: test/011/02_efl_test_simple.csv
 	$(CSVTOJSON) -b efl_test_simple < $^ > $@
-	$(call search_and_replace,003,004,$@) 
+	$(call search_and_replace,011,012,$@) 
 
-.PHONY: 003_efl_test
-003_efl_test_result = R: PASS, 003_true_true, Class if /bin/true\nR: PASS, 003_true_false, Class if /bin/false\nR: PASS, 003_false_false, Is not true
-003_efl_test:
-	$(call cf_agent_grep_test, $@,$(003_efl_test_result))
+.PHONY: 011_efl_test
+011_efl_test: 011_efl_test_result = R: PASS, 011_test_class_01, pass if both classes match\nR: PASS, 011_test_class_02, pass if either class matches\nR: PASS, 011_test_class_03, pass if neither class matches
+011_efl_test:
+	$(call cf_agent_grep_test, $@,$(011_efl_test_result))
 
+
+#
+# efl_global_slists
+#
+# TODO test yaml data
 005_006_efl_test_result = R: efl_global_lists\.ntp_servers  => \[ntp1\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp2\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp3\.example\.com\]\n(R: efl_global_lists\.name_servers => \[10\.0\.0\.\d{1}\]\n){3}(R: efl_global_lists\.web_servers  => \[\d{1}\.example\.com\]\n{0,1}){3}
 .PHONY: 006_efl_test
 006_efl_test:  005_efl_test test/006/efl_main.json test/006/01_efl_global_slists.json test/006/02_efl_dump_strings.json test/006/name_servers.txt
@@ -408,53 +518,6 @@ test/008/02_efl_dump_strings.json: test/007/02_efl_dump_strings.csv
 .PHONY: 007_efl_test
 007_efl_test:
 	$(call cf_agent_grep_test, $@,$(007_008_efl_test_result))
-
-.PHONY: 010_efl_test
-010_efl_test: 010_efl_test_result = R: PASS, 010_test_class_01, true if output matches\nR: PASS, 010_test_class_02, true if output does not match\nR: PASS, 010_test_class_03, should not match\nR: PASS, 010_test_class_04, true if output is there
-
-010_efl_test: 009_efl_test test/010/01_efl_class_cmd_regcmp.json test/010/02_efl_test_simple.json test/010/efl_main.json
-	$(call cf_agent_grep_test, $@,$(010_efl_test_result))
-
-test/010/efl_main.json: test/009/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,009,010,$@) 
-	$(call search_and_replace,\.csv,\.json,$@)
-
-test/010/01_efl_class_cmd_regcmp.json: test/009/01_efl_class_cmd_regcmp.csv
-	$(CSVTOJSON) -b efl_class_cmd_regcmp < $^ > $@
-	$(call search_and_replace,009,010,$@) 
-
-test/010/02_efl_test_simple.json: test/009/02_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
-	$(call search_and_replace,009,010,$@) 
-
-009_efl_test: 009_efl_test_result = R: PASS, 009_test_class_01, true if output matches\nR: PASS, 009_test_class_02, true if output does not match\nR: PASS, 009_test_class_03, should not match\nR: PASS, 009_test_class_04, true if output is there
-009_efl_test:
-	$(call cf_agent_grep_test, $@,$(009_efl_test_result))
-
-.PHONY: 012_efl_test
-012_efl_test: 012_efl_test_result = R: PASS, 012_test_class_01, pass if both classes match\nR: PASS, 012_test_class_02, pass if either class matches\nR: PASS, 012_test_class_03, pass if neither class matches
-
-012_efl_test: 011_efl_test test/012/01_efl_class_expression.json test/012/02_efl_test_simple.json test/012/efl_main.json
-	$(call cf_agent_grep_test, $@,$(012_efl_test_result))
-
-test/012/efl_main.json: test/011/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,011,012,$@) 
-	$(call search_and_replace,\.csv,\.json,$@)
-
-test/012/01_efl_class_expression.json: test/011/01_efl_class_expression.csv
-	$(CSVTOJSON) -b efl_class_expression < $^ > $@
-	$(call search_and_replace,011,012,$@) 
-
-test/012/02_efl_test_simple.json: test/011/02_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
-	$(call search_and_replace,011,012,$@) 
-
-.PHONY: 011_efl_test
-011_efl_test: 011_efl_test_result = R: PASS, 011_test_class_01, pass if both classes match\nR: PASS, 011_test_class_02, pass if either class matches\nR: PASS, 011_test_class_03, pass if neither class matches
-011_efl_test:
-	$(call cf_agent_grep_test, $@,$(011_efl_test_result))
 
 .PHONY: 014_efl_test
 014_efl_test: 014_efl_test_result = R: PASS, 014_test_class_01, pass\nR: PASS, 014_test_class_02, pass\nR: PASS, 014_test_class_03, pass if class never matches

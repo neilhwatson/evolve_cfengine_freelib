@@ -1,0 +1,3 @@
+any ;; test_class_01 ;; is   ;; pass if test_class_01 is true
+any ;; test_class_02 ;; is   ;; pass if test_class_02 is true
+any ;; test_class_03 ;; isnt ;; pass if test_class_03 is not true

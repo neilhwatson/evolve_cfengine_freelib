@@ -1,0 +1,3 @@
+any ;; 003_true_true   ;; is   ;; efl_class_returnszero - Class if /bin/true
+any ;; 003_true_false  ;; is   ;; efl_class_returnszero - Class if /bin/false
+any ;; 003_false_false ;; isnt ;; efl_class_returnszero - Class if not false

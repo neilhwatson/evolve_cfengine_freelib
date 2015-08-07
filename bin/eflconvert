@@ -419,7 +419,7 @@ sub _read_stdin
      next if $line =~ m/^#/;
 
      # Skip whitespace lines.
-     next if $line =~ m/\A\s+\Z/;
+     next if $line =~ m/\A\s*\Z/;
 
      push @input_data, $line
    }

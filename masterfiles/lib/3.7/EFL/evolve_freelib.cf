@@ -2742,7 +2742,7 @@ body depth_search efl_recurse_and_exclude ( d, dirs )
 bundle agent efl_test_simple( ref )
 {
    meta:
-      "purpose" string => "A testing bundle inspired by Perl's Test::Simple";
+      "purpose" string => "A testing bundle using TAP inspired by Perl's Test::Simple";
       "field_0" string => "Class expression"; # class
       "field_1" string => "Class regex to test"; # class_to_test
       "field_2" string => "pass test whether test class 'is' true or 'isnt' true"; # is_or_isnt
@@ -2750,7 +2750,7 @@ bundle agent efl_test_simple( ref )
 
    vars:
      "params"   
-         comment    => "Parameter field names and positions needef for csv parsing.",
+         comment    => "Parameter field names and positions for csv parsing.",
          data       => parsejson(
          '{
             "0" : "class",
@@ -2812,6 +2812,11 @@ bundle agent efl_test_simple( ref )
             comment    => "Ensure data is ordered because read functions may not",
             slist      => sort( i_unsorted, int );
 
+      any::
+         "number_of_tests"     int => length( "i" );
+         "test_number_${i}" string => format( "%1d"
+            , eval( "${i}+1", "math", "infix" ) );
+
    classes:
 ## If you call this bundle outside of efl_main, these classes will test for
 ## a json or csv parameter file. Warning, using this way you lose a pass.
@@ -2823,6 +2828,7 @@ bundle agent efl_test_simple( ref )
          expression => regcmp(
             "(${efl_c.json_file}|${efl_c.yaml_file})", ${ref} );
 
+# Determine if class test is for class is set or isn't set.
       "class_isnt_${param_file}_${i}"
         ifvarclass => "${d[${i}][class]}",
         expression => strcmp( "isnt", "${d[${i}][is_or_isnt]}" );
@@ -2830,25 +2836,40 @@ bundle agent efl_test_simple( ref )
         ifvarclass => "${d[${i}][class]}",
         expression => strcmp( "is", "${d[${i}][is_or_isnt]}" );
 
-      "pass_${param_file}_${i}"
-         ifvarclass => "class_isnt_${param_file}_${i}",
-         not        => classmatch( "${d[${i}][class_to_test]}" );
-      "fail_${param_file}_${i}"
+# Set classes for pass (ok) or failure (not_ok)
+      "ok_${param_file}_${i}"
+         if  => "class_isnt_${param_file}_${i}",
+         not => classmatch( "${d[${i}][class_to_test]}" );
+      "not_ok_${param_file}_${i}"
          ifvarclass => "class_isnt_${param_file}_${i}",
          expression => classmatch( "${d[${i}][class_to_test]}" );
-      "pass_${param_file}_${i}"
+      "ok_${param_file}_${i}"
          ifvarclass => "class_is_${param_file}_${i}",
          expression => classmatch( "${d[${i}][class_to_test]}" );
-      "fail_${param_file}_${i}"
-         ifvarclass => "class_is_${param_file}_${i}",
-         not        => classmatch( "${d[${i}][class_to_test]}" );
+      "not_ok_${param_file}_${i}"
+         if  => "class_is_${param_file}_${i}",
+         not => classmatch( "${d[${i}][class_to_test]}" );
 
    reports:
-      "PASS, ${d[${i}][class_to_test]}, ${d[${i}][name]}"
-         ifvarclass => "pass_${param_file}_${i}";
-      "FAIL, ${d[${i}][class_to_test]}, ${d[${i}][name]}"
-         ifvarclass => "fail_${param_file}_${i}";
+# Prefix with new lines to TAP parser will ignore the CFEngine R: prefix.
+# Also prefix with unique canonified param file to the same test reports from
+# different param files are still printed (avoids unexpected locking).
+" ${param_file}
+1..${number_of_tests}"
+   comment => "Report test plan test 1..n";
 
+
+" ${param_file}
+ok ${test_number_${i}} - ${d[${i}][name]}"
+   comment => "Report if class test passes",
+   if      => "ok_${param_file}_${i}";
+
+" ${param_file}
+not ok ${test_number_${i}} - ${d[${i}][name]}"
+   comment => "Report if class test failes",
+   if      => "not_ok_${param_file}_${i}";
+
+# For debugging only
       efl_test_simple_debug::
          "${d[${i}][class]}, ${d[${i}][class_to_test]}, ${d[${i}][is_or_isnt]}, ${d[${i}][name]}";
 }

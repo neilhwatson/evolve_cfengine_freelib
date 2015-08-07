@@ -1,0 +1,5 @@
+# class_to_set ;; expression ;; promisee
+test_class_01 ;; cfengine.any         ;; efl development
+test_class_02 ;; linux|solaris        ;; efl development
+test_class_03 ;; never|ever           ;; efl development
+

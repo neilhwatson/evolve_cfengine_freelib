@@ -40,22 +40,32 @@ bundle agent main
 
       "efl init" usebundle => efl_c;
 
-  iteration_order_csv:: 
-		"any" usebundle => efl_main( "../iteration_order/efl_main.csv" );
-  iteration_order_json::
-		"any" usebundle => efl_main( "../iteration_order/efl_main.json" );
+      iteration_order_csv:: 
+         "any" usebundle => efl_main( "../iteration_order/efl_main.csv" );
+      iteration_order_json::
+         "any" usebundle => efl_main( "../iteration_order/efl_main.json" );
 
-   1001_efl_test::
-		"any" usebundle => efl_main( "../1001/efl_main.csv" );
-   1002_efl_test::
-		"any" usebundle => efl_main( "../1002/efl_main.json" );
-   1003_efl_test::
-		"any" usebundle => efl_main( "../1003/efl_main.yaml" );
+      efl_class_returnszero_csv::
+         "any" usebundle => efl_main(
+            "../efl_class_returnszero/efl_main.csv" );
+      efl_class_returnszero_json::
+         "any" usebundle => efl_main(
+            "../efl_class_returnszero/efl_main.json" );
 
-   003_efl_test::
-		"any" usebundle => efl_main( "../003/efl_main.csv" );
-   004_efl_test::
-		"any" usebundle => efl_main( "../004/efl_main.json" );
+      efl_class_cmd_regcmp_csv::
+         "any" usebundle => efl_main(
+            "../efl_class_cmd_regcmp/efl_main.csv" );
+      efl_class_cmd_regcmp_json::
+         "any" usebundle => efl_main(
+            "../efl_class_cmd_regcmp/efl_main.json" );
+
+      efl_class_expression_csv::
+         "any" usebundle => efl_main(
+            "../efl_class_expression/efl_main.csv" );
+      efl_class_expression_json::
+         "any" usebundle => efl_main(
+            "../efl_class_expression/efl_main.json" );
+
    005_efl_test::
 		"any" usebundle => efl_main( "../005/efl_main.csv" );
    006_efl_test::
@@ -64,14 +74,7 @@ bundle agent main
 		"any" usebundle => efl_main( "../007/efl_main.csv" );
    008_efl_test::
 		"any" usebundle => efl_main( "../008/efl_main.json" );
-   009_efl_test::
-		"any" usebundle => efl_main( "../009/efl_main.csv" );
-   010_efl_test::
-		"any" usebundle => efl_main( "../010/efl_main.json" );
-   011_efl_test::
-		"any" usebundle => efl_main( "../011/efl_main.csv" );
-   012_efl_test::
-		"any" usebundle => efl_main( "../012/efl_main.json" );
+
    013_efl_test::
 		"any" usebundle => efl_main( "../013/efl_main.csv" );
    014_efl_test::
