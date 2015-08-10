@@ -1792,20 +1792,16 @@ bundle agent efl_test_simple( ref )
 # Prefix with new lines to TAP parser will ignore the CFEngine R: prefix.
 # Also prefix with unique canonified param file to the same test reports from
 # different param files are still printed (avoids unexpected locking).
-" ${param_file}
-1..${number_of_tests}"
-   comment => "Report test plan test 1..n";
+      "${param_file} ${const.n}1..${number_of_tests}"
+         comment => "Report test plan test 1..n";
 
+      "${param_file} ${const.n}ok ${test_number_${i}} - ${d[${i}][name]}"
+         comment => "Report if class test passes",
+         if      => "ok_${param_file}_${i}";
 
-" ${param_file}
-ok ${test_number_${i}} - ${d[${i}][name]}"
-   comment => "Report if class test passes",
-   if      => "ok_${param_file}_${i}";
-
-" ${param_file}
-not ok ${test_number_${i}} - ${d[${i}][name]}"
-   comment => "Report if class test failes",
-   if      => "not_ok_${param_file}_${i}";
+      "${param_file} ${const-n}not ok ${test_number_${i}} - ${d[${i}][name]}"
+         comment => "Report if class test failes",
+         if      => "not_ok_${param_file}_${i}";
 
 # For debugging only
       efl_test_simple_debug::
