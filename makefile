@@ -330,22 +330,14 @@ syntax: $(cfstdlib) test/$(EFL_LIB) $(EFL_TEST_FILES)
 #
 # For converting csv files
 #
-test/masterfiles/efl_data/efl_main.json: \
-  test/masterfiles/efl_data/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	perl -pi -e 's/csv/json/' $@
+test/masterfiles/efl_data/efl_test_simple/%.json:
+	CSVTOJSON="../../../../$(CSVTOJSON)" \
+	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_simple \
+		$*.json
 
-test/masterfiles/efl_data/efl_test_simple/%.json: \
-  test/masterfiles/efl_data/efl_test_simple/%.csv 
-	$(CSVTOJSON) -b efl_test_simple < $< > $@
-
-efl_class_bundles = \
-  efl_class_returnszero \
-  efl_class_cmd_regcmp \
-  efl_class_expression
-
-test/masterfiles/efl_data/%.json: test/masterfiles/efl_data/%.csv
-	$(CSVTOJSON) -b $* < $< > $@
+test/masterfiles/efl_data/%.json:
+	CSVTOJSON="../../../$(CSVTOJSON)" \
+	$(MAKE) --directory=test/masterfiles/efl_data/ $*.json
 
 #
 # iteration order tests and dependencies
@@ -376,46 +368,29 @@ iteration_order: version syntax test/masterfiles/efl_data/efl_main.json \
   $(io_json_test_files)
 	prove t/iteration_order.t
 
-#
-# efl_class_* bundle testing
-#
+test_bundles_with_efl_test_simple = \
+  efl_class_returnszero \
+  efl_class_cmd_regcmp \
+  efl_class_expression
+
 .SECONDEXPANSION:
-.PHONY: $(efl_class_bundles)
-$(efl_class_bundles): version syntax \
+.PHONY: $(test_bundles_with_efl_test_simple)
+$(test_bundles_with_efl_test_simple): version syntax \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@.json \
   test/masterfiles/efl_data/efl_test_simple/$$@.json
 	prove t/$@_csv.t
 	prove t/$@_json.t
 
-#
-# efl_global_slists
-#
-# TODO test yaml data
-005_006_efl_test_result = R: efl_global_lists\.ntp_servers  => \[ntp1\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp2\.example\.com\]\nR: efl_global_lists\.ntp_servers  => \[ntp3\.example\.com\]\n(R: efl_global_lists\.name_servers => \[10\.0\.0\.\d{1}\]\n){3}(R: efl_global_lists\.web_servers  => \[\d{1}\.example\.com\]\n{0,1}){3}
-.PHONY: 006_efl_test
-006_efl_test:  005_efl_test test/006/efl_main.json test/006/01_efl_global_slists.json test/006/02_efl_dump_strings.json test/006/name_servers.txt
-	$(call cf_agent_grep_test, $@,$(005_006_efl_test_result))
+bundle_test = \
+	efl_global_slists
 
-test/006/efl_main.json: test/005/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,005,006,$@) 
-	$(call search_and_replace,\.csv,\.json,$@)
+.PHONY: $(bundle_test)
+$(bundle_test): version syntax \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/$$@.json 
+	prove t/$@.t
 
-test/006/01_efl_global_slists.json: test/005/01_efl_global_slists.csv
-	$(CSVTOJSON) -b efl_global_slists < $^ > $@
-	$(call search_and_replace,005,006,$@) 
-
-test/006/02_efl_dump_strings.json: test/005/02_efl_dump_strings.csv
-	$(CSVTOJSON) -b efl_dump_strings < $^ > $@
-	$(call search_and_replace,005,006,$@) 
-
-test/006/name_servers.txt: test/005/name_servers.txt
-	cp test/005/name_servers.txt test/006/
-
-.PHONY: 005_efl_test
-005_efl_test: syntax
-	$(call cf_agent_grep_test, $@,$(005_006_efl_test_result))
 
 007_008_efl_test_result = R: Name => \[efl_global_strings\.main_efl_dev\] Value => \[Neil H\. Watson \(neil\@watson-wilson\.ca\)\] Promisee => \[efl_development\]\nR: Name => \[efl_global_strings\.gateway\] Value => \[2001:DB8::1\] Promisee => \[efl_development\]\nR: Name => \[efl_global_strings\.cf_major\] Value => \[3\] Promisee => \[efl_development data_expand\]
 .PHONY: 008_efl_test
@@ -807,7 +782,9 @@ clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
-	find test/masterfiles/efl_data -name '*.json' -exec rm {} \;
+	$(MAKE) --directory=test/masterfiles/efl_data/ clean
+	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_simple \
+		clean
 	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
 	rm -f /etc/systemd/system/$(test_systemd_def)

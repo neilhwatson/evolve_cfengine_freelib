@@ -7,17 +7,14 @@ use Carp;
 
 # Prevents CFEngine locking issues
 my $unique_prefix      = qr{
-   R: \s+ \w+
+   R: \s+ \w+ \n
 }mxs; 
 
 my $report_prefix_line = qr{
-   \s* # might be a new line
+   \n* # might be a new line
    $unique_prefix
-   \s # new line
-   \Q1..1\E
-   \s # new line
+   \Q1..1\E \n 
    $unique_prefix
-   \s # new line
 }msx;
 
 my $expected_output = qr{
@@ -55,7 +52,7 @@ $report_prefix_line
 \Qok 1 - efl_main order 15\E
 $report_prefix_line
 \Qok 1 - efl_main order 16\E
-\s+ # trailing new line
+\s*
 \z}mxs;
 
 # Where policy will be run
@@ -84,11 +81,18 @@ Test that data file contents is processed in the order they appear in the file.
 
 # Sample data:
 __DATA__
-R:  ___iteration_order_01_efl_test_simple_csv_5e709852a7969d011037185b114481fce2101371
+R: efl_data_efl_test_simple_01_iteration_order_csv_cd91db1d8005b7c06166f7204e0fd177d6386937
 1..1
-R:  ___iteration_order_01_efl_test_simple_csv_5e709852a7969d011037185b114481fce2101371
+R: efl_data_efl_test_simple_01_iteration_order_csv_cd91db1d8005b7c06166f7204e0fd177d6386937
 ok 1 - efl_main order 1
-R:  ___iteration_order_02_efl_test_simple_csv_c7ecb81491f87fc4368a7c020cbc0275ad1ecccc
+R: efl_data_efl_test_simple_02_iteration_order_csv_3426e2bf7199be78173f43d3e8b18d150761089d
 1..1
-R:  ___iteration_order_02_efl_test_simple_csv_c7ecb81491f87fc4368a7c020cbc0275ad1ecccc
+R: efl_data_efl_test_simple_02_iteration_order_csv_3426e2bf7199be78173f43d3e8b18d150761089d
 ok 1 - efl_main order 2
+R: efl_data_efl_test_simple_03_iteration_order_csv_741cdec33b8b18e18720c706ba3aac9ca6aad5c4
+
+....
+
+1..1
+R: efl_data_efl_test_simple_16_iteration_order_csv_df7df4238093cec3e9da8ff965850d9c3123ed4b
+ok 1 - efl_main order 16

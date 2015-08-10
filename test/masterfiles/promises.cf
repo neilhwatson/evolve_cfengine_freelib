@@ -46,24 +46,7 @@ bundle agent main
          "begin efl tests" usebundle => efl_main( 'efl_data/efl_main.json' );
 
 # TODO goal to remove all of these:
-      efl_class_returnszero_csv::
-         "any" usebundle => efl_main(
-            "../efl_class_returnszero/efl_main.csv" );
-      efl_class_returnszero_json::
-         "any" usebundle => efl_main(
-            "../efl_class_returnszero/efl_main.json" );
 
-      efl_class_expression_csv::
-         "any" usebundle => efl_main(
-            "../efl_class_expression/efl_main.csv" );
-      efl_class_expression_json::
-         "any" usebundle => efl_main(
-            "../efl_class_expression/efl_main.json" );
-
-   005_efl_test::
-		"any" usebundle => efl_main( "../005/efl_main.csv" );
-   006_efl_test::
-		"any" usebundle => efl_main( "../006/efl_main.json" );
    007_efl_test::
 		"any" usebundle => efl_main( "../007/efl_main.csv" );
    008_efl_test::
@@ -150,10 +133,9 @@ bundle agent main
    292_efl_test|293_efl_test::
       "any" usebundle => efl_rcs_pull( "../292/01_efl_rcs_pull.json" );
 
-
    reports:
-     005_efl_test|006_efl_test::
-         "efl_global_lists.ntp_servers  => [${efl_global_slists.ntp_servers}]";
+      efl_global_slists::
+         "efl_global_lists.ntp_servers => [${efl_global_slists.ntp_servers}]";
          "efl_global_lists.name_servers => [${efl_global_slists.name_servers}]";
-         "efl_global_lists.web_servers  => [${efl_global_slists.web_servers}]";
+         "efl_global_lists.web_servers => [${efl_global_slists.web_servers}]";
 }

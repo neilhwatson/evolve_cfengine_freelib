@@ -28,3 +28,5 @@ efl_class_expression ;; Test efl_class_expression ;; efl_class_expression ;; 1 ;
 efl_class_expression ;; Test efl_class_expression ;; efl_test_simple      ;; 1 ;; efl_data/efl_test_simple/efl_class_expression.csv ;; efl development
 
 
+efl_global_slists ;; Test efl_global_slists ;; efl_global_slists ;; 1 ;; efl_data/efl_global_slists.csv ;; efl development
+# 005_efl_test ;; Testing efl_global_slists  ;; efl_dump_strings  ;; 1 ;; ../005/02_efl_dump_strings.csv ;; efl development
