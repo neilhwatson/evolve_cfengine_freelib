@@ -68,7 +68,7 @@ my $number_of_tests = scalar @data_formats;
 # Test each data format
 for my $next_format ( @data_formats ){
    my $output =
-      qx{ cf-agent -D iteration_order_$next_format -Kf ./promises.cf 2>&1 };
+      qx{ cf-agent -D test_$next_format,iteration_order -Kf ./promises.cf 2>&1 };
    like( $output, $expected_output,
       "Iteration order using $next_format data" );
 }

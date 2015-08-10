@@ -40,24 +40,18 @@ bundle agent main
 
       "efl init" usebundle => efl_c;
 
-      iteration_order_csv:: 
-         "any" usebundle => efl_main( "../iteration_order/efl_main.csv" );
-      iteration_order_json::
-         "any" usebundle => efl_main( "../iteration_order/efl_main.json" );
+      test_csv::
+         "begin efl tests" usebundle => efl_main( 'efl_data/efl_main.csv' );
+      test_json::
+         "begin efl tests" usebundle => efl_main( 'efl_data/efl_main.json' );
 
+# TODO goal to remove all of these:
       efl_class_returnszero_csv::
          "any" usebundle => efl_main(
             "../efl_class_returnszero/efl_main.csv" );
       efl_class_returnszero_json::
          "any" usebundle => efl_main(
             "../efl_class_returnszero/efl_main.json" );
-
-      efl_class_cmd_regcmp_csv::
-         "any" usebundle => efl_main(
-            "../efl_class_cmd_regcmp/efl_main.csv" );
-      efl_class_cmd_regcmp_json::
-         "any" usebundle => efl_main(
-            "../efl_class_cmd_regcmp/efl_main.json" );
 
       efl_class_expression_csv::
          "any" usebundle => efl_main(

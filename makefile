@@ -328,116 +328,74 @@ syntax: $(cfstdlib) test/$(EFL_LIB)
 	prove t/01_syntax.t
 
 #
+# For converting csv files
+#
+test/masterfiles/efl_data/efl_main.json: \
+  test/masterfiles/efl_data/efl_main.csv
+	$(CSVTOJSON) -b efl_main < $< > $@
+	perl -pi -e 's/csv/json/' $@
+
+test/masterfiles/efl_data/efl_test_simple/%.json: \
+  test/masterfiles/efl_data/efl_test_simple/%.csv 
+	$(CSVTOJSON) -b efl_test_simple < $< > $@
+
+test/masterfiles/efl_data/efl_class_cmd_regcmp.json: \
+  test/masterfiles/efl_data/efl_class_cmd_regcmp.csv
+	$(CSVTOJSON) -b efl_class_cmd_regcmp < $< > $@
+
+test/masterfiles/efl_data/efl_class_returnszero.json: \
+  test/masterfiles/efl_data/efl_class_returnszero.csv
+	$(CSVTOJSON) -b efl_class_returnszero < $< > $@
+
+test/masterfiles/efl_data/efl_class_expression.json: \
+  test/masterfiles/efl_data/efl_class_expression.csv
+	$(CSVTOJSON) -b efl_class_expression < $< > $@
+
+#
 # iteration order tests and dependencies
 #
 # TODO yaml order test
+
+io_csv_test_files = \
+test/masterfiles/efl_data/efl_test_simple/01_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/02_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/03_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/04_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/05_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/06_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/07_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/08_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/09_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/10_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/11_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/12_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/13_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/14_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/15_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_simple/16_iteration_order.csv
+io_json_test_files = $(subst csv,json,$(io_csv_test_files))
+
 .PHONY: iteration_order
-iteration_order: version syntax test/iteration_order/efl_main.json 
+iteration_order: version syntax test/masterfiles/efl_data/efl_main.json \
+  $(io_json_test_files)
 	prove t/iteration_order.t
 
-test/iteration_order/efl_main.json: test/iteration_order/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-
 #
-# efl_class_.* bundle testing
-#  # TODO start here.
+# efl_class_* bundle testing
 #
 efl_class_bundles = \
   efl_class_returnszero \
   efl_class_cmd_regcmp \
   efl_class_expression
 
+.SECONDEXPANSION:
 .PHONY: $(efl_class_bundles)
 $(efl_class_bundles): version syntax \
-  test/$@/efl_main.json \
-  test/$@/01_$@.json \
-  test/$@/02_efl_test_simple.json
-	prove t/efl_class_$@_csv.t
-	prove t/efl_class_$@_json.t
-
-test/%/efl_main.json: test/%/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	perl -pi -e 's/csv/json/' $@
-
-test/efl_class_returnszero/01_efl_class_returnszero.json: \
-  test/efl_class_returnszero/01_efl_class_returnszero.csv
-	$(CSVTOJSON) -b efl_class_returnszero < $^ > $@
-
-test/efl_class_returnszero/02_efl_test_simple.json: \
-  test/efl_class_returnszero/02_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
-
-
-#
-# efl_class_returnszero
-#
-# TODO yaml data
-#.PHONY: efl_class_returnszero
-#efl_class_returnszero: version syntax test/efl_class_returnszero/efl_main.json \
-#  test/efl_class_returnszero/01_efl_class_returnszero.json \
-#  test/efl_class_returnszero/02_efl_test_simple.json
-#	prove t/efl_class_returnszero_csv.t
-#	prove t/efl_class_returnszero_json.t
-#
-#test/efl_class_returnszero/efl_main.json: test/efl_class_returnszero/efl_main.csv
-#	$(CSVTOJSON) -b efl_main < $< > $@
-#	perl -pi -e 's/csv/json/' $@
-#
-#test/efl_class_returnszero/01_efl_class_returnszero.json: \
-#  test/efl_class_returnszero/01_efl_class_returnszero.csv
-#	$(CSVTOJSON) -b efl_class_returnszero < $^ > $@
-#
-#test/efl_class_returnszero/02_efl_test_simple.json: \
-#  test/efl_class_returnszero/02_efl_test_simple.csv
-#	$(CSVTOJSON) -b efl_test_simple < $^ > $@
-#
-#
-# efl_class_cmd_regcmp
-#
-.PHONY: efl_class_cmd_regcmp
-efl_class_cmd_regcmp: version syntax \
-  test/efl_class_cmd_regcmp/efl_main.json \
-  test/efl_class_cmd_regcmp/01_efl_class_cmd_regcmp.json \
-  test/efl_class_cmd_regcmp/02_efl_test_simple.json
-	prove t/efl_class_cmd_regcmp_csv.t
-	prove t/efl_class_cmd_regcmp_json.t
-
-test/efl_class_cmd_regcmp/efl_main.json: \
-	test/efl_class_cmd_regcmp/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	perl -pi -e 's/csv/json/' $@
-
-test/efl_class_cmd_regcmp/01_efl_class_cmd_regcmp.json: \
-  test/efl_class_cmd_regcmp/01_efl_class_cmd_regcmp.csv
-	$(CSVTOJSON) -b efl_class_cmd_regcmp < $^ > $@
-
-test/efl_class_cmd_regcmp/02_efl_test_simple.json: \
-  test/efl_class_cmd_regcmp/02_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
-
-#
-# efl_class_expression
-#
-.PHONY: efl_class_expression
-efl_class_expression: version syntax \
-  test/efl_class_expression/efl_main.json \
-  test/efl_class_expression/01_efl_class_expression.json \
-  test/efl_class_expression/02_efl_test_simple.json
-	prove t/efl_class_expression_csv.t
-	prove t/efl_class_expression_json.t
-
-test/efl_class_expression/efl_main.json: \
-	test/efl_class_expression/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	perl -pi -e 's/csv/json/' $@
-
-test/efl_class_expression/01_efl_class_expression.json: \
-  test/efl_class_expression/01_efl_class_expression.csv
-	$(CSVTOJSON) -b efl_class_expression < $^ > $@
-
-test/efl_class_expression/02_efl_test_simple.json: \
-  test/efl_class_expression/02_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/$$@.json \
+  test/masterfiles/efl_data/efl_test_simple/$$@.json
+	prove t/$@_csv.t
+	prove t/$@_json.t
 
 #
 #
@@ -887,6 +845,7 @@ clean:
 	rm -fr masterfiles/*
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
+	find test/masterfiles/efl_data -name '*.json' -exec rm {} \;
 	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
 	rm -f /etc/systemd/system/$(test_systemd_def)

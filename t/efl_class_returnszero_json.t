@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd test/masterfiles
-cf-agent -D efl_class_returnszero_json -Kf ./promises.cf
+cf-agent -D test_json,efl_class_returnszero -Kf ./promises.cf

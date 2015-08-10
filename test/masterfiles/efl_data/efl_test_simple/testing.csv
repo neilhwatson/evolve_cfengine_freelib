@@ -1,0 +1,4 @@
+any ;; 009_test_class_01 ;; is   ;; true if output matches
+any ;; 009_test_class_02 ;; is   ;; true if output does not match
+any ;; 009_test_class_03 ;; isnt ;; should not match
+any ;; 009_test_class_04 ;; is   ;; true if output is there
