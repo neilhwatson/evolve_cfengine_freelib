@@ -314,6 +314,9 @@ $(cfstdlib): .stdlib
 	cd test/masterfiles/lib; svn export --force $(CF_REPO)/masterfiles/trunk/lib/$(VERSION)
 	touch $@
 
+#
+# Test, tests, and more tests
+#
 .PHONY: check
 check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
 	prove 
@@ -373,6 +376,9 @@ iteration_order: version syntax test/masterfiles/efl_data/efl_main.json \
   $(io_json_test_files)
 	prove t/iteration_order.t
 
+#
+# Testing other bundles
+#
 .SECONDEXPANSION:
 .PHONY: efl_test_classes efl_test_vars
 efl_test_classes efl_test_vars: version syntax \
@@ -381,6 +387,7 @@ efl_test_classes efl_test_vars: version syntax \
 	prove t/$@_csv.t
 	prove t/$@_json.t
 
+##
 test_bundles_with_efl_test_classes = \
   efl_class_returnszero \
   efl_class_cmd_regcmp \
@@ -394,37 +401,23 @@ $(test_bundles_with_efl_test_classes): version syntax \
 	prove t/$@_csv.t
 	prove t/$@_json.t
 
-bundle_test = \
-	efl_global_slists \
+##
+test_bundles_with_efl_test_vars = efl_global_strings
 
-.PHONY: $(bundle_test)
-$(bundle_test): version syntax \
+.PHONY: $(test_bundles_with_efl_test_vars)
+$(test_bundles_with_efl_test_vars): version syntax \
   test/masterfiles/efl_data/efl_main.json \
-  test/masterfiles/efl_data/$$@.json 
-	prove t/$@.t
+  test/masterfiles/efl_data/$$@.json \
+  test/masterfiles/efl_data/efl_test_vars/$$@.json
+	prove t/$@_csv.t
+	prove t/$@_json.t
 
-
-007_008_efl_test_result = R: Name => \[efl_global_strings\.main_efl_dev\] Value => \[Neil H\. Watson \(neil\@watson-wilson\.ca\)\] Promisee => \[efl_development\]\nR: Name => \[efl_global_strings\.gateway\] Value => \[2001:DB8::1\] Promisee => \[efl_development\]\nR: Name => \[efl_global_strings\.cf_major\] Value => \[3\] Promisee => \[efl_development data_expand\]
-.PHONY: 008_efl_test
-008_efl_test:  007_efl_test test/008/efl_main.json test/008/01_efl_global_strings.json test/008/02_efl_dump_strings.json
-	$(call cf_agent_grep_test, $@,$(007_008_efl_test_result))
-
-test/008/efl_main.json: test/007/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,007,008,$@) 
-	$(call search_and_replace,\.csv,\.json,$@)
-
-test/008/01_efl_global_strings.json: test/007/01_efl_global_strings.csv
-	$(CSVTOJSON) -b efl_global_strings < $^ > $@
-	$(call search_and_replace,007,008,$@) 
-
-test/008/02_efl_dump_strings.json: test/007/02_efl_dump_strings.csv
-	$(CSVTOJSON) -b efl_dump_strings < $^ > $@
-	$(call search_and_replace,007,008,$@) 
-
-.PHONY: 007_efl_test
-007_efl_test:
-	$(call cf_agent_grep_test, $@,$(007_008_efl_test_result))
+##
+.PHONY: efl_global_slists
+efl_global_slists: version syntax \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/efl_global_slists.json 
+	prove t/efl_global_slists.t
 
 .PHONY: 014_efl_test
 014_efl_test: 014_efl_test_result = R: PASS, 014_test_class_01, pass\nR: PASS, 014_test_class_02, pass\nR: PASS, 014_test_class_03, pass if class never matches
