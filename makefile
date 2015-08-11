@@ -391,7 +391,8 @@ efl_test_classes efl_test_vars: version syntax \
 test_bundles_with_efl_test_classes = \
   efl_class_returnszero \
   efl_class_cmd_regcmp \
-  efl_class_expression
+  efl_class_expression \
+  efl_class_classmatch
 
 .PHONY: $(test_bundles_with_efl_test_classes)
 $(test_bundles_with_efl_test_classes): version syntax \

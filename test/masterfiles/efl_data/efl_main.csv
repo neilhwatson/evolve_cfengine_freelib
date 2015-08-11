@@ -38,3 +38,9 @@ efl_test_vars ;; Test efl_test_classses ;; efl_test_vars ;; 1 ;; efl_data/efl_te
 
 efl_global_strings ;; Test efl_global_strings ;; efl_global_strings ;; 1 ;; efl_data/efl_global_strings.csv               ;; efl development
 efl_global_strings ;; Test efl_global_strings ;; efl_test_vars      ;; 1 ;; efl_data/efl_test_vars/efl_global_strings.csv ;; efl development
+
+
+efl_class_classmatch ;; Test efl_class_classmatch ;; efl_class_classmatch ;; 1 ;; efl_data/efl_class_classmatch.csv                  ;; efl development
+efl_class_classmatch ;; Test efl_class_classmatch ;; efl_test_classes     ;; 1 ;; efl_data/efl_test_classes/efl_class_classmatch.csv ;; efl development
+
+

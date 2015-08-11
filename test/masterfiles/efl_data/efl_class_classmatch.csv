@@ -1,5 +1,5 @@
 # class_to_set ;; regex ;; promisee
-013_test_class_01 ;; \d{3}_efl_test                 ;; efl development
+013_test_class_01 ;; efl_class_.*                   ;; efl development
 013_test_class_02 ;; linux|solaris|aix|bsd.*|hpux   ;; efl development
 013_test_class_03 ;; never.*                        ;; efl development
 
