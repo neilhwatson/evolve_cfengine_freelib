@@ -393,7 +393,8 @@ test_bundles_with_efl_test_classes = \
   efl_class_cmd_regcmp \
   efl_class_expression \
   efl_class_classmatch \
-  efl_class_iprange
+  efl_class_iprange \
+  efl_class_hostname
 
 .PHONY: $(test_bundles_with_efl_test_classes)
 $(test_bundles_with_efl_test_classes): version syntax \
@@ -420,16 +421,6 @@ efl_global_slists: version syntax \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/efl_global_slists.json 
 	prove t/efl_global_slists.t
-
-.PHONY: 017_efl_test
-017_efl_test: 017_efl_test_result = R: PASS, 017_test_class, pass efl_class_hostname\nR: PASS, never, pass if never defined
-017_efl_test:
-	$(call cf_agent_grep_test, $@,$(017_efl_test_result))
-
-.PHONY: 018_efl_test
-018_efl_test: 018_efl_test_result = R: PASS, 018_test_class_01, pass efl_class_hostname2 01\nR: PASS, 018_test_class_02, pass efl_class_hostname2 02\nR: PASS, never, pass if never defined
-018_efl_test:
-	$(call cf_agent_grep_test, $@,$(018_efl_test_result))
 
 .PHONY: 020_efl_test
 020_efl_test: 019_efl_test test/020/01_efl_sysctl_live.json
