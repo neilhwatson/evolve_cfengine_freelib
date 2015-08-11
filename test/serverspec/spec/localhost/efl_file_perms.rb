@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe "280 efl test" do
+describe "efl_file_perms" do
    
-   testdir = '/tmp/efl_test/280'
+   testdir = '/tmp/efl_test/efl_file_perms'
 
    describe file ( "#{testdir}" ) do
       it { should be_directory}

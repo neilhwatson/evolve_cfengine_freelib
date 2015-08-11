@@ -50,5 +50,7 @@ efl_class_iprange ;; Test efl_class_iprange ;; efl_test_classes  ;; 1 ;; efl_dat
 efl_class_hostname ;; test efl_class_hostname ;; efl_class_hostname ;; 1 ;; efl_data/efl_class_hostname-017_test_class.txt ;; efl development
 efl_class_hostname ;; test efl_class_hostname ;; efl_test_classes   ;; 1 ;; efl_data/efl_test_classes/efl_class_hostname.csv ;; efl development
 
-efl_class_hostname2 ;; test efl_class_hosthame2 ;; efl_class_hostname2 ;; 1 ;; efl_data/efl_class_hostname2.json ;; efl_development
+efl_class_hostname2 ;; test efl_class_hosthame2 ;; efl_class_hostname2 ;; 1 ;; efl_data/efl_class_hostname2.json ;; efl development
 efl_class_hostname2 ;; test efl_class_hostname2 ;; efl_test_classes    ;; 1 ;; efl_data/efl_test_classes/efl_class_hostname2.csv ;; efl development
+
+efl_file_perms ;;; test efl_file_perms ;; efl_file_perms ;; 1 ;; efl_data/efl_file_perms.csv ;; efl development

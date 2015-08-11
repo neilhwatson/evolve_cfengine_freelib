@@ -96,8 +96,6 @@ tests       =   \
 	271_efl_test \
 	272_efl_test \
 	273_efl_test \
-	280_efl_test \
-	281_efl_test \
 	290_efl_test \
 	291_efl_test \
 	292_efl_test \
@@ -250,20 +248,6 @@ define 272_efl_test
 	echo PASS: $@
 endef
 
-define 280_efl_test
-	rm -fr /tmp/efl_test/280/*
-	test -d /tmp/efl_test/280/sub || mkdir -p /tmp/efl_test/280/sub
-	touch /tmp/efl_test/280/a
-	touch /tmp/efl_test/280/b
-	touch /tmp/efl_test/280/d
-	chmod -R 444 /tmp/efl_test/280
-	chmod -R 600 /tmp/efl_test/280/sub
-	chown -R 12000:12000 /tmp/efl_test/280
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ -vl > agent.txt
-	cd test/serverspec; rspec spec/localhost/280_efl_test.rb
-	echo PASS: $@
-endef
-
 define 290_efl_test
 	rm -fr $(TEST_DIR)/290_master
 	git clone https://github.com/neilhwatson/vim_cf3.git $(TEST_DIR)/290_master
@@ -317,11 +301,6 @@ $(cfstdlib): .stdlib
 #
 # Test, tests, and more tests
 #
-.PHONY: check
-check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) $(tests)
-	prove 
-	@echo PASSED ALL TESTS
-
 .PHONY: version
 version:
 	prove t/00_version.t
@@ -348,7 +327,23 @@ test/masterfiles/efl_data/%.json:
 	$(MAKE) --directory=test/masterfiles/efl_data/ $*.json
 
 #
-# iteration order tests and dependencies
+# Calculate json dependencies
+#  TODO yaml
+efl_data_csv_files  = $(wildcard test/masterfiles/efl_data/*.csv)
+efl_data_json_files = $(patsubst %.csv,%.json,$(efl_data_csv_files))
+
+efl_test_classes_csv_files  = \
+	  $(wildcard test/masterfiles/efl_data/efl_test_classes/*.csv)
+efl_test_classes_json_files = \
+	  $(patsubst %.csv,%.json,$(efl_test_classes_csv_files))
+
+efl_test_vars_csv_files  = \
+	  $(wildcard test/masterfiles/efl_data/efl_test_vars/*.csv)
+efl_test_vars_json_files = \
+	  $(patsubst %.csv,%.json,$(efl_test_vars_csv_files))
+
+#
+# iteration order tests 
 #
 # TODO yaml order test
 
@@ -370,33 +365,33 @@ test/masterfiles/efl_data/efl_test_classes/14_iteration_order.csv \
 test/masterfiles/efl_data/efl_test_classes/15_iteration_order.csv \
 test/masterfiles/efl_data/efl_test_classes/16_iteration_order.csv
 io_json_test_files = $(subst csv,json,$(io_csv_test_files))
-
 .PHONY: iteration_order
 iteration_order: version syntax test/masterfiles/efl_data/efl_main.json \
   $(io_json_test_files)
 	prove t/iteration_order.t
 
 #
-# Testing other bundles
+# Test bundles that test other bundles
 #
 .SECONDEXPANSION:
-.PHONY: efl_test_classes efl_test_vars
-efl_test_classes efl_test_vars: version syntax \
+efl_test_bundles = efl_test_classes efl_test_vars
+.PHONY: $(efl_test_bundles)
+$(efl_test_bundles): version syntax \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@/$$@.json
-	prove t/$@_csv.t
-	prove t/$@_json.t
+	prove t/*$@*.t
 
-##
+#
+# Testing class generation bundles
+#
 test_bundles_with_efl_test_classes = \
   efl_class_returnszero \
   efl_class_cmd_regcmp \
   efl_class_expression \
   efl_class_classmatch \
   efl_class_iprange
-
 .PHONY: $(test_bundles_with_efl_test_classes)
-$(test_bundles_with_efl_test_classes): version syntax \
+$(test_bundles_with_efl_test_classes): version syntax $(efl_test_bundles) \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@.json \
   test/masterfiles/efl_data/efl_test_classes/$$@.json
@@ -405,7 +400,7 @@ $(test_bundles_with_efl_test_classes): version syntax \
 
 ##
 .PHONY: efl_class_hostname
-efl_class_hostname: version syntax \
+efl_class_hostname: version syntax $(efl_test_bundles) \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/efl_class_hostname-017_test_class.txt \
   test/masterfiles/efl_data/efl_test_classes/$$@.json
@@ -414,7 +409,7 @@ efl_class_hostname: version syntax \
 
 ##
 .PHONY: efl_class_hostname2
-efl_class_hostname2: version syntax \
+efl_class_hostname2: version syntax $(efl_test_bundles) \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/efl_class_hostname2.json \
   test/masterfiles/efl_data/efl_test_classes/$$@.json
@@ -425,7 +420,7 @@ efl_class_hostname2: version syntax \
 test_bundles_with_efl_test_vars = efl_global_strings
 
 .PHONY: $(test_bundles_with_efl_test_vars)
-$(test_bundles_with_efl_test_vars): version syntax \
+$(test_bundles_with_efl_test_vars): version syntax $(efl_test_bundles) \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@.json \
   test/masterfiles/efl_data/efl_test_vars/$$@.json
@@ -439,6 +434,21 @@ efl_global_slists: version syntax \
   test/masterfiles/efl_data/efl_global_slists.json 
 	prove t/efl_global_slists.t
 
+#
+# Testing normal agent bundles
+#
+test_efl_bundles = \
+	efl_file_perms
+
+.PHONY: $(test_efl_bundles)
+$(test_efl_bundles): version syntax \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/$$@.json
+	prove t/$@.t
+
+#
+# TODO
+#
 .PHONY: 020_efl_test
 020_efl_test: 019_efl_test test/020/01_efl_sysctl_live.json
 	$(call test_sysctl_live,020)
@@ -711,17 +721,6 @@ PHONY: 273_efl_test
 273_efl_test: 272_efl_test
 	$(call 272_efl_test)
 
-PHONY: 280_efl_test
-280_efl_test: syntax
-	$(call 280_efl_test)
-
-PHONY: 281_efl_test
-281_efl_test: syntax test/281/01_efl_file_perms.json
-	$(call 280_efl_test)
-
-test/281/01_efl_file_perms.json: test/280/01_efl_file_perms.csv
-	$(CSVTOJSON) -b efl_file_perms < $< > $@
-
 PHONY: 290_efl_test
 290_efl_test: syntax
 	$(call 290_efl_test)
@@ -740,6 +739,15 @@ PHONY: 293_efl_test
 
 test/292/01_efl_rcs_pull.json: test/290/01_efl_rcs_pull.csv
 	$(CSVTOJSON) -b efl_rcs_pull < $< > $@
+
+.PHONY: check
+# TODO how to make all json and yaml files here?
+check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) \
+  $(io_json_test_files) \
+  $(efl_data_json_files) \
+  $(efl_test_classes_json_files) \
+  $(efl_test_vars_json_files)
+	prove t/*
 
 .PHONY: clean
 clean:
