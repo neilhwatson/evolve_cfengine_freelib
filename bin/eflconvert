@@ -105,7 +105,8 @@ my %headers = (
    'efl_command'           => [ qw/ class command useshell module ifelapsed promisee / ],
    'efl_server'            => [ qw/ class path admit promisee / ],
    'efl_class_returnszero' => [ qw/ class class_to_set command shell zero promisee / ],
-   'efl_test_simple'       => [ qw/ class class_to_test is_or_isnt name / ],
+   'efl_test_classes'      => [ qw/ class class_to_test test_type name / ],
+   'efl_test_vars'         => [ qw/ class var_to_test test_case test_type name / ],
    'efl_global_slists'     => [ qw/ class name contents shuffle promisee / ],
    'efl_dump_strings'      => [ qw/ class name promisee / ],
    'efl_global_strings'    => [ qw/ class name value promisee / ],
@@ -382,7 +383,9 @@ sub _read_csv
       for my $f ( @fields )
       {
          # If field is an array e.g. one, two, three.
-         if ( $f =~ m/$opt->{array_delimiter}/ and $headers->[$i] ne 'promisee' )
+         if ( $f =~ m/$opt->{array_delimiter}/
+               and $opt->{bundle} eq 'efl_global_slists'
+               and $headers->[$i] ne 'promisee' )
          {
             my @array = split m/$opt->{array_delimiter}/, $f;
             push @{ $hash->{ $headers->[$i] } }, @array;

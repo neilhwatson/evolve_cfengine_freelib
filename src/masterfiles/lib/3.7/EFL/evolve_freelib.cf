@@ -1736,12 +1736,122 @@ body depth_search efl_recurse_and_exclude ( d, dirs )
    exclude_dirs => { @{dirs} };
 }
 
-bundle agent efl_test_simple( ref )
+bundle agent efl_test_vars( ref )
 {
    meta:
-      "purpose" string => "A testing bundle using TAP inspired by Perl's Test::Simple";
+      "purpose" string => "
+A testing bundle using TAP inspired by Perl's Test::More. This bundle test
+the state of a variable.";
+
+      "field_0" string => "Class expression";
+      "field_1" string => "Variable name to test";
+      "field_2" string => "String or regext to test against 1";
+      "field_3" string => "Pass test if string
+'is' the same
+'isnt' the same
+'like' the given regex
+'unlike' the given regex
+";
+      "field_4" string => "Test name, free form like promisee";
+
+   vars:
+     "params"   
+         comment    => "Parameter field names and positions for csv parsing.",
+         data       => parsejson(
+         '{
+            "0" : "class",
+            "1" : "var_to_test",
+            "2" : "test_case",
+            "3" : "test_type",
+            "4" : "name",
+         }');
+
+      <efl param_parser efl/>
+
+      any::
+         "number_of_tests"     int => length( "i" );
+         "test_number_${i}" string => format( "%1d"
+            , eval( "${i}+1", "math", "infix" ) );
+
+   classes:
+      <efl param_file_picker efl/>
+
+# Determine if var test is is, isnt, like, or unlike
+   "var_isnt_${param_file}_${i}"
+     ifvarclass => "${d[${i}][class]}",
+     expression => strcmp( "isnt", "${d[${i}][test_type]}" );
+   "var_is_${param_file}_${i}"
+     ifvarclass => "${d[${i}][class]}",
+     expression => strcmp( "is", "${d[${i}][test_type]}" );
+   "var_like_${param_file}_${i}"
+     ifvarclass => "${d[${i}][class]}",
+     expression => strcmp( "like", "${d[${i}][test_type]}" );
+   "var_unlike_${param_file}_${i}"
+     ifvarclass => "${d[${i}][class]}",
+     expression => strcmp( "unlike", "${d[${i}][test_type]}" );
+
+# Set classes for pass (ok) or failure (not_ok)
+   "ok_${param_file}_${i}"
+      if  => "var_isnt_${param_file}_${i}",
+      not => strcmp( "${d[${i}][test_case]}", "${d[${i}][var_to_test]}" );
+   "not_ok_${param_file}_${i}"
+      ifvarclass => "var_isnt_${param_file}_${i}",
+      expression => strcmp( "${d[${i}][test_case]}"
+         , "${d[${i}][var_to_test]}" );
+
+   "ok_${param_file}_${i}"
+      ifvarclass => "var_is_${param_file}_${i}",
+      expression => strcmp( "${d[${i}][test_case]}"
+         , "${d[${i}][var_to_test]}" );
+   "not_ok_${param_file}_${i}"
+      if  => "var_is_${param_file}_${i}",
+      not => strcmp( "${d[${i}][test_case]}", "${d[${i}][var_to_test]}" );
+
+   "ok_${param_file}_${i}"
+      if  => "var_unlike_${param_file}_${i}",
+      not => regcmp( "${d[${i}][test_case]}", "${d[${i}][var_to_test]}" );
+   "not_ok_${param_file}_${i}"
+      ifvarclass => "var_unlike_${param_file}_${i}",
+      expression => regcmp( "${d[${i}][test_case]}"
+         , "${d[${i}][var_to_test]}" );
+
+   "ok_${param_file}_${i}"
+      ifvarclass => "var_like_${param_file}_${i}",
+      expression => regcmp( "${d[${i}][test_case]}"
+         , "${d[${i}][var_to_test]}" );
+   "not_ok_${param_file}_${i}"
+      if  => "var_like_${param_file}_${i}",
+      not => regcmp( "${d[${i}][test_case]}", "${d[${i}][var_to_test]}" );
+
+   reports:
+# Prefix with new lines to TAP parser will ignore the CFEngine R: prefix.
+# Also prefix with unique canonified param file to the same test reports from
+# different param files are still printed (avoids unexpected locking).
+      "${param_file}${const.n}1..${number_of_tests}"
+         comment => "Report test plan test 1..n";
+
+      "${param_file}${const.n}ok ${test_number_${i}} - ${d[${i}][name]}"
+         comment => "Report if class test passes",
+         if      => "ok_${param_file}_${i}";
+
+      "${param_file}${const.n}not ok ${test_number_${i}} - ${d[${i}][name]}"
+         comment => "Report if class test failes",
+         if      => "not_ok_${param_file}_${i}";
+
+# For debugging only
+      efl_test_simple_debug::
+         "${d[${i}][class]}, ${d[${i}][class_to_test]}, ${d[${i}][is_or_isnt]}, ${d[${i}][name]}";
+}
+
+bundle agent efl_test_classes( ref )
+{
+   meta:
+      "purpose" string => "
+A testing bundle using TAP inspired by Perl's Test::More. This bundle tests
+if a class is, isn't, like or unlike a given test";
+
       "field_0" string => "Class expression"; # class
-      "field_1" string => "Class regex to test"; # class_to_test
+      "field_1" string => "Class or class regex to test"; # class_to_test
       "field_2" string => "pass test whether test class 'is' true or 'isnt' true"; # is_or_isnt
       "field_3" string => "Test name, free form like promisee"; # name
 
@@ -1752,7 +1862,7 @@ bundle agent efl_test_simple( ref )
          '{
             "0" : "class",
             "1" : "class_to_test",
-            "2" : "is_or_isnt",
+            "2" : "test_type",
             "3" : "name",
          }');
 
@@ -1769,23 +1879,44 @@ bundle agent efl_test_simple( ref )
 # Determine if class test is for class is set or isn't set.
       "class_isnt_${param_file}_${i}"
         ifvarclass => "${d[${i}][class]}",
-        expression => strcmp( "isnt", "${d[${i}][is_or_isnt]}" );
+        expression => strcmp( "isnt", "${d[${i}][test_type]}" );
       "class_is_${param_file}_${i}"
         ifvarclass => "${d[${i}][class]}",
-        expression => strcmp( "is", "${d[${i}][is_or_isnt]}" );
+        expression => strcmp( "is", "${d[${i}][test_type]}" );
+      "class_unlike_${param_file}_${i}"
+        ifvarclass => "${d[${i}][class]}",
+        expression => strcmp( "unlike", "${d[${i}][test_type]}" );
+      "class_like_${param_file}_${i}"
+        ifvarclass => "${d[${i}][class]}",
+        expression => strcmp( "like", "${d[${i}][test_type]}" );
 
 # Set classes for pass (ok) or failure (not_ok)
       "ok_${param_file}_${i}"
          if  => "class_isnt_${param_file}_${i}",
-         not => classmatch( "${d[${i}][class_to_test]}" );
+         not => classify( "${d[${i}][class_to_test]}" );
       "not_ok_${param_file}_${i}"
          ifvarclass => "class_isnt_${param_file}_${i}",
-         expression => classmatch( "${d[${i}][class_to_test]}" );
+         expression => classify( "${d[${i}][class_to_test]}" );
+
       "ok_${param_file}_${i}"
          ifvarclass => "class_is_${param_file}_${i}",
-         expression => classmatch( "${d[${i}][class_to_test]}" );
+         expression => classify( "${d[${i}][class_to_test]}" );
       "not_ok_${param_file}_${i}"
          if  => "class_is_${param_file}_${i}",
+         not => classify( "${d[${i}][class_to_test]}" );
+
+      "ok_${param_file}_${i}"
+         if  => "class_unlike_${param_file}_${i}",
+         not => classmatch( "${d[${i}][class_to_test]}" );
+      "not_ok_${param_file}_${i}"
+         ifvarclass => "class_unlike_${param_file}_${i}",
+         expression => classmatch( "${d[${i}][class_to_test]}" );
+
+      "ok_${param_file}_${i}"
+         ifvarclass => "class_like_${param_file}_${i}",
+         expression => classmatch( "${d[${i}][class_to_test]}" );
+      "not_ok_${param_file}_${i}"
+         if  => "class_like_${param_file}_${i}",
          not => classmatch( "${d[${i}][class_to_test]}" );
 
    reports:
@@ -1799,7 +1930,7 @@ bundle agent efl_test_simple( ref )
          comment => "Report if class test passes",
          if      => "ok_${param_file}_${i}";
 
-      "${param_file}${const-n}not ok ${test_number_${i}} - ${d[${i}][name]}"
+      "${param_file}${const.n}not ok ${test_number_${i}} - ${d[${i}][name]}"
          comment => "Report if class test failes",
          if      => "not_ok_${param_file}_${i}";
 

@@ -1,32 +1,36 @@
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/01_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/02_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/03_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/04_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/05_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/06_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/07_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/08_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/09_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/10_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/11_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/12_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/13_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/14_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/15_iteration_order.csv ;; efl development
-iteration_order ;; Test main bundle order ;; efl_test_simple ;; 1 ;; efl_data/efl_test_simple/16_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/01_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/02_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/03_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/04_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/05_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/06_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/07_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/08_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/09_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/10_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/11_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/12_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/13_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/14_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/15_iteration_order.csv ;; efl development
+iteration_order ;; Test main bundle order ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/16_iteration_order.csv ;; efl development
 
 
 efl_class_cmd_regcmp ;; Test efl_class_cmd_regcmp ;; efl_class_cmd_regcmp ;; 1 ;; efl_data/efl_class_cmd_regcmp.csv                 ;; efl development
-efl_class_cmd_regcmp ;; Test efl_class_cmd_regcmp ;; efl_test_simple      ;; 1 ;; efl_data/efl_test_simple/efl_class_cmd_regcmp.csv ;; efl development
+efl_class_cmd_regcmp ;; Test efl_class_cmd_regcmp ;; efl_test_classes      ;; 1 ;; efl_data/efl_test_classes/efl_class_cmd_regcmp.csv ;; efl development
 
 
 efl_class_returnszero ;; Test efl_class_returnszero ;; efl_class_returnszero ;; 1 ;; efl_data/efl_class_returnszero.csv                 ;; efl development
-efl_class_returnszero ;; Test efl_class_returnszero ;; efl_test_simple       ;; 1 ;; efl_data/efl_test_simple/efl_class_returnszero.csv ;; efl development
+efl_class_returnszero ;; Test efl_class_returnszero ;; efl_test_classes       ;; 1 ;; efl_data/efl_test_classes/efl_class_returnszero.csv ;; efl development
 
 
 efl_class_expression ;; Test efl_class_expression ;; efl_class_expression ;; 1 ;; efl_data/efl_class_expression.csv                 ;; efl development
-efl_class_expression ;; Test efl_class_expression ;; efl_test_simple      ;; 1 ;; efl_data/efl_test_simple/efl_class_expression.csv ;; efl development
+efl_class_expression ;; Test efl_class_expression ;; efl_test_classes      ;; 1 ;; efl_data/efl_test_classes/efl_class_expression.csv ;; efl development
 
 
 efl_global_slists ;; Test efl_global_slists ;; efl_global_slists ;; 1 ;; efl_data/efl_global_slists.csv ;; efl development
 # 005_efl_test ;; Testing efl_global_slists  ;; efl_dump_strings  ;; 1 ;; ../005/02_efl_dump_strings.csv ;; efl development
+
+efl_test_classes ;; Test efl_test_classses ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/efl_test_classes.csv ;; efl development
+
+efl_test_vars ;; Test efl_test_classses ;; efl_test_vars ;; 1 ;; efl_data/efl_test_vars/efl_test_vars.csv ;; efl development

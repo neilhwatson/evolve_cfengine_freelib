@@ -1,0 +1,4 @@
+any ;; ${sys.cf_version_major} ;; 3 ;; is ;; CFE major version is 3 [${sys.cf_version_major}]
+any ;; ${sys.cf_version_major} ;; 2 ;; isnt ;; CFE major version isn't 2 [${sys.cf_version_major}]
+any ;; ${sys.cpus} ;; [123456789]\d{0,1} ;; like ;; CPU cores 1-99 [${sys.cpus}]
+any ;; ${sys.fstab} ;; /does/not/.* ;; unlike ;; Path to fstab not like this [${sys.fstab}]

@@ -1,5 +1,5 @@
 %.json: %.csv
-	$(CSVTOJSON) -b efl_test_simple < $< > $@
+	$(CSVTOJSON) -b efl_test_vars < $< > $@
 
 .PHONY: clean
 clean:

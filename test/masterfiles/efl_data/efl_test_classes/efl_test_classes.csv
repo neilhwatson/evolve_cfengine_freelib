@@ -1,0 +1,4 @@
+any ;; cfengine_.* ;; like ;; Class like cfengine_.*
+any ;; cfengine    ;; is   ;; Class is cfengine
+any ;; cfengine_5.* ;; unlike ;; Class unlike cfengine_5.*
+any ;; cfengine_2  ;; isnt ;; Class isnt cfengine_2

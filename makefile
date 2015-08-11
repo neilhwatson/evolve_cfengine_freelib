@@ -330,9 +330,14 @@ syntax: $(cfstdlib) test/$(EFL_LIB) $(EFL_TEST_FILES)
 #
 # For converting csv files
 #
-test/masterfiles/efl_data/efl_test_simple/%.json:
+test/masterfiles/efl_data/efl_test_classes/%.json:
 	CSVTOJSON="../../../../$(CSVTOJSON)" \
-	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_simple \
+	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_classes \
+		$*.json
+
+test/masterfiles/efl_data/efl_test_vars/%.json:
+	CSVTOJSON="../../../../$(CSVTOJSON)" \
+	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_vars\
 		$*.json
 
 test/masterfiles/efl_data/%.json:
@@ -345,22 +350,22 @@ test/masterfiles/efl_data/%.json:
 # TODO yaml order test
 
 io_csv_test_files = \
-test/masterfiles/efl_data/efl_test_simple/01_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/02_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/03_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/04_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/05_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/06_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/07_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/08_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/09_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/10_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/11_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/12_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/13_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/14_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/15_iteration_order.csv \
-test/masterfiles/efl_data/efl_test_simple/16_iteration_order.csv
+test/masterfiles/efl_data/efl_test_classes/01_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/02_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/03_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/04_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/05_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/06_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/07_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/08_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/09_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/10_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/11_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/12_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/13_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/14_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/15_iteration_order.csv \
+test/masterfiles/efl_data/efl_test_classes/16_iteration_order.csv
 io_json_test_files = $(subst csv,json,$(io_csv_test_files))
 
 .PHONY: iteration_order
@@ -368,22 +373,29 @@ iteration_order: version syntax test/masterfiles/efl_data/efl_main.json \
   $(io_json_test_files)
 	prove t/iteration_order.t
 
-test_bundles_with_efl_test_simple = \
+.SECONDEXPANSION:
+.PHONY: efl_test_classes efl_test_vars
+efl_test_classes efl_test_vars: version syntax \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/$$@/$$@.json
+	prove t/$@_csv.t
+	prove t/$@_json.t
+
+test_bundles_with_efl_test_classes = \
   efl_class_returnszero \
   efl_class_cmd_regcmp \
   efl_class_expression
 
-.SECONDEXPANSION:
-.PHONY: $(test_bundles_with_efl_test_simple)
-$(test_bundles_with_efl_test_simple): version syntax \
+.PHONY: $(test_bundles_with_efl_test_classes)
+$(test_bundles_with_efl_test_classes): version syntax \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@.json \
-  test/masterfiles/efl_data/efl_test_simple/$$@.json
+  test/masterfiles/efl_data/efl_test_classes/$$@.json
 	prove t/$@_csv.t
 	prove t/$@_json.t
 
 bundle_test = \
-	efl_global_slists
+	efl_global_slists \
 
 .PHONY: $(bundle_test)
 $(bundle_test): version syntax \
@@ -416,7 +428,7 @@ test/008/02_efl_dump_strings.json: test/007/02_efl_dump_strings.csv
 
 .PHONY: 014_efl_test
 014_efl_test: 014_efl_test_result = R: PASS, 014_test_class_01, pass\nR: PASS, 014_test_class_02, pass\nR: PASS, 014_test_class_03, pass if class never matches
-014_efl_test: 013_efl_test test/014/01_efl_class_classmatch.json test/014/02_efl_test_simple.json test/014/efl_main.json
+014_efl_test: 013_efl_test test/014/01_efl_class_classmatch.json test/014/02_efl_test_classes.json test/014/efl_main.json
 	$(call cf_agent_grep_test, $@,$(014_efl_test_result))
 
 test/014/efl_main.json: test/013/efl_main.csv
@@ -428,8 +440,8 @@ test/014/01_efl_class_classmatch.json: test/013/01_efl_class_classmatch.csv
 	$(CSVTOJSON) -b efl_class_classmatch< $^ > $@
 	$(call search_and_replace,013,014,$@) 
 
-test/014/02_efl_test_simple.json: test/013/02_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+test/014/02_efl_test_classes.json: test/013/02_efl_test_classes.csv
+	$(CSVTOJSON) -b efl_test_classes < $^ > $@
 	$(call search_and_replace,013,014,$@) 
 
 .PHONY: 013_efl_test
@@ -441,7 +453,7 @@ test/014/02_efl_test_simple.json: test/013/02_efl_test_simple.csv
 016_efl_test: 016_efl_test_result = R: PASS, 016_test_class_01, pass ipv4\nR: PASS, 016_test_class_03, pass if class never matches
 # For when ipv6 support in iprange is available: https://dev.cfengine.com/issues/6875
 #016_efl_test: 016_efl_test_result = R: PASS, 016_test_class_01, pass ipv4\nR: PASS, 016_test_class_02, pass ipv6\nR: PASS, 016_test_class_03, pass if class never matches
-016_efl_test: 015_efl_test test/016/01_efl_class_iprange.json test/016/02_efl_test_simple.json test/016/efl_main.json
+016_efl_test: 015_efl_test test/016/01_efl_class_iprange.json test/016/02_efl_test_classes.json test/016/efl_main.json
 	$(call cf_agent_grep_test, $@,$(016_efl_test_result))
 
 test/016/efl_main.json: test/015/efl_main.csv
@@ -453,8 +465,8 @@ test/016/01_efl_class_iprange.json: test/015/01_efl_class_iprange.csv
 	$(CSVTOJSON) -b efl_class_iprange< $^ > $@
 	$(call search_and_replace,015,016,$@) 
 
-test/016/02_efl_test_simple.json: test/015/02_efl_test_simple.csv
-	$(CSVTOJSON) -b efl_test_simple < $^ > $@
+test/016/02_efl_test_classes.json: test/015/02_efl_test_classes.csv
+	$(CSVTOJSON) -b efl_test_classes < $^ > $@
 	$(call search_and_replace,015,016,$@) 
 
 .PHONY: 015_efl_test
@@ -783,8 +795,8 @@ clean:
 	rm -f .stdlib
 	rm -fr test/$(EFL_LIB)
 	$(MAKE) --directory=test/masterfiles/efl_data/ clean
-	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_simple \
-		clean
+	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_classes clean
+	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_vars clean
 	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
 	rm -f /etc/systemd/system/$(test_systemd_def)
