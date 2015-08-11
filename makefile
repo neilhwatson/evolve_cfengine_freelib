@@ -393,13 +393,21 @@ test_bundles_with_efl_test_classes = \
   efl_class_cmd_regcmp \
   efl_class_expression \
   efl_class_classmatch \
-  efl_class_iprange \
-  efl_class_hostname
+  efl_class_iprange
 
 .PHONY: $(test_bundles_with_efl_test_classes)
 $(test_bundles_with_efl_test_classes): version syntax \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@.json \
+  test/masterfiles/efl_data/efl_test_classes/$$@.json
+	prove t/$@_csv.t
+	prove t/$@_json.t
+
+##
+.PHONY: efl_class_hostname
+efl_class_hostname: version syntax \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/efl_class_hostname-017_test_class.txt \
   test/masterfiles/efl_data/efl_test_classes/$$@.json
 	prove t/$@_csv.t
 	prove t/$@_json.t
