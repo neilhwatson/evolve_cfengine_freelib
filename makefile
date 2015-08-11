@@ -392,7 +392,8 @@ test_bundles_with_efl_test_classes = \
   efl_class_returnszero \
   efl_class_cmd_regcmp \
   efl_class_expression \
-  efl_class_classmatch
+  efl_class_classmatch \
+  efl_class_iprange
 
 .PHONY: $(test_bundles_with_efl_test_classes)
 $(test_bundles_with_efl_test_classes): version syntax \
@@ -419,56 +420,6 @@ efl_global_slists: version syntax \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/efl_global_slists.json 
 	prove t/efl_global_slists.t
-
-.PHONY: 014_efl_test
-014_efl_test: 014_efl_test_result = R: PASS, 014_test_class_01, pass\nR: PASS, 014_test_class_02, pass\nR: PASS, 014_test_class_03, pass if class never matches
-014_efl_test: 013_efl_test test/014/01_efl_class_classmatch.json test/014/02_efl_test_classes.json test/014/efl_main.json
-	$(call cf_agent_grep_test, $@,$(014_efl_test_result))
-
-test/014/efl_main.json: test/013/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,013,014,$@) 
-	$(call search_and_replace,\.csv,\.json,$@)
-
-test/014/01_efl_class_classmatch.json: test/013/01_efl_class_classmatch.csv
-	$(CSVTOJSON) -b efl_class_classmatch< $^ > $@
-	$(call search_and_replace,013,014,$@) 
-
-test/014/02_efl_test_classes.json: test/013/02_efl_test_classes.csv
-	$(CSVTOJSON) -b efl_test_classes < $^ > $@
-	$(call search_and_replace,013,014,$@) 
-
-.PHONY: 013_efl_test
-013_efl_test: 013_efl_test_result = R: PASS, 013_test_class_01, pass\nR: PASS, 013_test_class_02, pass\nR: PASS, 013_test_class_03, pass if class never matches
-013_efl_test:
-	$(call cf_agent_grep_test, $@,$(013_efl_test_result))
-
-.PHONY: 016_efl_test
-016_efl_test: 016_efl_test_result = R: PASS, 016_test_class_01, pass ipv4\nR: PASS, 016_test_class_03, pass if class never matches
-# For when ipv6 support in iprange is available: https://dev.cfengine.com/issues/6875
-#016_efl_test: 016_efl_test_result = R: PASS, 016_test_class_01, pass ipv4\nR: PASS, 016_test_class_02, pass ipv6\nR: PASS, 016_test_class_03, pass if class never matches
-016_efl_test: 015_efl_test test/016/01_efl_class_iprange.json test/016/02_efl_test_classes.json test/016/efl_main.json
-	$(call cf_agent_grep_test, $@,$(016_efl_test_result))
-
-test/016/efl_main.json: test/015/efl_main.csv
-	$(CSVTOJSON) -b efl_main < $< > $@
-	$(call search_and_replace,015,016,$@) 
-	$(call search_and_replace,\.csv,\.json,$@)
-
-test/016/01_efl_class_iprange.json: test/015/01_efl_class_iprange.csv
-	$(CSVTOJSON) -b efl_class_iprange< $^ > $@
-	$(call search_and_replace,015,016,$@) 
-
-test/016/02_efl_test_classes.json: test/015/02_efl_test_classes.csv
-	$(CSVTOJSON) -b efl_test_classes < $^ > $@
-	$(call search_and_replace,015,016,$@) 
-
-.PHONY: 015_efl_test
-015_efl_test: 015_efl_test_result = R: PASS, 015_test_class_01, pass ipv4\nR: PASS, 015_test_class_03, pass if class never matches
-# For when ipv6 support in iprange is available: https://dev.cfengine.com/issues/6875
-#015_efl_test: 015_efl_test_result = R: PASS, 015_test_class_01, pass ipv4\nR: PASS, 015_test_class_02, pass ipv6\nR: PASS, 015_test_class_03, pass if class never matches
-015_efl_test:
-	$(call cf_agent_grep_test, $@,$(015_efl_test_result))
 
 .PHONY: 017_efl_test
 017_efl_test: 017_efl_test_result = R: PASS, 017_test_class, pass efl_class_hostname\nR: PASS, never, pass if never defined

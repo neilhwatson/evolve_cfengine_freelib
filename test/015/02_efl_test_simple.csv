@@ -1,4 +1,0 @@
-any ;; 015_test_class_01 ;; is   ;; pass ipv4
-# no ipv6 support, https://dev.cfengine.com/issues/6875
-#any ;; 015_test_class_02 ;; is   ;; pass ipv6
-any ;; 015_test_class_03 ;; isnt ;; pass if class never matches

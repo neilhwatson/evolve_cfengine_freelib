@@ -44,3 +44,7 @@ efl_class_classmatch ;; Test efl_class_classmatch ;; efl_class_classmatch ;; 1 ;
 efl_class_classmatch ;; Test efl_class_classmatch ;; efl_test_classes     ;; 1 ;; efl_data/efl_test_classes/efl_class_classmatch.csv ;; efl development
 
 
+efl_class_iprange ;; Test efl_class_iprange ;; efl_class_iprange ;; 1 ;; efl_data/efl_class_iprange.csv                    ;; efl development
+efl_class_iprange ;; Test efl_class_iprange ;; efl_test_classes  ;; 1 ;; efl_data/efl_test_classes/efl_class_iprange.csv   ;; efl development
+
+
