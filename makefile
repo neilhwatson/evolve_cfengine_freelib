@@ -413,6 +413,15 @@ efl_class_hostname: version syntax \
 	prove t/$@_json.t
 
 ##
+.PHONY: efl_class_hostname2
+efl_class_hostname2: version syntax \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/efl_class_hostname2.json \
+  test/masterfiles/efl_data/efl_test_classes/$$@.json
+	prove t/$@_csv.t
+	prove t/$@_json.t
+
+##
 test_bundles_with_efl_test_vars = efl_global_strings
 
 .PHONY: $(test_bundles_with_efl_test_vars)
