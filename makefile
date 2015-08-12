@@ -130,13 +130,6 @@ define md5cmp_two_files
 	fi
 endef
 
-define 023_024_test
-	rm -f $(TEST_DIR)/023_efl_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	echo 'a95cee7d8d28c9a1d6f4cd86100d341c $(TEST_DIR)/023_efl_test' |md5sum -c
-	echo PASS: $@
-endef
-
 define make_link_targets
 	for i in 01 02 03; do echo $$i > $(TEST_DIR)_$$i; done
 endef
@@ -422,7 +415,8 @@ efl_global_slists: version syntax \
 test_efl_bundles = \
 	efl_file_perms \
 	efl_sysctl_live \
-	efl_sysctl_conf_file
+	efl_sysctl_conf_file \
+	efl_command
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
@@ -433,17 +427,6 @@ $(test_efl_bundles): version syntax \
 #
 # TODO
 #
-.PHONY: 024_efl_test
-024_efl_test: 023_efl_test test/024/01_efl_command.json
-	$(call 023_024_test)
-
-test/024/01_efl_command.json: test/023/01_efl_command.csv
-	$(CSVTOJSON) -b efl_command < $^ > $@
-
-.PHONY: 023_efl_test
-023_efl_test: syntax $(TEST_DIR)
-	$(call 023_024_test)
-
 .PHONY: 026_efl_test
 026_efl_test: 025_efl_test test/026/01_efl_link.json
 	$(call make_link_targets)

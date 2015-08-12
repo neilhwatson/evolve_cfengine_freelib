@@ -58,3 +58,5 @@ efl_file_perms ;; test efl_file_perms ;; efl_file_perms ;; 1 ;; efl_data/efl_fil
 efl_sysctl_live ;; test efl_sysctl_live ;; efl_sysctl_live ;; 1 ;; efl_data/efl_sysctl_live.csv ;; efl development
 
 efl_sysctl_conf_file ;; test efl_sysctl_conf_file ;; efl_sysctl_conf_file ;; 1 ;; efl_data/efl_sysctl_conf_file.csv ;; efl development
+
+efl_command ;; test efl_command ;; efl_command ;; 1 ;; efl_data/efl_command.csv ;; efl development
