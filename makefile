@@ -60,8 +60,6 @@ tests       =   \
 	016_efl_test \
 	017_efl_test \
 	018_efl_test \
-	019_efl_test \
-	020_efl_test \
 	021_efl_test \
 	022_efl_test \
 	023_efl_test \
@@ -101,9 +99,7 @@ tests       =   \
 	292_efl_test \
 	293_efl_test \
 
-test_files = \
-	test/020/01_efl_sysctl_live.json \
-	test/251/03_cfengine_templates.json \
+test_files = test/251/03_cfengine_templates.json 
 
 # $(call cf_agent_grep_test ,target_class,result_string)
 define cf_agent_grep_test 
@@ -133,13 +129,6 @@ define md5cmp_two_files
 		echo "FAIL $@ $1 ($$ONE) != $2 ($$TWO)"; \
 		exit 1; \
 	fi
-endef
-
-define test_sysctl_live
-	/sbin/sysctl vm.swappiness='67'
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $(1)_efl_test
-	cd test/serverspec; rspec spec/localhost/019_efl_test_spec.rb
-	/sbin/sysctl vm.swappiness='60'
 endef
 
 define test_sysclt_conf
@@ -438,7 +427,8 @@ efl_global_slists: version syntax \
 # Testing normal agent bundles
 #
 test_efl_bundles = \
-	efl_file_perms
+	efl_file_perms \
+	efl_sysctl_live
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
@@ -449,20 +439,6 @@ $(test_efl_bundles): version syntax \
 #
 # TODO
 #
-.PHONY: 020_efl_test
-020_efl_test: 019_efl_test test/020/01_efl_sysctl_live.json
-	$(call test_sysctl_live,020)
-	echo PASS: $@
-
-test/020/01_efl_sysctl_live.json: test/019/01_efl_sysctl_live.csv
-	$(CSVTOJSON) -b efl_sysctl_live < $^ > $@
-	$(call search_and_replace,019,020,$@) 
-
-.PHONY: 019_efl_test
-019_efl_test:
-	$(call test_sysctl_live,019)
-	echo PASS: $@
-
 .PHONY: 022_efl_test
 022_efl_test: 021_efl_test test/022/01_efl_sysctl_conf_file.json
 	$(call test_sysctl_conf,022)
