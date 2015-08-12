@@ -1,3 +1,0 @@
-linux ;; vm.swappiness ;; 60 ;; efl development
-linux ;; net.ipv4.tcp_timestamps ;; 1 ;; efl development
-linux ;; pv4.tcp_syncookies ;; 1 ;; efl development

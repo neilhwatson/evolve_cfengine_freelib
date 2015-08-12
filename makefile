@@ -60,7 +60,6 @@ tests       =   \
 	016_efl_test \
 	017_efl_test \
 	018_efl_test \
-	021_efl_test \
 	022_efl_test \
 	023_efl_test \
 	024_efl_test \
@@ -129,12 +128,6 @@ define md5cmp_two_files
 		echo "FAIL $@ $1 ($$ONE) != $2 ($$TWO)"; \
 		exit 1; \
 	fi
-endef
-
-define test_sysclt_conf
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $(1)_efl_test
-	cd test/serverspec; rspec spec/localhost/021_efl_test_spec.rb
-	echo '07a47f3db13458ebc93b334973cc8720 /etc/sysctl.conf' |md5sum -c 
 endef
 
 define 023_024_test
@@ -428,7 +421,8 @@ efl_global_slists: version syntax \
 #
 test_efl_bundles = \
 	efl_file_perms \
-	efl_sysctl_live
+	efl_sysctl_live \
+	efl_sysctl_conf_file
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
@@ -439,19 +433,6 @@ $(test_efl_bundles): version syntax \
 #
 # TODO
 #
-.PHONY: 022_efl_test
-022_efl_test: 021_efl_test test/022/01_efl_sysctl_conf_file.json
-	$(call test_sysctl_conf,022)
-	echo PASS: $@
-
-test/022/01_efl_sysctl_conf_file.json: test/021/01_efl_sysctl_conf_file.csv
-	$(CSVTOJSON) -b efl_sysctl_conf_file < $^ > $@
-
-.PHONY: 021_efl_test
-021_efl_test:
-	$(call test_sysctl_conf,021)
-	echo PASS: $@
-
 .PHONY: 024_efl_test
 024_efl_test: 023_efl_test test/024/01_efl_command.json
 	$(call 023_024_test)

@@ -1,0 +1,2 @@
+any ;; /tmp/efl_test/efl_file_perms/d ;; 0   ;; d  ;; no  ;; 755 ;; sys  ;; sys  ;; efl development
+any ;; /tmp/efl_test/efl_file_perms   ;; 0   ;; d  ;; yes ;; 600 ;; root ;; root ;; efl development

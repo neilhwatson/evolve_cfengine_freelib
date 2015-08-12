@@ -39,7 +39,7 @@ for my $next_format ( @data_formats ){
    chdir $start_dir or croak "Cannot cd to $start_dir $!";
 }
 
-done_testing();
+done_testing( $number_of_tests );
 
 #
 # Subs
