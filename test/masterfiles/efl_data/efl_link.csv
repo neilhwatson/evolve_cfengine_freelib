@@ -1,0 +1,3 @@
+any ;; /var/tmp/efl_test/01_link ;; /tmp/efl_test/01 ;; symlink ;; efl development
+any ;; /var/tmp/efl_test/02_link ;; /tmp/efl_test/02 ;; symlink ;; efl development
+any ;; /var/tmp/efl_test/03_link ;; /tmp/efl_test/03 ;; symlink ;; efl development

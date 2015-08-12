@@ -12,7 +12,9 @@ use Digest::MD5 qw( md5_hex );
 
 my $test_hash = 'a95cee7d8d28c9a1d6f4cd86100d341c' ;
 # Change this and you must change the cfe data files.
-my $test_file = '/tmp/efl_test/023_efl_test';
+my $test_dir  = '/tmp/efl_test';
+my $test_file = $test_dir.'/023_efl_test';
+make_path( $test_dir );
 
 my $start_dir = getcwd();
 

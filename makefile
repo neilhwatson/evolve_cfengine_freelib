@@ -130,14 +130,6 @@ define md5cmp_two_files
 	fi
 endef
 
-define make_link_targets
-	for i in 01 02 03; do echo $$i > $(TEST_DIR)_$$i; done
-endef
-
-define del_link_targets
-	for i in 01 02 03; do rm $(TEST_DIR)_$$i /var$(TEST_DIR)_$${i}_link; done
-endef
-
 define 027_028_test
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	cd test/serverspec; rspec spec/localhost/027_efl_test_spec.rb
@@ -297,6 +289,12 @@ test/masterfiles/efl_data/efl_test_vars/%.json:
 	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_vars\
 		$*.json
 
+# TODO does this ensure efl_main.json is made?
+test/masterfiles/efl_data/efl_main.json: \
+  test/masterfiles/efl_data/efl_main.csv
+	CSVTOJSON="../../../$(CSVTOJSON)" \
+	$(MAKE) --directory=test/masterfiles/efl_data/ efl_main.json
+
 test/masterfiles/efl_data/%.json:
 	CSVTOJSON="../../../$(CSVTOJSON)" \
 	$(MAKE) --directory=test/masterfiles/efl_data/ $*.json
@@ -416,7 +414,8 @@ test_efl_bundles = \
 	efl_file_perms \
 	efl_sysctl_live \
 	efl_sysctl_conf_file \
-	efl_command
+	efl_command \
+	efl_link
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
@@ -427,25 +426,6 @@ $(test_efl_bundles): version syntax \
 #
 # TODO
 #
-.PHONY: 026_efl_test
-026_efl_test: 025_efl_test test/026/01_efl_link.json
-	$(call make_link_targets)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec; rspec spec/localhost/025_efl_test_spec.rb
-	$(call del_link_targets)
-	echo PASS: $@
-
-test/026/01_efl_link.json: test/025/01_efl_link.csv
-	$(CSVTOJSON) -b efl_link < $^ > $@
-
-.PHONY: 025_efl_test
-025_efl_test:
-	$(call make_link_targets)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec; rspec spec/localhost/025_efl_test_spec.rb
-	$(call del_link_targets)
-	echo PASS: $@
-
 .PHONY: 028_efl_test
 028_efl_test: 027_efl_test test/028/01_efl_delete_files.json
 	$(call 027_028_test)
@@ -687,7 +667,7 @@ check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) \
   $(efl_data_json_files) \
   $(efl_test_classes_json_files) \
   $(efl_test_vars_json_files)
-	prove t/*
+	prove t/*.t
 
 .PHONY: clean
 clean:
