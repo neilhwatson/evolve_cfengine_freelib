@@ -63,3 +63,5 @@ efl_command ;; test efl_command ;; efl_command ;; 1 ;; efl_data/efl_command.csv 
 
 efl_link ;; test efl_link ;; efl_link ;; 1 ;; efl_data/efl_link.csv ;; efl development
 
+efl_delete_files ;; test efl_delete_files ;; efl_delete_files ;; 1 ;; efl_data/efl_delete_files.csv ;; efl development
+

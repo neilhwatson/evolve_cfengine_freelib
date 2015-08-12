@@ -130,12 +130,6 @@ define md5cmp_two_files
 	fi
 endef
 
-define 027_028_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec; rspec spec/localhost/027_efl_test_spec.rb
-	echo PASS: $@
-endef
-
 define 029_030_test
 	rm -fr $(TEST_DIR)/029 $(TEST_DIR)/030 /tmp/ssh/
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
@@ -415,7 +409,8 @@ test_efl_bundles = \
 	efl_sysctl_live \
 	efl_sysctl_conf_file \
 	efl_command \
-	efl_link
+	efl_link \
+	efl_delete_files
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
