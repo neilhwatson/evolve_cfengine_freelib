@@ -130,16 +130,6 @@ define md5cmp_two_files
 	fi
 endef
 
-define 029_030_test
-	rm -fr $(TEST_DIR)/029 $(TEST_DIR)/030 /tmp/ssh/
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec; rspec spec/localhost/029_efl_test_spec.rb
-	$(call md5cmp_two_files,/etc/ssh/ssh_config,/tmp/ssh/ssh_config)
-	$(call md5cmp_two_files,$(TEST_DIR)/029/01/a.txt,$(TEST_DIR)/027/02/a.txt)
-	$(call md5cmp_two_files,$(TEST_DIR)/029/01/b.txt,$(TEST_DIR)/027/02/b.txt)
-	echo PASS $@
-endef
-
 define packages_test
 	$(APT_GET) install nano
 	$(APT_GET) remove e3
@@ -410,7 +400,8 @@ test_efl_bundles = \
 	efl_sysctl_conf_file \
 	efl_command \
 	efl_link \
-	efl_delete_files
+	efl_delete_files \
+	efl_copy_files
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
@@ -421,50 +412,6 @@ $(test_efl_bundles): version syntax \
 #
 # TODO
 #
-.PHONY: 028_efl_test
-028_efl_test: 027_efl_test test/028/01_efl_delete_files.json
-	$(call 027_028_test)
-
-test/028/01_efl_delete_files.json: test/027/01_efl_delete_files.csv
-	$(CSVTOJSON) -b efl_delete_files < $^ > $@
-
-027_testdir = $(TEST_DIR)/027
-027_01_files = $(027_testdir)/01/a.txt $(027_testdir)/01/b.txt \
-	$(027_testdir)/01/c.html
-027_02_files = $(027_testdir)/02/a.txt $(027_testdir)/02/b.txt \
-	$(027_testdir)/02/c.html
-027_03_files = $(027_testdir)/03/a.txt $(027_testdir)/03/b.txt \
-	$(027_testdir)/03/c.html $(027_testdir)/03/sub/d.json
-
-.PHONY: 027_efl_test
-027_efl_test: $(027_01_files) $(027_02_files) $(027_03_files) \
-	$(027_testdir)/04/a.txt $(027_testdir)/04/b.json
-	$(call 027_028_test)
-
-$(027_01_files) $(027_02_files) $(027_03_files): $(027_testdir)/01/. \
-	$(027_testdir)/02/. $(027_testdir)/03/sub/.
-	echo $@ > $@
-
-$(027_testdir)/04/a.txt: $(027_testdir)/04/.
-	echo $@ > $@
-	touch -t 201301011313 $@
-
-$(027_testdir)/04/b.json: $(027_testdir)/04/.
-	echo $@ > $@
-
-$(027_testdir)/01/. $(027_testdir)/02/. $(027_testdir)/03/sub/. $(027_testdir)/04/.:
-	test -d $@ || mkdir -p $@
-
-PHONY: 030_efl_test
-030_efl_test: 029_efl_test test/030/01_efl_copy_files.json
-	$(call 029_030_test)
-
-test/030/01_efl_copy_files.json: test/029/01_efl_copy_files.csv
-	$(CSVTOJSON) -b efl_copy_files < $^ > $@
-
-PHONY: 029_efl_test
-029_efl_test: $(027_02_files)
-	$(call 029_030_test)
 
 PHONY: 032_efl_test
 032_efl_test: 031_efl_test test/032/01_packages.json
