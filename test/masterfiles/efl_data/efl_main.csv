@@ -66,3 +66,7 @@ efl_link ;; test efl_link ;; efl_link ;; 1 ;; efl_data/efl_link.csv ;; efl devel
 efl_delete_files ;; test efl_delete_files ;; efl_delete_files ;; 1 ;; efl_data/efl_delete_files.csv ;; efl development
 
 efl_copy_files ;; test efl_copy_files ;; efl_copy_files ;; 1 ;; efl_data/efl_copy_files.csv ;; efl development
+
+efl_packages         ;; test efl_packages         ;; efl_packages         ;; 1 ;; efl_data/efl_packages.csv     ;; efl development
+efl_packages_via_cmd ;; test efl_packages_via_cmd ;; efl_packages_via_cmd ;; 1 ;; efl_data/efl_packages.csv     ;; efl development
+efl_packages_new     ;; test efl_packages_new     ;; efl_packages_new     ;; 1 ;; efl_data/efl_packages_new.csv ;; efl development

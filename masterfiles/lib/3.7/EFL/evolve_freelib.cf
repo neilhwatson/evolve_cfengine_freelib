@@ -1141,10 +1141,10 @@ bundle agent efl_packages_new( ref )
    meta:
       "purpose" string => "Promises packages using generic method.";
       "field_0" string => "Class";
-      "field_1" string => "Package policy";
+      "field_1" string => "Package policy: [present|absent]";
       "field_2" string => "Package name regex";
       "field_3" string => "version string";
-      "field_4" string => "arch, '*' seems to work to imply any arch";
+      "field_4" string => "arch, cannot be wild card";
       "field_5" string => "promisee";
       "ReadMe"  string => "Specify a version of '0' when version does not matter.";
 

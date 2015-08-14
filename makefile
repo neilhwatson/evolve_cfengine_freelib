@@ -130,16 +130,6 @@ define md5cmp_two_files
 	fi
 endef
 
-define packages_test
-	$(APT_GET) install nano
-	$(APT_GET) remove e3
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec; rspec spec/localhost/031.elf_test_spec.rb
-	$(APT_GET) remove nano e3
-	cd test/serverspec; rspec spec/localhost/031.elf_post_test_spec.rb
-	echo PASS $@
-endef
-
 define 035_036_test
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	cd test/serverspec; rspec spec/localhost/035_service.rb
@@ -401,7 +391,7 @@ test_efl_bundles = \
 	efl_command \
 	efl_link \
 	efl_delete_files \
-	efl_copy_files
+	efl_copy_files 
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
@@ -409,39 +399,20 @@ $(test_efl_bundles): version syntax \
   test/masterfiles/efl_data/$$@.json
 	prove t/$@.t
 
+test_efl_packages_bundles = \
+	efl_packages \
+	efl_packages_via_cmd \
+	efl_packages_new
+
+.PHONY: $(test_efl_packages_bundles)
+$(test_efl_packages_bundles): version syntax \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/efl_packages.json \
+  test/masterfiles/efl_data/efl_packages_new.json
+	prove t/efl_packages.t :: --bundle $@
 #
 # TODO
 #
-
-PHONY: 032_efl_test
-032_efl_test: 031_efl_test test/032/01_packages.json
-	$(packages_test)
-
-PHONY: 031_efl_test
-031_efl_test:
-	$(packages_test)
-
-PHONY: 031a_efl_test
-031a_efl_test:
-	$(packages_test)
-
-PHONY: 031b_efl_test
-031b_efl_test: 033_efl_test test/031b/01_packages.json
-	$(packages_test)
-
-PHONY: 034_efl_test
-034_efl_test: 033_efl_test test/032/01_packages.json
-	$(packages_test)
-
-PHONY: 033_efl_test
-033_efl_test:
-	$(packages_test)
-
-test/032/01_packages.json: test/031/01_packages.csv
-	$(CSVTOJSON) -b efl_packages < $^ > $@
-
-test/031b/01_packages.json: test/031a/01_packages.csv
-	$(CSVTOJSON) -b efl_packages < $^ > $@
 
 test_daemon          = efl_test_daemon
 test_daemon_src      = test/035/$(test_daemon)
