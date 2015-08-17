@@ -132,7 +132,7 @@ endef
 
 define 035_036_test
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec; rspec spec/localhost/035_service.rb
+	cd test/serverspec; rspec spec/localhost/efl_service.rb
 	systemctl stop $(test_systemd_def)
 	echo PASS: $@
 endef
@@ -410,15 +410,26 @@ $(test_efl_packages_bundles): version syntax \
   test/masterfiles/efl_data/efl_packages.json \
   test/masterfiles/efl_data/efl_packages_new.json
 	prove t/efl_packages.t :: --bundle $@
+
+#
+# efl_service* bundles testing
+#
+test_daemon:
+	TEST_DIR=$(TEST_DIR) \
+	$(MAKE) --directory=test/test_daemon all
+
+test_efl_service_bundles = \
+	efl_start_service
+
+.PHONY: $(test_efl_service_bundles)
+$(test_efl_service_bundles): version syntax test_daemon \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/$$@.json 
+	prove t/$@.t
+
 #
 # TODO
 #
-
-test_daemon          = efl_test_daemon
-test_daemon_src      = test/035/$(test_daemon)
-test_systemd_def     = $(test_daemon).service
-test_systemd_def_src = test/035/$(test_daemon).service
-test_daemon_files    = /etc/systemd/system/$(test_systemd_def) $(TEST_DIR)/$(test_daemon)
 
 PHONY: 036_efl_test
 036_efl_test: 035_efl_test test/036/01_efl_start_service.json
@@ -430,12 +441,6 @@ test/036/01_efl_start_service.json: test/035/01_efl_start_service.csv
 PHONY: 035_efl_test
 035_efl_test: $(test_daemon_files)
 	$(call 035_036_test)
-
-/etc/systemd/system/$(test_systemd_def): $(test_systemd_def_src)
-	cp $^ $@
-
-$(TEST_DIR)/$(test_daemon): $(test_daemon_src) $(TEST_DIR)
-	cp $< $@
 
 $(TEST_DIR):
 	mkdir -p $@
@@ -591,9 +596,9 @@ clean:
 	$(MAKE) --directory=test/masterfiles/efl_data/ clean
 	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_classes clean
 	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_vars clean
+	$(MAKE) --directory=test/masterfiles/efl_data/test/test_daemon clean
 	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
-	rm -f /etc/systemd/system/$(test_systemd_def)
 	rm -f $(test_files)
 
 

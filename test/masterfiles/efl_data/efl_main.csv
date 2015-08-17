@@ -70,3 +70,7 @@ efl_copy_files ;; test efl_copy_files ;; efl_copy_files ;; 1 ;; efl_data/efl_cop
 efl_packages         ;; test efl_packages         ;; efl_packages         ;; 1 ;; efl_data/efl_packages.csv     ;; efl development
 efl_packages_via_cmd ;; test efl_packages_via_cmd ;; efl_packages_via_cmd ;; 1 ;; efl_data/efl_packages.csv     ;; efl development
 efl_packages_new     ;; test efl_packages_new     ;; efl_packages_new     ;; 1 ;; efl_data/efl_packages_new.csv ;; efl development
+
+efl_start_service     ;; test efl_start_service     ;; efl_start_service     ;; 1 ;; efl_data/efl_start_service.csv ;; efl development
+
+
