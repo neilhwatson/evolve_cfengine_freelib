@@ -426,60 +426,6 @@ $(test_efl_service_bundles): version syntax test_daemon \
 # TODO
 #
 
-PHONY: 039_efl_test
-039_efl_test: 037_efl_test test/039/01_efl_service_recurse.json
-	echo Starting test $@
-	$(call 037_efl_test,037)
-
-test/039/01_efl_service_recurse.json: test/037/01_efl_service_recurse.csv
-	$(CSVTOJSON) -b efl_service_recurse < $^ > $@
-
-037_src_files = $(TEST_DIR)/037/src/a.txt $(TEST_DIR)/037/src/b.txt \
-	$(TEST_DIR)/037/src/c.html
-PHONY: 037_efl_test # Test if service is restarted
-037_efl_test: $(037_src_files) $(TEST_DIR)/037/01/ $(test_daemon_files)
-	$(call 037_efl_test,037)
-
-PHONY: 038_efl_test # Test if service is started
-038_efl_test: $(037_src_files) $(TEST_DIR)/037/01/ $(test_daemon_files)
-	$(call 038_efl_test,037)
-
-$(037_src_files): $(TEST_DIR)/037/src/
-	echo $@ >  $@
-
-$(TEST_DIR)/037/src/ $(TEST_DIR)/037/01/:
-	mkdir -p	$@
-
-PHONY: 251_efl_test
-251_efl_test: 250_efl_test test/251/03_cfengine_templates.json
-	$(call 250_efl_test)
-
-test/251/03_cfengine_templates.json: test/250/03_cfengine_templates.csv
-	$(CSVTOJSON) -b efl_edit_template < $^ > $@
-
-PHONY: 250_efl_test
-250_efl_test: syntax $(TEST_DIR)/250/cfengine_template.tmp $(TEST_DIR)/250/
-	$(call 250_efl_test)
-
-$(TEST_DIR)/250/cfengine_template.tmp: $(TEST_DIR)/250/
-	cp test/250/cfengine_template.tmp $^
-
-$(TEST_DIR)/250/:
-	mkdir -p $@
-
-PHONY: 252_efl_test
-252_efl_test: 250_efl_test $(TEST_DIR)/252 $(TEST_DIR)/252/cfengine_template.mustache
-	rm -f $(TEST_DIR)/252/cfengine_template
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 250_efl_test
-	$(call md5cmp_two_files,$(TEST_DIR)/252/cfengine_template,test/250/cfengine_template)
-	echo PASS: $@
-
-$(TEST_DIR)/252/cfengine_template.mustache: $(TEST_DIR)/252
-	cp test/250/cfengine_template.mustache $^
-
-$(TEST_DIR)/252/:
-	mkdir -p $@
-
 PHONY: 260_efl_test Test if service is restarted
 260_efl_test: syntax $(TEST_DIR)/260/cfengine_template.tmp $(TEST_DIR)/260/ $(test_daemon_files)
 	$(call 260_efl_test)
@@ -520,6 +466,36 @@ $(TEST_DIR)/266/cfengine_template.mustache: $(TEST_DIR)/266
 
 $(TEST_DIR)/266:
 	mkdir -p	$@
+
+PHONY: 251_efl_test
+251_efl_test: 250_efl_test test/251/03_cfengine_templates.json
+	$(call 250_efl_test)
+
+test/251/03_cfengine_templates.json: test/250/03_cfengine_templates.csv
+	$(CSVTOJSON) -b efl_edit_template < $^ > $@
+
+PHONY: 250_efl_test
+250_efl_test: syntax $(TEST_DIR)/250/cfengine_template.tmp $(TEST_DIR)/250/
+	$(call 250_efl_test)
+
+$(TEST_DIR)/250/cfengine_template.tmp: $(TEST_DIR)/250/
+	cp test/250/cfengine_template.tmp $^
+
+$(TEST_DIR)/250/:
+	mkdir -p $@
+
+PHONY: 252_efl_test
+252_efl_test: 250_efl_test $(TEST_DIR)/252 $(TEST_DIR)/252/cfengine_template.mustache
+	rm -f $(TEST_DIR)/252/cfengine_template
+	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 250_efl_test
+	$(call md5cmp_two_files,$(TEST_DIR)/252/cfengine_template,test/250/cfengine_template)
+	echo PASS: $@
+
+$(TEST_DIR)/252/cfengine_template.mustache: $(TEST_DIR)/252
+	cp test/250/cfengine_template.mustache $^
+
+$(TEST_DIR)/252/:
+	mkdir -p $@
 
 PHONY: 270_efl_test
 270_efl_test: syntax $(test_daemon_files)

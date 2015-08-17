@@ -17,7 +17,7 @@ my $test_config     = '/tmp/efl_test/efl_service_recurse';
 my $config_src      = '/tmp/efl_test/efl_service_recurse_src/';
 my $restart_flag    = $test_config. '/restarted';
 my @data_formats    = qw/ csv json /;
-my $number_of_tests = scalar @data_formats * 4;
+my $number_of_tests = scalar @data_formats * 6;
 my $daemon_proc
    = qr{\A /bin/sh \s /tmp/efl_test/efl_test_daemon \z}mxs;
 
@@ -28,6 +28,7 @@ prep_source_files( $config_src );
 for my $next_format ( @data_formats ){
 
    test_service_build({ format => $next_format });
+   test_service_start({ format => $next_format });
    test_service_repair({ format => $next_format });
 }
 
@@ -45,6 +46,19 @@ sub test_service_build {
 
    # remove existing test files
    remove_tree( $test_config);
+
+   # Ensure service is not running
+   killall( 'KILL', $daemon_proc );
+
+   run_cfagent({ format => $data_format });
+   test_end_state();
+
+   return;
+}
+
+sub test_service_start {
+   my ( $arg_ref ) = @_;
+   my $data_format = $arg_ref->{format};
 
    # Ensure service is not running
    killall( 'KILL', $daemon_proc );
