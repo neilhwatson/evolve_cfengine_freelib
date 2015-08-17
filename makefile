@@ -413,7 +413,8 @@ test_daemon:
 	$(MAKE) --directory=test/test_daemon all
 
 test_efl_service_bundles = \
-	efl_start_service
+	efl_start_service \
+	efl_service_recurse
 
 .PHONY: $(test_efl_service_bundles)
 $(test_efl_service_bundles): version syntax test_daemon \
@@ -576,7 +577,7 @@ clean:
 	$(MAKE) --directory=test/masterfiles/efl_data/ clean
 	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_classes clean
 	$(MAKE) --directory=test/masterfiles/efl_data/efl_test_vars clean
-	$(MAKE) --directory=test/masterfiles/efl_data/test/test_daemon clean
+	$(MAKE) --directory=test/test_daemon clean
 	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
 	rm -f $(test_files)

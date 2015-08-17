@@ -73,4 +73,6 @@ efl_packages_new     ;; test efl_packages_new     ;; efl_packages_new     ;; 1 ;
 
 efl_start_service     ;; test efl_start_service     ;; efl_start_service     ;; 1 ;; efl_data/efl_start_service.csv ;; efl development
 
+efl_service_recurse     ;; test efl_service_recurse     ;; efl_service_recurse     ;; 1 ;; efl_data/efl_service_recurse.csv ;; efl development
+
 

@@ -1,0 +1,1 @@
+any ;; efl_test_daemon\Z ;; /tmp/efl_test/efl_service_recurse ;; /tmp/efl_test/efl_service_recurse_src/ ;; main.localhost ;; no ;; 640 ;; root ;; root ;; touch /tmp/efl_test/efl_service_recurse/restarted; /bin/systemctl restart efl_test_daemon ;; efl development
