@@ -9,6 +9,7 @@ all: /etc/systemd/system/$(test_systemd_def) $(TEST_DIR)/$(test_daemon)
 
 .PHONY: clean
 clean:
+	/bin/systemctl stop $(test_systemd_def)
 	rm -f $(TEST_DIR)/$(test_daemon)
 	rm -f /etc/systemd/system/$(test_systemd_def)
 

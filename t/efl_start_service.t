@@ -12,11 +12,13 @@ my $start_dir = getcwd();
 
 my @data_formats = qw/ csv json /;
 my $number_of_tests = scalar @data_formats * 2;
+my $daemon_proc
+   = qr{\A /bin/sh \s /tmp/efl_test/efl_test_daemon \z}mxs;
 
 for my $next_format ( @data_formats ){
 
    # Ensure service is not running
-   killall( 'KILL', '\Aefl_test_daemon\z' );
+   killall( 'KILL', $daemon_proc );
 
    # Run cf-agent test policy
    chdir 'test/masterfiles' or croak "Cannot cd to test/masterfiles $!";
@@ -39,7 +41,7 @@ for my $next_format ( @data_formats ){
 done_testing( $number_of_tests );
 
 # Ensure service is not running
-killall( 'KILL', '\Aefl_test_daemon\z' );
+killall( 'KILL', $daemon_proc );
 
 #
 # Subs

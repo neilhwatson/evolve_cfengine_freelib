@@ -75,8 +75,6 @@ tests       =   \
 	032_efl_test \
 	033_efl_test \
 	034_efl_test \
-	035_efl_test \
-	036_efl_test \
 	037_efl_test \
 	038_efl_test \
 	039_efl_test \
@@ -128,13 +126,6 @@ define md5cmp_two_files
 		echo "FAIL $@ $1 ($$ONE) != $2 ($$TWO)"; \
 		exit 1; \
 	fi
-endef
-
-define 035_036_test
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec; rspec spec/localhost/efl_service.rb
-	systemctl stop $(test_systemd_def)
-	echo PASS: $@
 endef
 
 define 037_efl_test
@@ -222,6 +213,9 @@ $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_pi
 
 $(EFL_TEST_FILES): $(EFL_FILES) $(cfstdlib) test/$(EFL_LIB)
 	cp -r $(EFL_LIB)/$(notdir $@) test/$(EFL_LIB)
+
+$(TEST_DIR):
+	mkdir -p $@
 
 $(EFL_LIB):
 	mkdir -p $@
@@ -430,20 +424,6 @@ $(test_efl_service_bundles): version syntax test_daemon \
 #
 # TODO
 #
-
-PHONY: 036_efl_test
-036_efl_test: 035_efl_test test/036/01_efl_start_service.json
-	$(call 035_036_test)
-
-test/036/01_efl_start_service.json: test/035/01_efl_start_service.csv
-	$(CSVTOJSON) -b efl_start_service < $^ > $@
-
-PHONY: 035_efl_test
-035_efl_test: $(test_daemon_files)
-	$(call 035_036_test)
-
-$(TEST_DIR):
-	mkdir -p $@
 
 PHONY: 039_efl_test
 039_efl_test: 037_efl_test test/039/01_efl_service_recurse.json
