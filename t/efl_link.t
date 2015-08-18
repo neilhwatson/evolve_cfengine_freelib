@@ -11,8 +11,8 @@ use File::Touch;
 
 # If you change this dir you must also change efl_data/efl_link.csv and
 # efl_link.rb
-my $test_dir = '/tmp/efl_test/';
-my $link_dir = '/var/tmp/efl_test/';
+my $test_dir = '/tmp/efl_test/efl_link/s';
+my $link_dir = '/tmp/efl_test/efl_link/l';
 my $start_dir = getcwd();
 
 my @data_formats = qw/ csv json /;

@@ -202,7 +202,7 @@ endef
 print-%: ; @echo $* is $($*)
 
 .PHONY: all
-all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES)
+all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES) templates test_daemon
 
 $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_picker.cf src/$@
 	cp src/$@ $@
@@ -412,13 +412,20 @@ test_daemon:
 	TEST_DIR=$(TEST_DIR) \
 	$(MAKE) --directory=test/test_daemon all
 
+templates:
+	TEST_DIR=$(TEST_DIR) \
+	$(MAKE) --directory=test/templates all
+
 test_efl_service_bundles = \
 	efl_start_service \
-	efl_service_recurse
+	efl_service_recurse \
+	efl_service 
 
 .PHONY: $(test_efl_service_bundles)
-$(test_efl_service_bundles): version syntax test_daemon \
+$(test_efl_service_bundles): version syntax test_daemon templates \
   test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/efl_global_strings.json \
+  test/masterfiles/efl_data/efl_global_slists.json \
   test/masterfiles/efl_data/$$@.json 
 	prove t/$@.t
 
@@ -541,7 +548,9 @@ check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) \
   $(io_json_test_files) \
   $(efl_data_json_files) \
   $(efl_test_classes_json_files) \
-  $(efl_test_vars_json_files)
+  $(efl_test_vars_json_files) \
+  test_daemon \
+  templates
 	prove t/*.t
 
 .PHONY: clean

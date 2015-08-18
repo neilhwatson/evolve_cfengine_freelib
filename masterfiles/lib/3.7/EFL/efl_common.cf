@@ -251,6 +251,20 @@ bundle agent efl_bug2638(promiser_name, promisee_name, bundle_name, parameter)
          if_match_regex => "efl_server\Z",
          string         => "efl_server_csv";
 
+   vars:
+      "param_file" string => canonifyuniquely( "${parameter}" );
+
+   classes:
+      "parse_${param_file}_as_csv"
+         comment    => "Is parameter file csv?",
+         scope      => "namespace",
+         expression => regcmp( ${efl_c.csv_file}, ${parameter} );
+      "readdata_${param_file}"
+         comment    => "Use readdata on json or yaml files",
+         scope      => "namespace",
+         expression => regcmp(
+            "(${efl_c.json_file}|${efl_c.yaml_file})", ${parameter} );
+
    methods:
       "${promiser_name}" -> { "${promisee_name}" }
          comment    => "Methods promises described in methods.txt",

@@ -1,0 +1,19 @@
+# This file is created by either CFEngine or Mustache style templates.
+# In either case this file should always be the same.
+# An example of list iteration
+{{#vars.efl_global_slists.nameservers}}
+nameserver {{.}}
+{{/vars.efl_global_slists.nameservers}}
+# An example of variable expansion
+domain {{vars.efl_global_strings.domain}}
+###
+a block
+
+of 
+
+whitespace
+###
+
+{{#classes.never}}
+This line should never be in the final file
+{{/classes.never}}

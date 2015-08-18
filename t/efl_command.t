@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
-use File::Path qw/ make_path remove_tree /;
+use File::Path qw/ make_path /;
 use POSIX qw/ WIFEXITED /;
 use Cwd;
 use Carp;

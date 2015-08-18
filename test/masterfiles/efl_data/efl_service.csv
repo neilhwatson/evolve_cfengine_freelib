@@ -1,0 +1,6 @@
+
+none ;; efl_test_daemon\Z ;; /tmp/efl_test/efl_service/config ;; /tmp/efl_test/templates/config ;; main.localhost ;; no ;; no ;; 640 ;; root ;; root ;; touch /tmp/efl_test/efl_service/restarted; /bin/systemctl restart efl_test_daemon ;; efl development
+
+cfe ;; efl_test_daemon\Z ;; /tmp/efl_test/efl_service/config ;; /tmp/efl_test/templates/config.tmp ;; main.localhost ;; yes ;; no ;; 640 ;; root ;; root ;; touch /tmp/efl_test/efl_service/restarted; /bin/systemctl restart efl_test_daemon ;; efl development
+
+mustache ;; efl_test_daemon\Z ;; /tmp/efl_test/efl_service/config ;; /tmp/efl_test/templates/config.mus ;; main.localhost ;; yes ;; no ;; 640 ;; root ;; root ;; touch /tmp/efl_test/efl_service/restarted; /bin/systemctl restart efl_test_daemon ;; efl development

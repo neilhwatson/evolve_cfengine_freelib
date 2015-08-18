@@ -47,68 +47,7 @@ bundle agent main
 
 # TODO goal to remove all of these:
 
-   007_efl_test::
-		"any" usebundle => efl_main( "../007/efl_main.csv" );
-   008_efl_test::
-		"any" usebundle => efl_main( "../008/efl_main.json" );
-
-   013_efl_test::
-		"any" usebundle => efl_main( "../013/efl_main.csv" );
-   014_efl_test::
-		"any" usebundle => efl_main( "../014/efl_main.json" );
-   015_efl_test::
-		"any" usebundle => efl_main( "../015/efl_main.csv" );
-   016_efl_test::
-		"any" usebundle => efl_main( "../016/efl_main.json" );
-   017_efl_test::
-		"any" usebundle => efl_main( "../017/efl_main.json" );
-   018_efl_test::
-		"any" usebundle => efl_main( "../018/efl_main.json" );
-   019_efl_test::
-      "any" usebundle => efl_sysctl_live( "../019/01_efl_sysctl_live.csv" );
-   020_efl_test::
-      "any" usebundle => efl_sysctl_live( "../020/01_efl_sysctl_live.json" );
-   021_efl_test::
-      "any" usebundle => efl_sysctl_conf_file( "../021/01_efl_sysctl_conf_file.csv" );
-   022_efl_test::
-      "any" usebundle => efl_sysctl_conf_file( "../022/01_efl_sysctl_conf_file.json" );
-   023_efl_test::
-      "any" usebundle => efl_command( "../023/01_efl_command.csv" );
-   024_efl_test::
-      "any" usebundle => efl_command( "../024/01_efl_command.json" );
-   025_efl_test::
-      "any" usebundle => efl_link( "../025/01_efl_link.csv" );
-   026_efl_test::
-      "any" usebundle => efl_link( "../026/01_efl_link.json" );
-   027_efl_test::
-      "any" usebundle => efl_delete_files( "../027/01_efl_delete_files.csv" );
-   028_efl_test::
-      "any" usebundle => efl_delete_files( "../028/01_efl_delete_files.json" );
-   029_efl_test::
-      "any" usebundle => efl_copy_files( "../029/01_efl_copy_files.csv" );
-   030_efl_test::
-      "any" usebundle => efl_copy_files( "../030/01_efl_copy_files.json" );
-   031_efl_test::
-      "any" usebundle => efl_packages_via_cmd( "../031/01_packages.csv" );
-   032_efl_test::
-      "any" usebundle => efl_packages_via_cmd( "../032/01_packages.json" );
-   033_efl_test::
-      "any" usebundle => efl_packages( "../031/01_packages.csv" );
-   034_efl_test::
-      "any" usebundle => efl_packages( "../032/01_packages.json" );
-   031a_efl_test::
-      "any" usebundle => efl_packages_new( "../031a/01_packages.csv" );
-   031b_efl_test::
-      "any" usebundle => efl_packages_new( "../031b/01_packages.json" );
-   035_efl_test::
-      "any" usebundle => efl_start_service( "../035/01_efl_start_service.csv" );
-   036_efl_test::
-      "any" usebundle => efl_start_service( "../036/01_efl_start_service.json" );
-   037_efl_test::
-      "any" usebundle => efl_service_recurse( "../037/01_efl_service_recurse.csv" );
-   039_efl_test::
-      "any" usebundle => efl_service_recurse( "../039/01_efl_service_recurse.json" );
-   250_efl_test::
+    250_efl_test::
       "any" usebundle => efl_main( "../250/efl_main.json" );
    251_efl_test::
       "any" usebundle => efl_main( "../251/efl_main.json" );

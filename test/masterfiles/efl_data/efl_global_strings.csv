@@ -1,3 +1,5 @@
 any ;; main_efl_dev ;; Neil H. Watson (neil@watson-wilson.ca) ;; efl_development
 any ;; gateway      ;; 2001:DB8::1                            ;; efl_development
 any ;; cf_major     ;; ${sys.cf_version_major}                ;; efl_development data_expand
+
+any ;; domain       ;; example.com                            ;; efl_development

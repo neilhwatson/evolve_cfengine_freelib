@@ -31,7 +31,7 @@ for my $next_format ( @data_formats ){
 
    # Test the results of cf-agent test policy
    chdir '../serverspec' or croak "Cannot cd to test/serverspec $!";
-   my $rspec = "rspec spec/localhost/efl_start_service.rb >/dev/null";
+   my $rspec = "rspec spec/localhost/efl_start_service.rb";
    ok( WIFEXITED( ( system $rspec ) >> 8), $rspec);
 
    # Return to original dir

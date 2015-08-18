@@ -1,23 +1,30 @@
 # Making the test daemon for efl_service* bundle testing.
 # TODO needs a make clean to for efl_service test
 
-test_daemon      = efl_test_daemon
-test_systemd_def = $(test_daemon).service
-daemon_dir       = $(TEST_DIR)
+daemon      = efl_test_daemon
+systemd_def = $(daemon).service
+daemon_dir  = $(TEST_DIR)
+daemon_exec = $(daemon_dir)/$(daemon)
+
 
 .PHONY: all
-all: /etc/systemd/system/$(test_systemd_def) $(daemon_dir)/$(test_daemon)
+all: /etc/systemd/system/$(systemd_def) $(daemon_exec)
+	/bin/systemctl daemon-reload
 
 .PHONY: clean
 clean:
-	/bin/systemctl stop $(test_systemd_def)
-	rm -f $(daemon_dir)
-	rm -f /etc/systemd/system/$(test_systemd_def)
+	/bin/systemctl stop $(systemd_def); /bin/true
+	/bin/systemctl disable $(systemd_def); /bin/true
+	/bin/systemctl reset-failed
+	rm -f $(daemon_exec)
+	rm -f /etc/systemd/system/$(systemd_def)
+	/bin/systemctl daemon-reload
+	/bin/systemctl reset-failed
 
-/etc/systemd/system/$(test_systemd_def): $(test_systemd_def)
+/etc/systemd/system/$(systemd_def): $(systemd_def)
 	cp $< $@
 
-$(daemon_dir)/$(test_daemon): $(test_daemon) $(daemon_dir)
+$(daemon_exec): $(daemon) $(daemon_dir)
 	cp $< $@
 
 $(daemon_dir):

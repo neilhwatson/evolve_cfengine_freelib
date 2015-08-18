@@ -28,7 +28,7 @@ efl_class_expression ;; Test efl_class_expression ;; efl_class_expression ;; 1 ;
 efl_class_expression ;; Test efl_class_expression ;; efl_test_classes      ;; 1 ;; efl_data/efl_test_classes/efl_class_expression.csv ;; efl development
 
 
-efl_global_slists ;; Test efl_global_slists ;; efl_global_slists ;; 1 ;; efl_data/efl_global_slists.csv ;; efl development
+any ;; Test efl_global_slists ;; efl_global_slists ;; 1 ;; efl_data/efl_global_slists.csv ;; efl development
 # 005_efl_test ;; Testing efl_global_slists  ;; efl_dump_strings  ;; 1 ;; ../005/02_efl_dump_strings.csv ;; efl development
 
 efl_test_classes ;; Test efl_test_classses ;; efl_test_classes ;; 1 ;; efl_data/efl_test_classes/efl_test_classes.csv ;; efl development
@@ -36,7 +36,7 @@ efl_test_classes ;; Test efl_test_classses ;; efl_test_classes ;; 1 ;; efl_data/
 efl_test_vars ;; Test efl_test_classses ;; efl_test_vars ;; 1 ;; efl_data/efl_test_vars/efl_test_vars.csv ;; efl development
 
 
-efl_global_strings ;; Test efl_global_strings ;; efl_global_strings ;; 1 ;; efl_data/efl_global_strings.csv               ;; efl development
+any ;; Test efl_global_strings ;; efl_global_strings ;; 1 ;; efl_data/efl_global_strings.csv               ;; efl development
 efl_global_strings ;; Test efl_global_strings ;; efl_test_vars      ;; 1 ;; efl_data/efl_test_vars/efl_global_strings.csv ;; efl development
 
 
@@ -75,4 +75,5 @@ efl_start_service     ;; test efl_start_service     ;; efl_start_service     ;; 
 
 efl_service_recurse     ;; test efl_service_recurse     ;; efl_service_recurse     ;; 1 ;; efl_data/efl_service_recurse.csv ;; efl development
 
+efl_service     ;; test efl_service     ;; efl_service     ;; 1 ;; efl_data/efl_service.csv ;; efl development
 
