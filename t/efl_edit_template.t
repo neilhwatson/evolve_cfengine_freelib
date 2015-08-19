@@ -48,7 +48,7 @@ for my $next_test ( @tests ) {
 
    # Test the results of cf-agent test policy
    chdir '../serverspec' or croak "Cannot cd to test/serverspec $!";
-   my $rspec = "rspec spec/localhost/efl_edit_template.rb";
+   my $rspec = "rspec spec/localhost/$bundle.rb";
    ok( WIFEXITED( ( system $rspec ) >> 8), "$rspec of $next_test->{name}" );
 
    # Return to original dir

@@ -115,7 +115,7 @@ define 291_efl_test
 endef
 
 .PHONY: all
-all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES) templates test_daemon
+all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES) 
 
 $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_picker.cf src/$@
 	cp src/$@ $@
@@ -278,15 +278,15 @@ $(test_bundles_with_efl_test_vars): version syntax $(efl_test_bundles) \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@.json \
   test/masterfiles/efl_data/efl_test_vars/$$@.json
-	prove t/$@_csv.t
-	prove t/$@_json.t
+	prove t/30_$@_csv.t
+	prove t/31_$@_json.t
 
 ##
 .PHONY: efl_global_slists
 efl_global_slists: version syntax \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/efl_global_slists.json 
-	prove t/efl_global_slists.t
+	prove t/40_efl_global_slists.t
 
 #
 # Testing normal agent bundles
@@ -321,24 +321,33 @@ $(test_efl_packages_bundles): version syntax \
 #
 # efl_service* bundles testing
 #
+.PHONY: test_daemon
 test_daemon:
-	TEST_DIR=$(TEST_DIR) \
-	$(MAKE) --directory=test/test_daemon all
+	TEST_DIR=$(TEST_DIR) $(MAKE) --directory=test/test_daemon all
 
-templates:
-	TEST_DIR=$(TEST_DIR) \
-	$(MAKE) --directory=test/templates all
+.PHONY: templates
+templates: efl_global_strings efl_global_slists
+	TEST_DIR=$(TEST_DIR) $(MAKE) --directory=test/templates all
 
 test_efl_service_bundles = \
 	efl_start_service \
 	efl_service_recurse \
-	efl_service 
+	efl_service  \
 
 .PHONY: $(test_efl_service_bundles)
 $(test_efl_service_bundles): version syntax test_daemon templates \
   test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/efl_global_strings.json \
   test/masterfiles/efl_data/efl_global_slists.json \
+  test/masterfiles/efl_data/$$@.json 
+	prove t/$@.t
+
+test_efl_enable_disable_services = \
+	efl_enable_service
+
+.PHONY: $(test_efl_enable_disable_services)
+$(test_efl_enable_disable_services): version syntax test_daemon \
+  test/masterfiles/efl_data/efl_main.json \
   test/masterfiles/efl_data/$$@.json 
 	prove t/$@.t
 
