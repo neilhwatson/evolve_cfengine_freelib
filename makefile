@@ -75,26 +75,6 @@ define md5cmp_two_files
 	fi
 endef
 
-define 270_efl_test
-	cp $(test_daemon_src) $(TEST_DIR)/
-	cp $(test_systemd_def_src) /etc/systemd/system/
-	systemctl disable $(test_systemd_def)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	systemctl is-enabled $(test_systemd_def)
-	rm /etc/systemd/system/$(test_systemd_def)
-	echo PASS: $@
-endef
-
-define 272_efl_test
-	cp $(test_daemon_src) $(TEST_DIR)/
-	cp $(test_systemd_def_src) /etc/systemd/system/
-	systemctl enable $(test_systemd_def)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	systemctl is-enabled $(test_systemd_def) |grep disabled
-	rm /etc/systemd/system/$(test_systemd_def)
-	echo PASS: $@
-endef
-
 define 290_efl_test
 	rm -fr $(TEST_DIR)/290_master
 	git clone https://github.com/neilhwatson/vim_cf3.git $(TEST_DIR)/290_master
@@ -343,7 +323,8 @@ $(test_efl_service_bundles): version syntax test_daemon templates \
 	prove t/$@.t
 
 test_efl_enable_disable_services = \
-	efl_enable_service
+	efl_enable_service \
+	efl_disable_service
 
 .PHONY: $(test_efl_enable_disable_services)
 $(test_efl_enable_disable_services): version syntax test_daemon \
@@ -362,25 +343,6 @@ efl_edit_template: version syntax templates \
 #
 # TODO
 #
-
-PHONY: 270_efl_test
-270_efl_test: syntax $(test_daemon_files)
-	$(call 270_efl_test)
-
-PHONY: 271_efl_test
-271_efl_test: 270_efl_test test/271/01_efl_enable_service.json
-	$(call 270_efl_test)
-
-test/271/01_efl_enable_service.json: test/270/01_efl_enable_service.csv
-	$(CSVTOJSON) -b efl_enable_service < $< > $@
-
-PHONY: 272_efl_test
-272_efl_test: 270_efl_test
-	$(call 272_efl_test)
-
-PHONY: 273_efl_test
-273_efl_test: 272_efl_test
-	$(call 272_efl_test)
 
 PHONY: 290_efl_test
 290_efl_test: syntax

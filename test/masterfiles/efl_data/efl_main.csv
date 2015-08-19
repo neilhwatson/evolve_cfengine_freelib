@@ -80,3 +80,5 @@ efl_service     ;; test efl_service     ;; efl_service     ;; 1 ;; efl_data/efl_
 efl_edit_template ;; test efl_edit_template ;; efl_edit_template ;; 1 ;; efl_data/efl_edit_template.csv ;; efl development
 
 efl_enable_service ;; test efl_enable_service ;; efl_enable_service ;; 1 ;; efl_data/efl_enable_service.csv ;; efl development
+
+efl_disable_service ;; test efl_disable_service ;; efl_disable_service ;; 1 ;; efl_data/efl_disable_service.csv ;; efl development
