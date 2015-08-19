@@ -46,41 +46,6 @@ cfstdlib    = \
 	test/$(LIB)/stdlib.cf
 
 tests       =   \
-	005_efl_test \
-	006_efl_test \
-	007_efl_test \
-	008_efl_test \
-	009_efl_test \
-	010_efl_test \
-	011_efl_test \
-	012_efl_test \
-	013_efl_test \
-	014_efl_test \
-	015_efl_test \
-	016_efl_test \
-	017_efl_test \
-	018_efl_test \
-	022_efl_test \
-	023_efl_test \
-	024_efl_test \
-	025_efl_test \
-	026_efl_test \
-	027_efl_test \
-	028_efl_test \
-	029_efl_test \
-	030_efl_test \
-	031_efl_test \
-	031a_efl_test \
-	031b_efl_test \
-	032_efl_test \
-	033_efl_test \
-	034_efl_test \
-	037_efl_test \
-	038_efl_test \
-	039_efl_test \
-	250_efl_test \
-	251_efl_test \
-	252_efl_test \
 	260_efl_test \
 	261_efl_test \
 	262_efl_test \
@@ -94,26 +59,8 @@ tests       =   \
 	290_efl_test \
 	291_efl_test \
 	292_efl_test \
-	293_efl_test \
+	293_efl_test 
 
-test_files = test/251/03_cfengine_templates.json 
-
-# $(call cf_agent_grep_test ,target_class,result_string)
-define cf_agent_grep_test 
- 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1 | \
-	perl -e '                            \
-	while (<STDIN>) { $$OUTPUT .= $$_  } \
-		if ( $$OUTPUT =~ m|\A$2\Z| )      \
-			{ print "PASS: $@\n" }         \
-		else                              \
-			{ die "FAIL: $@" }'
-endef
-
-# $(call search_and_replace,search_regex replace_string target_file)
-define search_and_replace
-	perl -pi -e 's/$1/$2/' $3
-endef
-	
 define md5cmp_two_files
 	ONE=$$(md5sum $1|awk '{print $$1}')  \
 	TWO=$$(md5sum $2|awk '{print $$1}'); \
@@ -126,38 +73,6 @@ define md5cmp_two_files
 		echo "FAIL $@ $1 ($$ONE) != $2 ($$TWO)"; \
 		exit 1; \
 	fi
-endef
-
-define 037_efl_test
-	echo foo > $(TEST_DIR)/037/01/a.txt 
-	/bin/systemctl start $(test_systemd_def)
-	if [ -f $(TEST_DIR)/$1/01/restarted ]; then rm $(TEST_DIR)/$1/01/restarted; fi
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec/; rspec spec/localhost/$1_efl_test.rb
-	echo PASS: $@
-endef
-
-define 038_efl_test
-	/bin/systemctl stop $(test_systemd_def)
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $1_efl_test
-	cd test/serverspec/; rspec spec/localhost/$1_efl_test.rb
-	echo PASS: $@
-endef
-
-define 250_efl_test
-	rm -f $(TEST_DIR)/250/cfengine_template
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	$(call md5cmp_two_files,$(TEST_DIR)/250/cfengine_template,test/250/cfengine_template)
-	echo PASS: $@
-endef
-
-define 260_efl_test
-	echo foo > $(TEST_DIR)/260/cfengine_template
-	/bin/systemctl start $(test_systemd_def)
-	if [ -f $(TEST_DIR)/260/restarted ]; then rm $(TEST_DIR)/260/restarted; fi
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd test/serverspec/; rspec spec/localhost/260_efl_test.rb
-	echo PASS: $@
 endef
 
 define 270_efl_test
@@ -198,8 +113,6 @@ define 291_efl_test
 	$(call md5cmp_two_files,$(TEST_DIR)/290_test.status,$(TEST_DIR)/290_master.status)
 	echo PASS: $@
 endef
-
-print-%: ; @echo $* is $($*)
 
 .PHONY: all
 all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES) templates test_daemon
@@ -429,80 +342,17 @@ $(test_efl_service_bundles): version syntax test_daemon templates \
   test/masterfiles/efl_data/$$@.json 
 	prove t/$@.t
 
+.PHONY: efl_edit_template
+efl_edit_template: version syntax templates \
+  test/masterfiles/efl_data/efl_main.json \
+  test/masterfiles/efl_data/efl_global_strings.json \
+  test/masterfiles/efl_data/efl_global_slists.json \
+  test/masterfiles/efl_data/$$@.json 
+	prove t/$@.t
+
 #
 # TODO
 #
-
-PHONY: 260_efl_test Test if service is restarted
-260_efl_test: syntax $(TEST_DIR)/260/cfengine_template.tmp $(TEST_DIR)/260/ $(test_daemon_files)
-	$(call 260_efl_test)
-
-$(TEST_DIR)/260/cfengine_template.tmp: $(TEST_DIR)/260/
-	cp test/260/cfengine_template.tmp $@
-
-PHONY: 261_efl_test Test if service is started
-261_efl_test: 260_efl_test 
-	$(call 038_efl_test,260)
-
-$(TEST_DIR)/260/:
-	mkdir -p	$@
-
-PHONY: 262_efl_test # Test if service template config is promised
-262_efl_test: 260_efl_test 
-	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
-	echo PASS: $@
-
-PHONY: 264_efl_test
-264_efl_test: test/264/01_efl_service.json
-	$(call 260_efl_test)
-
-test/264/01_efl_service.json: test/260/01_efl_service.csv
-	$(CSVTOJSON) -b efl_service < $^ > $@
-
-PHONY: 265_efl_test
-265_efl_test: 264_efl_test
-	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
-
-PHONY: 266_efl_test
-266_efl_test: syntax $(test_daemon_files) $(TEST_DIR)/266/cfengine_template.mustache
-	$(call 260_efl_test)
-	$(call md5cmp_two_files,$(TEST_DIR)/260/cfengine_template,test/260/cfengine_template)
-
-$(TEST_DIR)/266/cfengine_template.mustache: $(TEST_DIR)/266
-	cp test/260/cfengine_template.mustache $@
-
-$(TEST_DIR)/266:
-	mkdir -p	$@
-
-PHONY: 251_efl_test
-251_efl_test: 250_efl_test test/251/03_cfengine_templates.json
-	$(call 250_efl_test)
-
-test/251/03_cfengine_templates.json: test/250/03_cfengine_templates.csv
-	$(CSVTOJSON) -b efl_edit_template < $^ > $@
-
-PHONY: 250_efl_test
-250_efl_test: syntax $(TEST_DIR)/250/cfengine_template.tmp $(TEST_DIR)/250/
-	$(call 250_efl_test)
-
-$(TEST_DIR)/250/cfengine_template.tmp: $(TEST_DIR)/250/
-	cp test/250/cfengine_template.tmp $^
-
-$(TEST_DIR)/250/:
-	mkdir -p $@
-
-PHONY: 252_efl_test
-252_efl_test: 250_efl_test $(TEST_DIR)/252 $(TEST_DIR)/252/cfengine_template.mustache
-	rm -f $(TEST_DIR)/252/cfengine_template
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D 250_efl_test
-	$(call md5cmp_two_files,$(TEST_DIR)/252/cfengine_template,test/250/cfengine_template)
-	echo PASS: $@
-
-$(TEST_DIR)/252/cfengine_template.mustache: $(TEST_DIR)/252
-	cp test/250/cfengine_template.mustache $^
-
-$(TEST_DIR)/252/:
-	mkdir -p $@
 
 PHONY: 270_efl_test
 270_efl_test: syntax $(test_daemon_files)
@@ -565,7 +415,6 @@ clean:
 	$(MAKE) --directory=test/test_daemon clean
 	rm -fr $(TEST_DIR)
 	rm -f /tmp/ssh/ssh_config
-	rm -f $(test_files)
 
 
 .PHONY: help

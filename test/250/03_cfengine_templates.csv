@@ -1,5 +1,0 @@
-any ;; /tmp/efl_test/250/cfengine_template ;; /tmp/efl_test/250/cfengine_template.tmp ;; main.localhost ;; 644 ;; root ;; root ;; efl development
-any ;; /tmp/efl_test/252/cfengine_template ;; /tmp/efl_test/252/cfengine_template.mustache ;; main.localhost ;; 644 ;; root ;; root ;; efl development
-
-# This returns a reports promise error message
-# any ;; /tmp/efl_test/252/cfengine_foo ;; /tmp/efl_test/252/cfengine_template.text ;; main.localhost ;; 644 ;; root ;; root ;; efl development

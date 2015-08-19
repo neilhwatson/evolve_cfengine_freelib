@@ -77,3 +77,4 @@ efl_service_recurse     ;; test efl_service_recurse     ;; efl_service_recurse  
 
 efl_service     ;; test efl_service     ;; efl_service     ;; 1 ;; efl_data/efl_service.csv ;; efl development
 
+efl_edit_template ;; test efl_edit_template ;; efl_edit_template ;; 1 ;; efl_data/efl_edit_template.csv ;; efl development
