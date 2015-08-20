@@ -2914,7 +2914,11 @@ if a class is, isn't, like or unlike a given test";
 
       "field_0" string => "Class expression"; # class
       "field_1" string => "Class or class regex to test"; # class_to_test
-      "field_2" string => "pass test whether test class 'is' true or 'isnt' true"; # is_or_isnt
+      "field_2" string => "pass if class to test:
+'is' the same
+'isnt' the same
+'like' the given regex
+'unlike' the given regex";
       "field_3" string => "Test name, free form like promisee"; # name
 
    vars:
