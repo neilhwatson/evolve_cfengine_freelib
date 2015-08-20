@@ -1,0 +1,1 @@
+any ;; /usr/bin/git reset --hard HEAD && /usr/bin/git pull ;; /usr/bin/git clone /tmp/efl_test/efl_rcs_pull/repo ;; /tmp/efl_test/efl_rcs_pull/clone ;; 644 ;; root ;; root ;; efl development

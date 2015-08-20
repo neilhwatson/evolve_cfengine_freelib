@@ -45,59 +45,11 @@ cfstdlib    = \
 	test/$(LIB)/monitor.cf \
 	test/$(LIB)/stdlib.cf
 
-tests       =   \
-	260_efl_test \
-	261_efl_test \
-	262_efl_test \
-	264_efl_test \
-	265_efl_test \
-	266_efl_test \
-	270_efl_test \
-	271_efl_test \
-	272_efl_test \
-	273_efl_test \
-	290_efl_test \
-	291_efl_test \
-	292_efl_test \
-	293_efl_test 
-
-define md5cmp_two_files
-	ONE=$$(md5sum $1|awk '{print $$1}')  \
-	TWO=$$(md5sum $2|awk '{print $$1}'); \
-	for i in $1 $2; do \
-		if [ ! -f $1 ]; then echo "FAIL $@ $1 does not exist"; exit 1; fi \
-	done; \
-	if [ "0$$ONE" = "0$$TWO" ]; then \
-		echo "PASS $1 ($$ONE) == $2 ($$TWO)"; \
-	else \
-		echo "FAIL $@ $1 ($$ONE) != $2 ($$TWO)"; \
-		exit 1; \
-	fi
-endef
-
-define 290_efl_test
-	rm -fr $(TEST_DIR)/290_master
-	git clone https://github.com/neilhwatson/vim_cf3.git $(TEST_DIR)/290_master
-	cd $(TEST_DIR)/290_master; git status > $(TEST_DIR)/290_master.status
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@ 
-	cd $(TEST_DIR)/290_test; git status > $(TEST_DIR)/290_test.status
-	$(call md5cmp_two_files,$(TEST_DIR)/290_test.status,$(TEST_DIR)/290_master.status)
-	echo PASS: $@
-endef
-
-define 291_efl_test
-	rm -f $(TEST_DIR)/290_test.status*
-	rm -f $(TEST_DIR)/290_test/README*
-	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
-	cd $(TEST_DIR)/290_test; git status > $(TEST_DIR)/290_test.status
-	$(call md5cmp_two_files,$(TEST_DIR)/290_test.status,$(TEST_DIR)/290_master.status)
-	echo PASS: $@
-endef
-
 .PHONY: all
 all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES) 
 
-$(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf src/includes/param_file_picker.cf src/$@
+$(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf \
+  src/includes/param_file_picker.cf src/$@
 	cp src/$@ $@
 	$(eflmaker) --tar $@ \
 		--tag param_parser -i src/includes/param_parser.cf
@@ -123,7 +75,8 @@ $(AUTORUN): src/masterfiles/services/autorun src/$@
 $(cfstdlib): .stdlib
 
 .stdlib:
-	cd test/masterfiles/lib; svn export --force $(CF_REPO)/masterfiles/trunk/lib/$(VERSION)
+	cd test/masterfiles/lib; svn export --force \
+		$(CF_REPO)/masterfiles/trunk/lib/$(VERSION)
 	touch $@
 
 #
@@ -278,7 +231,8 @@ test_efl_bundles = \
 	efl_command \
 	efl_link \
 	efl_delete_files \
-	efl_copy_files 
+	efl_copy_files \
+	efl_rcs_pull
 
 .PHONY: $(test_efl_bundles)
 $(test_efl_bundles): version syntax \
@@ -306,7 +260,7 @@ test_daemon:
 	TEST_DIR=$(TEST_DIR) $(MAKE) --directory=test/test_daemon all
 
 .PHONY: templates
-templates: efl_global_strings efl_global_slists
+templates: 
 	TEST_DIR=$(TEST_DIR) $(MAKE) --directory=test/templates all
 
 test_efl_service_bundles = \
@@ -339,29 +293,6 @@ efl_edit_template: version syntax templates \
   test/masterfiles/efl_data/efl_global_slists.json \
   test/masterfiles/efl_data/$$@.json 
 	prove t/$@.t
-
-#
-# TODO
-#
-
-PHONY: 290_efl_test
-290_efl_test: syntax
-	$(call 290_efl_test)
-
-PHONY: 291_efl_test
-291_efl_test: syntax 290_efl_test
-	$(call 291_efl_test)
-
-PHONY: 292_efl_test
-292_efl_test: syntax test/292/01_efl_rcs_pull.json
-	$(call 290_efl_test)
-
-PHONY: 293_efl_test
-293_efl_test: syntax 292_efl_test test/292/01_efl_rcs_pull.json
-	$(call 291_efl_test)
-
-test/292/01_efl_rcs_pull.json: test/290/01_efl_rcs_pull.csv
-	$(CSVTOJSON) -b efl_rcs_pull < $< > $@
 
 .PHONY: check
 # TODO how to make all json and yaml files here?
