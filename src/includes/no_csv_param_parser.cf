@@ -1,0 +1,19 @@
+      "param_file" string => canonifyuniquely( "${ref}" );
+
+      "data"
+         comment => "Parse json file",
+         if      => "readdata_${param_file}",
+         data    => readdata( "${ref}", "auto" );
+
+      "d"
+         comment => "Expand vars inside of container",
+         if      => "readdata_${param_file}",
+         data    => data_expand( "data" );
+
+      "i_unsorted"
+         comment    => "Index data, but unsorted",
+         slist      => getindices( "d" );
+
+      "i"
+         comment    => "Ensure data is ordered because read functions may not",
+         slist      => sort( i_unsorted, int );

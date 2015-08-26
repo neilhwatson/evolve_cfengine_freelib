@@ -52,6 +52,8 @@ $(EFL_FILES): $(EFL_LIB) src/includes/param_parser.cf \
   src/includes/param_file_picker.cf src/$@
 	cp src/$@ $@
 	$(eflmaker) --tar $@ \
+		--tag no_csv_param_parser -i src/includes/no_csv_param_parser.cf
+	$(eflmaker) --tar $@ \
 		--tag param_parser -i src/includes/param_parser.cf
 	$(eflmaker) --tar $@ \
 		--tag param_file_picker -i src/includes/param_file_picker.cf
@@ -292,6 +294,11 @@ efl_edit_template: version syntax templates \
   test/masterfiles/efl_data/efl_global_strings.json \
   test/masterfiles/efl_data/efl_global_slists.json \
   test/masterfiles/efl_data/$$@.json 
+	prove t/$@.t
+
+.PHONY: efl_kill_process
+efl_kill_process: version syntax efl_start_service \
+  test/masterfiles/efl_data/efl_main.json 
 	prove t/$@.t
 
 .PHONY: check

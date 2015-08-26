@@ -1,0 +1,11 @@
+[
+   {
+      "class" : "any",
+      "process_regex" : "/bin/sh /tmp/efl_test/efl_test_daemon",
+      "owners" : [ "root", "neil" ],
+      "min_resize" : 1,
+      "min_elapsed_time" : 1,
+      "min_process_count" : 1,
+      "promisee" : "efl development"
+   }
+]

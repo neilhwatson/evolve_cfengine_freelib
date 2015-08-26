@@ -782,6 +782,71 @@ bundle agent efl_start_service ( ref )
          ifvarclass => canonify( "efl_start_service_command_${d[${i}][process_regex]}_${i}" );
 }
 
+bundle agent efl_kill_process ( ref )
+{
+# This is not ready for use
+   meta:
+      "purpose"           string => "Kll matching processes.";
+      "NOTE"              string => "Does not accept CSV param file";
+      "class"             string => "Class";
+      "process_regex"     string => "Process regex";
+      "owners"            string => "List of possible process owners";
+      "min_rsize"         string => "Min rsize in kilobytes";
+      "min_elapsed_time"  string => "Min run time in hours";
+      "min_process_count" string => "Min number of matched processes";
+      "promisee"          string => "Free form promisess";
+
+# param spec
+# {
+#  "class"             : "promise_if_set",
+#  "process_regex"     : "command_regex_to_match",
+#  "owners"            : [ "process", "owners" ],
+#  "min_rsize"         : "1",
+#  "min_elapsed_time"  : "1",
+#  "min_process_count" : "1",
+#  "promisee"          : "Who this promise is to"
+# }
+
+   vars:
+      <efl no_csv_param_parser efl/>
+
+      # We must convert the internal container lists into standalone lists.
+      "owners_${param_file}"
+         comment => "convert internal container lists into standalone lists",
+         slist   => getvalues( "d[owners]" );
+
+   processes:
+
+      "${d[${i}][process_regex]}" -> { "${d[${i}][promisee]}" }
+         comment        => "Kill ALL matching processes",
+         handle         => "efl_kill_process_processes_proc",
+         process_count  => efl_process_count( "${min_process_count}" ),
+         process_select => efl_kill_process( "${process_regex}"
+            , "@{owners_${param_file}}", "${min_rsize}"
+            , "${min_elapsed_time}" ),
+         classes        => efl_rkn( "${this.promiser}", "${this.handle}" ),
+         action         => efl_delta_reporting( "${this.handle}"
+            , "${this.promiser}", "${d[${i}][promisee]}", "1" ),
+         ifvarclass     => "${d[${i}][class]}",
+         signals        => { "term", "kill" };
+}
+
+body process_count efl_process_count ( min_process_count )
+{
+   match_range => irange( "${min_process_count}", "inf" );
+}
+
+body process_select efl_kill_process( process_regex, owners, min_rsize,
+   min_elapsed_time ) {
+   command       => "${process_regex}";
+   # process_owner => { @{owners} };
+   rsize         => irange( "${min_rsize}", "inf" );
+   ttime_range   => irange( accumulated(0, 0, 0, 0, ${min_elapsed_time}, 0)
+      , "inf" );
+
+   process_result => "command.process_owner.rsize.ttime_range";
+}
+
 bundle agent efl_service_recurse ( ref )
 {
    meta:
