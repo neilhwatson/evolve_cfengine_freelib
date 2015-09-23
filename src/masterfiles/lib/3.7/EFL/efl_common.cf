@@ -533,6 +533,30 @@ bundle agent efl_class_iprange( ref )
          expression => iprange( "${d[${i}][ip_range]}" );
 }
 
+bundle agent efl_class_hostrange( ref )
+{
+   meta:
+      "purpose" string => "Set global class if host IP is within the given range";
+      "field_0" string => "Class to set ";
+      "field_1" string => "hostname base in the format of the hostrange function.";
+      "field_2" string => "number range in the format of the hostrange function.";
+      "field_3" string => "Promisee";
+      "README"  string => "Doest not accept CSV files.";
+
+   vars:
+      <efl param_parser efl/>
+
+   classes:
+      <efl param_file_picker efl/>
+
+   classes:
+      "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
+         comment    => "Set class if hostrange function returns true.",
+         scope      => "namespace",
+         expression => hostrange( "${d[${i}][hostname]}"
+            , "${d[${i}][host_range]}" );
+}
+
 bundle agent efl_class_hostname( ref )
 #
 # Reads parameter file in the form of <name>-<class>.txt.

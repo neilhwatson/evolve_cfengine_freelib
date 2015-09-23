@@ -1,0 +1,15 @@
+[
+   {
+      "class_to_set" : "hostrange_class_01",
+      "promisee" : "efl development",
+      "hostname" : "polaris",
+      "host_range" : "01-99"
+   },
+   {
+      "class_to_set" : "hostrange_class_02",
+      "hostname" : "polaris",
+      "host_range" : "100-999",
+      "promisee" : "efl development"
+   }
+]
+

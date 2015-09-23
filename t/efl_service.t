@@ -133,7 +133,7 @@ sub run_cfagent {
    ok( 
       WIFEXITED( ( system $cf_agent ) >> 8)
       , "Run efl_service with classes: "
-         . "test_$data_format,efl_service,$template"
+         . "test_$data_format,efl_service, with template $template"
    );
 
    return;

@@ -1,0 +1,15 @@
+[
+   {
+      "test_type" : "is",
+      "name" : "class is hostrange_class_01",
+      "class" : "any",
+      "class_to_test" : "hostrange_class_01"
+   },
+   {
+      "test_type" : "isnt",
+      "class" : "any",
+      "name" : "class is not hostrange_class_02",
+      "class_to_test" : "hostrange_class_02"
+   }
+]
+

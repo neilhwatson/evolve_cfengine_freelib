@@ -45,33 +45,6 @@ bundle agent main
       test_json::
          "begin efl tests" usebundle => efl_main( 'efl_data/efl_main.json' );
 
-# TODO goal to remove all of these:
-
-    250_efl_test::
-      "any" usebundle => efl_main( "../250/efl_main.json" );
-   251_efl_test::
-      "any" usebundle => efl_main( "../251/efl_main.json" );
-   260_efl_test|266_efl_test::
-      "any" usebundle => efl_service( "../260/01_efl_service.csv" );
-   264_efl_test::
-      "any" usebundle => efl_service( "../264/01_efl_service.json" );
-   270_efl_test::
-      "any" usebundle => efl_enable_service( "../270/01_efl_enable_service.csv" );
-   271_efl_test::
-      "any" usebundle => efl_enable_service( "../271/01_efl_enable_service.json" );
-   272_efl_test::
-      "any" usebundle => efl_disable_service( "../270/01_efl_enable_service.csv" );
-   273_efl_test::
-      "any" usebundle => efl_disable_service( "../271/01_efl_enable_service.json" );
-   280_efl_test::
-      "any" usebundle => efl_file_perms( "../280/01_efl_file_perms.csv" );
-   281_efl_test::
-      "any" usebundle => efl_file_perms( "../281/01_efl_file_perms.json" );
-   290_efl_test|291_efl_test::
-      "any" usebundle => efl_rcs_pull( "../290/01_efl_rcs_pull.csv" );
-   292_efl_test|293_efl_test::
-      "any" usebundle => efl_rcs_pull( "../292/01_efl_rcs_pull.json" );
-
    reports:
       efl_global_slists::
          "efl_global_lists.ntp_servers => [${efl_global_slists.ntp_servers}]";

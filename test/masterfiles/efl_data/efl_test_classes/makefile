@@ -3,4 +3,5 @@
 
 .PHONY: clean
 clean:
-	rm -f *.json
+	find -maxdepth 1 -name "*.json" ! -name "efl_class_hostname2.json" \
+		! -name "efl_class_hostrange.json" -delete

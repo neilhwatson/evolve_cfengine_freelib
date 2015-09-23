@@ -1,0 +1,21 @@
+[
+   {
+      "name" : "018_test_class_01 is set",
+      "test_type" : "is",
+      "class" : "any",
+      "class_to_test" : "018_test_class_01"
+   },
+   {
+      "name" : "018_test_class_02 is set",
+      "test_type" : "is",
+      "class" : "any",
+      "class_to_test" : "018_test_class_02"
+   },
+   {
+      "class" : "any",
+      "class_to_test" : "018_test_class_03",
+      "test_type" : "isnt",
+      "name" : "018_test_class_03 is not set"
+   }
+]
+
