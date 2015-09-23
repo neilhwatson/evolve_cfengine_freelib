@@ -603,35 +603,28 @@ bundle agent efl_class_hostname2( ref )
 # ]
 
    vars:
-       "params"
-         comment => "Parameter field names and positions needef for csv parsing.",
-         data    => parsejson(
-         '{
-            "0" : "class_to_set",
-            "1" : "hostname"
-         }');
-
-      "p"
-         comment    => "Index params",
-         slist      => getindices( "params" );
-
-      "json_data"
+      "raw_data"
          comment    => "Parse json file",
-         data       => readjson( "${ref}", "${efl_c.max_bytes}" );
+         data       => readdata( "${ref}", "auto" );
 
+      "d"
+         comment => "Make final data set and deal with bug 2333",
+         data    => data_expand( "raw_data" );
+         
       "i"
-         comment    => "Index data",
-         slist      => getindices( "json_data" );
+         comment => "Index data",
+         slist   => getindices( "d" );
 
-      "d[${i}][${params[${p}]}]"
-         comment    => "Make final data set and deal with bug 2333",
-         string     => "${json_data[${i}][${params[${p}]}]}";
- 
+      "hostnames[${i}]"
+         comment => "Put data list into plain list for reglist function.",
+         slist   => getvalues( "d[${i}][hostname]" );
+
    classes:
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
-         comment    => "Set class if unqualified hostname matches any list element.",
+         comment    => "Set class if unqualified hostname matches any list
+                     element.",
          scope      => "namespace",
-         expression => strcmp( "${sys.uqhost}", "${json_data[${i}][hostname]}" );     
+         expression => reglist( @(hostnames[${i}]) , "\Q${sys.uqhost}\E");     
 }
 
 body action efl_if_elapsed(x)
