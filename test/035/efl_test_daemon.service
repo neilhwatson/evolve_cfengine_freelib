@@ -3,6 +3,9 @@ Description=A testing daemon for EFL development
 
 [Service]
 ExecStart=/tmp/efl_test/efl_test_daemon
+SuccessExitStatus=203
+StartLimitInterval=0
+StartLimitBurst=0
 
 [Install]
 WantedBy=multi-user.target

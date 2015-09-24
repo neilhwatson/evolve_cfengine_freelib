@@ -1,4 +1,4 @@
-require 'spec_helper'
+require_relative '../spec_helper'
 
 describe "035 efl test" do
    describe service ( 'efl_test_daemon' ) do

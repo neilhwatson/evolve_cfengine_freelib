@@ -1,4 +1,4 @@
-require 'spec_helper'
+require_relative '../spec_helper'
 
 describe file ('/etc/sysctl.conf' ) do
    it { should be_file }

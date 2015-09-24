@@ -1,4 +1,4 @@
-require 'spec_helper'
+require_relative '../spec_helper'
 
 describe "031 and 032 efl_test" do
    describe package( 'nano' ) do

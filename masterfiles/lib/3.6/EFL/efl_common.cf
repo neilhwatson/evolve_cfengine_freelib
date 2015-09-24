@@ -971,7 +971,8 @@ bundle agent efl_class_hostname2( ref )
          data    => parsejson(
          '{
             "0" : "class_to_set",
-            "1" : "hostname"
+            "1" : "hostname",
+            "2" : "promisee"
          }');
 
       "p"
@@ -990,11 +991,15 @@ bundle agent efl_class_hostname2( ref )
          comment    => "Make final data set and deal with bug 2333",
          string     => "${json_data[${i}][${params[${p}]}]}";
  
+      "hostnames[${i}]"
+         comment => "Put data list into plain list for reglist function.",
+         slist   => getvalues( "json_data[${i}][hostname]" );
+
    classes:
       "${d[${i}][class_to_set]}" -> { "${d[${i}][promisee]}" }
          comment    => "Set class if unqualified hostname matches any list element.",
          scope      => "namespace",
-         expression => strcmp( "${sys.uqhost}", "${json_data[${i}][hostname]}" );     
+         expression => reglist( @(hostnames[${i}]) , "\Q${sys.uqhost}\E");
 }
 
 body action efl_if_elapsed(x)

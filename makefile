@@ -226,6 +226,7 @@ endef
 define 270_efl_test
 	cp $(test_daemon_src) $(TEST_DIR)/
 	cp $(test_systemd_def_src) /etc/systemd/system/
+	systemctl daemon-reload
 	systemctl disable $(test_systemd_def)
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	systemctl is-enabled $(test_systemd_def)
@@ -236,6 +237,7 @@ endef
 define 272_efl_test
 	cp $(test_daemon_src) $(TEST_DIR)/
 	cp $(test_systemd_def_src) /etc/systemd/system/
+	systemctl daemon-reload
 	systemctl enable $(test_systemd_def)
 	cd test/masterfiles; $(CF_AGENT) -Kf ./promises.cf -D $@
 	systemctl is-enabled $(test_systemd_def) |grep disabled
