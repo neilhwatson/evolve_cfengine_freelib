@@ -928,7 +928,7 @@ bundle agent efl_start_service ( ref )
       "${${process[${s}]}}" -> { "${${promisee[${s}]}}" }
          comment        => "Promise process is running",
          handle         => "efl_start_service_processes_proc",
-         process_select => by_command( "${${process[${s}]}}" ),
+         process_select => efl_by_command( "${${process[${s}]}}" ),
          classes        => efl_rkn( "${${process[${s}]}}", "efl_start_service_processes_proc" ),
          action         => efl_delta_reporting( "efl_start_service_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
          ifvarclass     => "${${class[${s}]}}",
@@ -1078,7 +1078,7 @@ bundle agent efl_service_recurse ( ref )
          handle         => "efl_service_recurse_processes_proc",
          classes        => efl_rkn( "${${process[${s}]}}", "efl_service_recurse_processes_proc" ),
          action         => efl_delta_reporting( "efl_service_recurse_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
-         process_select => by_command( "${${process[${s}]}}" ),
+         process_select => efl_by_command( "${${process[${s}]}}" ),
          ifvarclass     => "${${class[${s}]}}",
          restart_class  => "restart_proc_${s}";
 
@@ -1235,7 +1235,7 @@ bundle agent efl_service ( ref )
          handle         => "efl_service_processes_proc",
          classes        => efl_rkn( "${${process[${s}]}}", "efl_service_processes_proc" ),
          action         => efl_delta_reporting( "efl_service_processes_proc", "${${process[${s}]}}", "${${promisee[${s}]}}", "1" ),
-         process_select => by_command( "${${process[${s}]}}" ),
+         process_select => efl_by_command( "${${process[${s}]}}" ),
          ifvarclass     => "${${class[${s}]}}",
          restart_class  => canonify( "efl_service_command_${${command[${s}]}}" );
 
@@ -1253,7 +1253,7 @@ bundle agent efl_service ( ref )
                );
 }
 
-body process_select by_command( command )
+body process_select efl_by_command( command )
 {
 	command        => "${command}";
 	process_result => "command";
