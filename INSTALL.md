@@ -11,13 +11,13 @@
 }
 ```
 
-This setup will run the bundle efl_main with the data file ```masterfiles/efl_data/bundle_params/efl_main.json```
+This setup will run the bundle efl_main with the data file ```masterfiles/efl_data/bundle_params/efl_main.json```, a file that you create.
 
 Next, build your data files to feed the bundles. Typically store the data files in ```masterfiles/efl_data```.
 
 ## Building data files
 
-Here's a trivial example to get you started.  First create a data file to define classes using the classmatch function.
+Here's a trivial example to get you started. First create a data file to define classes using the classmatch function. Note that EFL does not create the efl_data subdirectory. You must do it.
 ```
 vim masterfiles/efl_data/classes/efl_classmatch.json
 [
