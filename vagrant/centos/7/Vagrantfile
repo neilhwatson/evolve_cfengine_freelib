@@ -1,0 +1,13 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "centos/7"
+
+  config.vm.provision "shell", inline: <<-SHELL
+     yum install -q -y wget
+     cd /tmp/
+     wget -q https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community-3.7.2-1.el6.x86_64.rpm
+     rpm -i cfengine-community-3.7.2-1.el6.x86_64.rpm
+  SHELL
+end
