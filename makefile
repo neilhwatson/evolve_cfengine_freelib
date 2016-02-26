@@ -1,11 +1,12 @@
-CF_AGENT    = $(HOME)/bin/cf-agent
+CF_AGENT    = cf-agent
 VERSION     = 3.7
 LIB         = lib/$(VERSION)
 EFL_LIB     = masterfiles/$(LIB)/EFL
 CF_REPO     = https://github.com/cfengine
 CSVTOJSON   = ./bin/eflconvert -i csv -o json
 CSVTOYAML   = ./bin/eflconvert -i csv -o yaml
-APT_GET     = /usr/bin/apt-get --quiet --yes
+
+export PATH := /usr/local/bin:/usr/local/sbin:$(PATH)
 
 # Don't changes this, it's hard coded in some CF policy data
 TEST_DIR    = /tmp/efl_test
@@ -77,8 +78,8 @@ $(AUTORUN): src/masterfiles/services/autorun src/$@
 $(cfstdlib): .stdlib
 
 .stdlib:
-	cd test/masterfiles/lib; svn export --force \
-		$(CF_REPO)/masterfiles/trunk/lib/$(VERSION)
+	cd test/masterfiles/; svn export --force \
+		$(CF_REPO)/masterfiles/trunk/lib/
 	touch $@
 
 #

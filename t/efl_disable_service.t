@@ -24,7 +24,7 @@ my @tests = (
    },
 );
 
-my $systemd = qx{ which systemd };
+my $systemd = qx{ which systemctl };
 my $chkconfig = qx{ which chkconfig };
 chomp $systemd;
 chomp $chkconfig;

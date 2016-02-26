@@ -8,6 +8,7 @@ use Cwd;
 use Data::Dumper;
 use lib './lib/perl5';
 use EFL::Apt;
+use EFL::Yum;
 use EFL::StdOpts;
 use English qw/ -no_match_vars/;
 use Getopt::Long;
@@ -217,7 +218,19 @@ my @data_formats = qw/ csv json /;
 my @package_bundles = @{ $cli_arg_ref->{bundles} };
 my $number_of_tests = scalar @data_formats * scalar @package_bundles * 2;
 
-my $apt = EFL::Apt->new();
+my $yum = qx{ which yum 2> /dev/null };
+my $apt = qx{ which apt-get 2> /dev/null };
+my $pkg;
+
+if ( $yum ){
+   $pkg = EFL::Yum->new();
+}
+elsif ( $apt ){
+   $pkg = EFL::Apt->new();
+}
+else {
+   croak "Cannot find yum or apt";
+}
 
 for my $next_format ( @data_formats ){
    for my $next_bundle ( @package_bundles ) {
@@ -226,8 +239,8 @@ for my $next_format ( @data_formats ){
       # only.
       # install nano
       # remove e3
-      $apt->install( 'nano' ) or croak "Test prep: Apt cannot install nano";
-      $apt->remove( 'e3' )    or croak "Test prep: Apt cannot remove e3";
+      $pkg->install( 'nano' ) or croak "Test prep: cannot install nano";
+      $pkg->remove( 'e3' )    or croak "Test prep: cannot remove e3";
 
       # Run cf-agent test policy
       chdir 'test/masterfiles' or croak "Cannot cd to test/masterfiles $!";
