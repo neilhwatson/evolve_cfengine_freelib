@@ -2,7 +2,16 @@
 # vi: set ft=ruby :
 
 Vagrant.configure(2) do |config|
-   config.vm.box = "centos/7"
+   config.vm.box = "webhippie/centos-7"
+
+   config.vm.provider :libvirt do |domain|
+      domain.memory = 1024
+      domain.cpus = 1
+   end
+
+   # Syncs on startup one-way to the guest.
+   # Resync, again host to guest only with 'vagrant rsync'
+   config.vm.synced_folder '../../..', '/home/vagrant/efl', type: 'rsync'
 
    config.vm.provision "shell", inline: <<-SHELL
       yum install -q -y wget git subversion perl-Data-Dumper perl-JSON \
