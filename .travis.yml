@@ -6,9 +6,10 @@ env:
  - CF_VERSION=3.7.2
 
 install:
+- gem install serverspec
 - wget https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community_$CF_VERSION-1_amd64.deb
 - sudo dpkg -i cfengine-community_$CF_VERSION-1_amd64.deb
-- gem install serverspec
+- sudo apt-get install libjson-perl 
 
 script:
 - sudo make
