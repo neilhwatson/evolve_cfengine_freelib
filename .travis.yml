@@ -8,10 +8,10 @@ install:
 - ruby -v
 - perl -v
 - cat /etc/*_version
-- sudo systemctl --version
 - wget https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community_$CF_VERSION-1_amd64.deb
 - sudo dpkg -i cfengine-community_$CF_VERSION-1_amd64.deb
-- sudo apt-get -y -q install ruby-serverspec libjson-perl libyaml-perl
+- sudo apt-get -y -q install systemd ruby-serverspec libjson-perl libyaml-perl
+- sudo systemctl --version
 
 script:
 - sudo make
