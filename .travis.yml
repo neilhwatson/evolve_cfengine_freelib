@@ -8,8 +8,7 @@ env:
 install:
 - wget https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community_$CF_VERSION-1_amd64.deb
 - sudo dpkg -i cfengine-community_$CF_VERSION-1_amd64.deb
-- sudo apt-get install 
-- sudo gem install serverspec
+- gem install serverspec
 
 script:
 - sudo make
