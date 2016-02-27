@@ -2,6 +2,9 @@ language: ruby
 rvm:
    - 2.1.0
 
+sudo: required
+dist: trusty
+
 env:
  - CF_VERSION=3.7.2
 
@@ -10,6 +13,8 @@ install:
 - wget https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community_$CF_VERSION-1_amd64.deb
 - sudo dpkg -i cfengine-community_$CF_VERSION-1_amd64.deb
 - sudo apt-get -y -q install libjson-perl libyaml-perl
+- perl -v
+- sudo systemctl --version
 
 script:
 - sudo make
