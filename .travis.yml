@@ -1,4 +1,5 @@
 sudo: required
+# This distro is to old, does not have systemd.
 dist: trusty
 
 env:
