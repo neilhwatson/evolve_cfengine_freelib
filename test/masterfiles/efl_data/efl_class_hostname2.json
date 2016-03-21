@@ -1,12 +1,12 @@
 [
    {
       "class_to_set" : "018_test_class_01",
-      "hostname" : [ "polaris01", "ettin", "oort", "frodo" ],
+      "hostname" : [ "vega", "altair", "ettin", "oort", "frodo" ],
       "promisee" : "efl development"
    },
    {
       "class_to_set" : "018_test_class_02",
-      "hostname" : [ "polaris01", "ettin" ],
+      "hostname" : [ "vega", "altair", "ettin", "oort", "frodo" ],
       "promisee" : "efl development"
    },
    {
