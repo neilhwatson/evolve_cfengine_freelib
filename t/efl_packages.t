@@ -238,9 +238,9 @@ for my $next_format ( @data_formats ){
       # Prep by installing or removing packages. Currently supports Debian
       # only.
       # install nano
-      # remove e3
+      # remove dos2unix
       $pkg->install( 'nano' ) or croak "Test prep: cannot install nano";
-      $pkg->remove( 'e3' )    or croak "Test prep: cannot remove e3";
+      $pkg->remove( 'dos2unix' ) or croak "Test prep: cannot remove dos2unix";
 
       # Run cf-agent test policy
       chdir 'test/masterfiles' or croak "Cannot cd to test/masterfiles $!";
