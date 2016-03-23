@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ sub _get_cli_args {
 
    # Bundles that we can test
    my $allowed_bundles_ref
-      = [ qw/ efl_packages efl_packages_via_cmd efl_packages_new /];
+      = [ qw/ efl_packages_via_cmd efl_packages_new /];
 
    # Define ways to valid your arguments using anonymous subs or regexes.
    my $valid_arg_ref = {
@@ -235,11 +235,13 @@ else {
 for my $next_format ( @data_formats ){
    for my $next_bundle ( @package_bundles ) {
 
-      # Prep by installing or removing packages. Currently supports Debian
-      # only.
+      # Remove CFEngine's package cache
+      unlink '/var/cfengine/state/software_packages.csv';
+
+      # Prep by installing or removing packages.
       # install nano
       # remove dos2unix
-      $pkg->install( 'nano' ) or croak "Test prep: cannot install nano";
+      $pkg->install( 'nano' )    or croak "Test prep: cannot install nano";
       $pkg->remove( 'dos2unix' ) or croak "Test prep: cannot remove dos2unix";
 
       # Run cf-agent test policy

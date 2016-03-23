@@ -971,11 +971,13 @@ bundle agent efl_packages_via_cmd( ref )
 
       "install_package_${param_file}_${i}"
          ifvarclass => "${d[${i}][class]}",
-         expression => regcmp( "install|add|addupdate", "${d[${i}][package_policy]}" );
+         expression => regcmp( "present|install|add|addupdate"
+            , "${d[${i}][package_policy]}" );
 
       "remove_package_${param_file}_${i}"
          ifvarclass => "${d[${i}][class]}",
-         expression => regcmp( "remove|delete", "${d[${i}][package_policy]}" );
+         expression => regcmp( "remove|delete|absent"
+            , "${d[${i}][package_policy]}" );
 
 # Cannot specify version regex. So, must specify exact version or no version.
 # If no version then install must not have '=ver'.

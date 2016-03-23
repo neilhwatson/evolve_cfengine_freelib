@@ -25,8 +25,8 @@ describe "efl_file_perms" do
    describe file ( "#{testdir}/d" ) do
       it { should be_file }
       it { should be_mode 755 }
-      it { should be_owned_by 'sys' }
-      it { should be_grouped_into 'sys' }
+      it { should be_owned_by 'daemon' }
+      it { should be_grouped_into 'daemon' }
    end
 
    describe file ( "#{testdir}/sub" ) do
