@@ -1,2 +1,4 @@
-any ;; delete ;; nano ;; 0 ;; amd64 ;; efl development
-any ;; add    ;; dos2unix  ;; 0 ;; amd64 ;; efl development
+debian ;; delete ;; nano      ;; 0 ;; amd64  ;; efl development
+debian ;; add    ;; dos2unix  ;; 0 ;; amd64  ;; efl development
+redhat ;; delete ;; nano      ;; 0 ;; x86_64 ;; efl development
+redhat ;; add    ;; dos2unix  ;; 0 ;; x86_64 ;; efl development
