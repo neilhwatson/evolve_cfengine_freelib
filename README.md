@@ -1,6 +1,6 @@
-Copyright Evolve Thinking ( www.evolvethinking.com ).
+Copyright Neil H. Watson ( http://watson-wilson.ca ).
 For fresh updates visit:
-https://github.com/evolvethinking/evolve_cfengine_freelib
+https://github.com/neilhwatson/evolve_cfengine_freelib
 
 ## Version notice
 
@@ -76,9 +76,9 @@ in docs for more information.
 
 1. [INSTALL.md](INSTALL.md)
 1. [HOWTO.md](HOWTO.md)
-1. EFL related articles: http://evolvethinking.com/category/cfengine/efl/
+1. EFL related articles: http://watson-wilson.ca/blog/tag/EFL
 
 ## Reporting
 
 If you are interested in reporting on the outcome of EFL promises please look at Delta Reporting:
-https://github.com/evolvethinking/delta_reporting
+https://github.com/neilhwatson/delta_reporting
