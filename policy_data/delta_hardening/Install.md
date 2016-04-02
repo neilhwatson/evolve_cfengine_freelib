@@ -24,6 +24,7 @@ methods:
 
 ### Reporting
 
-For auditing consider [Delta Reporting](https://github.com/evolvethinking/delta_reporting).
+For auditing consider the Delta Reporting data pack elsewhere in this
+repository.
 
-Copyright Evolve Thinking ( www.evolvethinking.com ).
+Copyright Neil H. Watson ( http://watson-wilson.ca ).

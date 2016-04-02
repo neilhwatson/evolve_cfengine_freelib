@@ -310,11 +310,11 @@ C<< cf-cron -b -p 2001:0DB8::2 >>
 
 =head1 AUTHOR
 
-Neil H. Watson, C<< <nwatson@evolvethinking.com> >>
+Neil H. Watson, C<< <neil@watson-wilson.ca> >>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2014 Evolve Thinking Limited
+Copyright 2016 Neil H. Watson
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

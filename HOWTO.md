@@ -37,7 +37,7 @@ When the parameter negate_match is _no_ anything that matches the leaf_regex wil
 
 ## Promising file permissions
 
-Use the bundle efl_file_perms. This sample data, taken from [Delta Hardening](http://evolvethinking.com/products/delta_hardening/), promises permissions on /etc/passwd and /etc/group.
+Use the bundle efl_file_perms. This sample data, taken from Delta Hardening (found elsewhere in the repository), promises permissions on /etc/passwd and /etc/group.
 
 ```
 [
@@ -72,7 +72,7 @@ Negate works just like negat_match in efl_delete_files.
 
 ### Live kernel settings
 
-Use the bundle efl_sysctl_live. This sample data is taken from [Delta Hardening](http://evolvethinking.com/products/delta_hardening/).
+Use the bundle efl_sysctl_live. This sample data is taken from Delta Hardening.
 
 ```
 [
@@ -615,8 +615,8 @@ TODO
 
 ## Auditing promise outcomes
 
-All of these promise outcomes and all hard and soft classes can be gathered to a central server for reporting. See [Delta Reporting](https://github.com/evolvethinking/delta_reporting) for more information.
+All of these promise outcomes and all hard and soft classes can be gathered to a central server for reporting. See [Delta Reporting](https://github.com/neilhwatson/delta_reporting) for more information.
 
 ## Support
 
-Commercial support is available through the creators of EFL, [Evolve Thinking](http://evolvethinking.com).
+Commercial support is available through the creator of EFL, [Neil H. Waton](http://watson-wilson.ca) 

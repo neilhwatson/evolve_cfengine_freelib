@@ -25,4 +25,4 @@ redhat    ;; net.ipv6.conf.default.autoconf                 ;; 0 ;; nsa_rhel5 v4
 redhat    ;; net.ipv6.conf.default.dad_transmits            ;; 0 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
 redhat    ;; net.ipv6.conf.default.max_addresses            ;; 1 ;; nsa_rhel5 v4.2 sec 2.5.3.2.5
 
-# Copyright Evolve Thinking ( www.evolvethinking.com ).
+# Copyright Neil H. Watson ( http://watson-wilson.ca ).
