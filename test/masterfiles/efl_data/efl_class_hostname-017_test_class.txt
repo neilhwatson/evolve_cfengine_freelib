@@ -2,5 +2,6 @@ ettin
 oort
 frodo
 altair01
+altair02
 vega
 polaris01
