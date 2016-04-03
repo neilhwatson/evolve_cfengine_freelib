@@ -1,0 +1,5 @@
+[cfengine-repository]
+name=CFEngine
+baseurl=https://cfengine-package-repos.s3.amazonaws.com/pub/yum/$basearch
+enabled=1
+gpgcheck=0

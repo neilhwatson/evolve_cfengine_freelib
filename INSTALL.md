@@ -1,3 +1,8 @@
+## Don't panic
+
+All the folders in this repo need not consern an EFL user. the masterfiles dir
+is all you really need (the rest are for extensive testing). Read on to learn more.
+
 ## Installation using autorun
 
 1. Copy the contents of masterfiles into your masterfiles or equivalent repository.

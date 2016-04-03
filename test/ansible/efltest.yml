@@ -1,0 +1,112 @@
+---
+
+- hosts: vmhost
+
+  tasks:
+     - name: start centos7 test host
+       virt: name=altair state=running
+     - name: start debian test host
+       virt: name=vega state=running
+
+- hosts: guests
+  remote_user: root
+  vars:
+     work_dir: /usr/src/efl
+     ruby_install_version: "0.6.0"
+     ruby_version: "2.1.0"
+  vars_files:
+     - "{{ ansible_distribution }}_vars.yml"
+
+  tasks:
+     
+     ### Install packages
+     - copy: src=./cfengine.repo dest=/etc/yum.repos.d/cfengine.repo
+       when: ansible_distribution == 'CentOS'
+
+     - apt_key: url=https://cfengine-package-repos.s3.amazonaws.com/pub/gpg.key state=present
+       when: ansible_distribution == 'Debian'
+
+     - apt_repository: repo='deb https://cfengine-package-repos.s3.amazonaws.com/pub/apt/packages stable main' state=present update_cache=yes
+       when: ansible_distribution == 'Debian'
+
+     - command: apt-get update
+       when: ansible_distribution == 'Debian'
+
+     - package: name={{ item }} state=present
+       with_items:
+          - "{{ cfengine }}"
+          - bzip2
+          - git
+          - subversion
+          - make
+          - "{{ cpanm }}"
+
+     - cpanm: name={{ item }}
+       with_items:
+          - Test::More
+          - Data::Dumper
+          - Perl6::Slurp
+          - Carp
+          - YAML
+          - JSON
+          - File::Touch
+          - Git::Repository
+          - Proc::Killall
+
+     ### Ruby
+
+     # Test ruby
+     - name: remove stock ruby
+       package: name=ruby state=absent
+
+     - name: Check if ruby is installed
+       command: /usr/local/bin/ruby -v
+       register: ruby_ok
+       ignore_errors: true
+
+     # Install ruby and serverspec if test requires it
+     - block:
+        - name: fetch ruby-install
+          get_url:
+            url: https://github.com/postmodern/ruby-install/archive/v{{ruby_install_version}}.tar.gz
+            dest: /usr/src/ruby-install-{{ruby_install_version}}.tar.gz
+            force: no
+
+        # Unarchive returns a file not found error.
+        - name: unpack ruby-install
+          command: tar xzf /usr/src/ruby-install-{{ruby_install_version}}.tar.gz
+          args:
+             chdir: /usr/src/
+
+        - name: install ruby-install
+          command: make install chdir=/usr/src/ruby-install-{{ruby_install_version}} creates=/usr/local/bin/ruby-install
+
+        - name: install ruby
+          shell: /usr/local/bin/ruby-install --system ruby 
+        
+        - gem: name=serverspec user_install=no state=present
+          environment:
+             PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
+
+       when: ruby_ok|failed
+       # End of install ruby block
+
+     ### End Ruby
+
+     ### Get efl, make, and test.
+     - git: repo=https://github.com/neilhwatson/evolve_cfengine_freelib.git force=yes dest={{ work_dir }}
+
+     - name: make clean
+       command: make clean
+       args:
+          chdir: "{{ work_dir }}"
+
+     - name: make efl
+       command: make 
+       args:
+          chdir: "{{ work_dir }}"
+
+     - name: make check
+       shell: make check > make_check.log 2>&1
+       args:
+          chdir: "{{ work_dir }}"

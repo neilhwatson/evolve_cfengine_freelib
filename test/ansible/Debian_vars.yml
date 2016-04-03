@@ -1,0 +1,3 @@
+---
+cpanm: cpanminus
+cfengine: cfengine-community=3.7.3-1
