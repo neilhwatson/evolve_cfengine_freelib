@@ -9,6 +9,7 @@
        virt: name=vega state=running
 
 - hosts: guests
+  strategy: free
   remote_user: root
   vars:
      work_dir: /usr/src/efl
@@ -55,40 +56,40 @@
 
      ### Ruby
 
-     # Test ruby
      - name: remove stock ruby
        package: name=ruby state=absent
 
-     - name: Check if ruby is installed
-       command: /usr/local/bin/ruby -v
-       register: ruby_ok
-       ignore_errors: true
-
-     # Install ruby and serverspec if test requires it
+     # Test ruby
      - block:
-        - name: fetch ruby-install
-          get_url:
-            url: https://github.com/postmodern/ruby-install/archive/v{{ruby_install_version}}.tar.gz
-            dest: /usr/src/ruby-install-{{ruby_install_version}}.tar.gz
-            force: no
+        - name: Check if ruby is installed
+          command: /usr/local/bin/ruby -v
 
-        # Unarchive returns a file not found error.
-        - name: unpack ruby-install
-          command: tar xzf /usr/src/ruby-install-{{ruby_install_version}}.tar.gz
-          args:
-             chdir: /usr/src/
+       # Install ruby and serverspec if test requires it
+       rescue:
 
-        - name: install ruby-install
-          command: make install chdir=/usr/src/ruby-install-{{ruby_install_version}} creates=/usr/local/bin/ruby-install
+        - block:
+           - name: fetch ruby-install
+             get_url:
+               url: https://github.com/postmodern/ruby-install/archive/v{{ruby_install_version}}.tar.gz
+               dest: /usr/src/ruby-install-{{ruby_install_version}}.tar.gz
+               force: no
 
-        - name: install ruby
-          shell: /usr/local/bin/ruby-install --system ruby 
-        
-        - gem: name=serverspec user_install=no state=present
-          environment:
-             PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
+           # Unarchive returns a file not found error.
+           - name: unpack ruby-install
+             command: tar xzf /usr/src/ruby-install-{{ruby_install_version}}.tar.gz
+             args:
+                chdir: /usr/src/
 
-       when: ruby_ok|failed
+           - name: install ruby-install
+             command: make install chdir=/usr/src/ruby-install-{{ruby_install_version}} creates=/usr/local/bin/ruby-install
+
+           - name: install ruby
+             shell: /usr/local/bin/ruby-install --system ruby 
+           
+           - gem: name=serverspec user_install=no state=present
+             environment:
+                PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
+
        # End of install ruby block
 
      ### End Ruby
