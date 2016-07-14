@@ -24,8 +24,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 ## Introduction
 
 The bundles contained in this CFEngine library primarily focus on data driven
-policy.  Each such bundle takes csv of JSON type delimited parameter file as shown in
-the common bundle efl_c.
+policy.  Each such bundle takes a csv or JSON type delimited parameter file as
+shown in the common bundle efl_c.
 
 ### Contents of the main library
 | Bundle | Purpose |
@@ -70,7 +70,7 @@ in docs for more information.
 
 1. Cfengine Core 3.7.0 or higher. There are older 3.6, 3.5, and 3.4 branches too.
 1. The Cfengine standard library. 
-1. Perl of any version and no special modules.
+1. Perl of any version and no special modules (only when using with Delta Reporting).
 
 ## Futher reading
 
