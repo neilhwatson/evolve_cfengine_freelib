@@ -350,7 +350,7 @@ bundle agent efl_delete_files ( ref )
          delete       => tidy;
 
       "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
-         comment      => "Delete files",
+         comment      => "Delete files no recursive",
          handle       => "efl_delete_files_files_single",
          classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_delete_files_files_single" ),
          action       => efl_delta_reporting( "efl_delete_files_files_single", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
@@ -369,7 +369,7 @@ bundle agent efl_delete_files ( ref )
          delete       => tidy;
 
       "${d[${i}][file_promiser]}" -> { "${d[${i}][promisee]}" }
-         comment      => "Delete files, excluding leaf name",
+         comment      => "Delete files, non recursive, excluding leaf name",
          handle       => "efl_delete_files_files_single_negative",
          classes      => efl_rkn( "${d[${i}][file_promiser]}", "efl_delete_files_files_single_negative" ),
          action       => efl_delta_reporting( "efl_delete_files_files_single_negative", "${d[${i}][file_promiser]}", "${d[${i}][promisee]}", "1" ),
