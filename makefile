@@ -1,7 +1,5 @@
 CF_AGENT    = cf-agent
-VERSION     = 3.7
-LIB         = lib/$(VERSION)
-EFL_LIB     = masterfiles/$(LIB)/EFL
+EFL_LIB     = masterfiles/lib/EFL
 CF_REPO     = https://github.com/cfengine
 CSVTOJSON   = ./bin/eflconvert -i csv -o json
 CSVTOYAML   = ./bin/eflconvert -i csv -o yaml
@@ -25,26 +23,26 @@ AUTORUN = masterfiles/services/autorun/efl.cf
 
 eflmaker    = ./bin/eflmaker
 cfstdlib    = \
-	test/$(LIB)/commands.cf \
-	test/$(LIB)/processes.cf \
-	test/$(LIB)/feature.cf \
-	test/$(LIB)/vcs.cf \
-	test/$(LIB)/cfe_internal.cf \
-	test/$(LIB)/reports.cf \
-	test/$(LIB)/guest_environments.cf \
-	test/$(LIB)/bundles.cf \
-	test/$(LIB)/services.cf \
-	test/$(LIB)/common.cf \
-	test/$(LIB)/users.cf \
-	test/$(LIB)/storage.cf \
-	test/$(LIB)/packages.cf \
-	test/$(LIB)/paths.cf \
-	test/$(LIB)/files.cf \
-	test/$(LIB)/databases.cf \
-	test/$(LIB)/edit_xml.cf \
-	test/$(LIB)/examples.cf \
-	test/$(LIB)/monitor.cf \
-	test/$(LIB)/stdlib.cf
+	test/lib/commands.cf \
+	test/lib/processes.cf \
+	test/lib/feature.cf \
+	test/lib/vcs.cf \
+	test/lib/cfe_internal.cf \
+	test/lib/reports.cf \
+	test/lib/guest_environments.cf \
+	test/lib/bundles.cf \
+	test/lib/services.cf \
+	test/lib/common.cf \
+	test/lib/users.cf \
+	test/lib/storage.cf \
+	test/lib/packages.cf \
+	test/lib/paths.cf \
+	test/lib/files.cf \
+	test/lib/databases.cf \
+	test/lib/edit_xml.cf \
+	test/lib/examples.cf \
+	test/lib/monitor.cf \
+	test/lib/stdlib.cf
 
 .PHONY: all
 all: $(EFL_FILES) $(AUTORUN) $(EFL_TEST_FILES) 

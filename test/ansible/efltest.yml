@@ -41,12 +41,15 @@
           dest: /usr/src/
           checksum: "sha1:{{ cfengine_chksum }}"
 
-     - yum:
+     - name: Install cfengine on centos
+       yum:
           name: "/usr/src/{{ cfengine_package }}"
           state: present
+       #command: "yum -y install /usr/src/{{ cfengine_package }}"
        when: ansible_distribution == 'CentOS'
 
-     - command: "dpkg -i /usr/src/{{ cfengine_package }}"
+     - name: Install cfengine on debian
+       command: "dpkg -i /usr/src/{{ cfengine_package }}"
        when: ansible_distribution == 'Debian'
 
      - cpanm: name={{ item }}
@@ -102,9 +105,9 @@
      ### End Ruby
 
      ### Get efl, make, and test.
-     - git:
-          repo: https://github.com/neilhwatson/evolve_cfengine_freelib.git
-          force: yes
+     - name: Copy this repo working copy to testing hosts
+       synchronize:
+          src: ../../../
           dest: "{{ work_dir }}"
 
      - name: make clean

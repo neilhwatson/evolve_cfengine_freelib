@@ -1,0 +1,15 @@
+---
+- hosts: guests
+  # strategy: free
+  remote_user: root
+  vars:
+     work_dir: "/usr/src/efl"
+
+  tasks:
+     - name: clean work_dir
+       file: 
+          path: "{{ work_dir }}"
+          state: absent
+
+
+

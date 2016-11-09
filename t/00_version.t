@@ -9,6 +9,6 @@ use Carp;
 my $output = qx/ cf-promises -v /;
 
 like( $output,
-   qr{ CFEngine \s+ Core \s+ 3\.7\.\d+ }mxs,
+   qr{ CFEngine \s+ Core \s+ 3\.10\.\d+ }mxs,
    "CFEngine version number" );
 
