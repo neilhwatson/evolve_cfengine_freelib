@@ -1,3 +1,4 @@
 ---
 cpanm: cpanminus
-cfengine: cfengine-community=3.7.4-1
+cfengine_package: cfengine-community_3.10.0b1-1_amd64.deb 
+cfengine_chksum: 02017434f59f454bd777c3cd0bc90815da57c255 
