@@ -428,7 +428,7 @@ bundle agent efl_copy_files ( ref )
          expression => regcmp( ".+/\.", "${d[${i}][file_promiser]}" );
 
       "no_recurse_${param_file}_${i}"
-         comment    => "Set if promiser is a directory",
+         comment    => "Set if promiser is not a directory",
          ifvarclass => "${d[${i}][class]}",
          not        => regcmp( ".+/\.", "${d[${i}][file_promiser]}" );
       
