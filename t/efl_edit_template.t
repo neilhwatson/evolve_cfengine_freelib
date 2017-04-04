@@ -9,7 +9,6 @@ use Carp;
 
 my $start_dir = getcwd();
 
-my $version     = '3.7';
 my $bundle      = 'efl_edit_template';
 my $test_config = "/tmp/efl_test/$bundle/config";
 

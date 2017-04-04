@@ -2,8 +2,8 @@
    {
       "class_to_set" : "hostrange_class_01",
       "promisee" : "efl development",
-      "hostname" : "altair",
-      "host_range" : "01-99"
+      "hostname" : "server",
+      "host_range" : "1-99"
    },
    {
       "class_to_set" : "hostrange_class_02",

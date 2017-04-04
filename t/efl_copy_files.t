@@ -11,7 +11,6 @@ use File::Copy;
 use Carp;
 
 # If you change this dir you must also change efl_data/efl_copy_files.csv
-my $version          = '3.7';
 my $recurse_copy_dir = '/tmp/efl_test/efl_copy_files_recurse';
 my $single_copy_dir  = '/tmp/efl_test/efl_copy_files_single';
 my $src_copy_dir     = '/tmp/efl_test/efl_copy_files_src';
@@ -63,7 +62,7 @@ sub prep_source_files {
 
    # Copies files to src dir for testing
    for my $next_file ( @src_files ) {
-      copy( "test/masterfiles/lib/$version/EFL/$next_file" , "$dir/" )
+      copy( "test/masterfiles/lib/EFL/$next_file" , "$dir/" )
          or croak "Cannot copy source file $next_file $!";
    }
 }

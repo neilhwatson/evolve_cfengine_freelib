@@ -12,12 +12,16 @@ use Test::More;
 use Carp;
 
 my $start_dir = getcwd();
-my $version   = '3.7';
 my $repo      = '/tmp/efl_test/efl_rcs_pull/repo';
 my $clone     = '/tmp/efl_test/efl_rcs_pull/clone';
 my $src       = "masterfiles/lib/EFL";
 my $file      = "efl_update.cf";
 my $bundle    = 'efl_rcs_pull';
+my %env       = (
+	EMAIL               => 'root@example.com',
+	GIT_COMMITTER_NAME  => 'Test User',
+);
+
 my @tests     = (
    {
       name    => "$bundle clone fresh using csv data.",
@@ -75,7 +79,7 @@ sub make_repo {
 
    Git::Repository->run( init => $repo )
       or croak "Cannot init repo $repo $!";
-   my $git = Git::Repository->new( work_tree => $repo )
+   my $git = Git::Repository->new( work_tree => $repo, { env => \%env })
       or croak "Cannot make new git object for $repo $!";
 
    # Add file
@@ -122,7 +126,7 @@ sub update_clone {
 
    croak "No Dlcass provided" unless $Dclass;
 
-   my $git = Git::Repository->new( work_tree => $repo )
+   my $git = Git::Repository->new( work_tree => $repo, { env => \%env })
       or croak "Cannot create git object for $repo $!";
 
    open( my $update_file, '>>', "$repo/$file")
@@ -169,3 +173,4 @@ sub run_agent_and_test {
 Testing efl_rcs_pull
 
 =cut
+

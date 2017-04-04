@@ -10,7 +10,6 @@ use Cwd;
 use Carp;
 
 my $start_dir = getcwd();
-my $version   = '3.7';
 my $bundle    = 'efl_enable_service';
 my $service   = 'efl_test_daemon';
 my @tests = (

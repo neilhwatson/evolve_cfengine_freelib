@@ -12,14 +12,13 @@ use Carp;
 
 my $start_dir = getcwd();
 
-my $version         = '3.7';
 my $test_config     = '/tmp/efl_test/efl_service_recurse';
 my $config_src      = '/tmp/efl_test/efl_service_recurse_src/';
 my $restart_flag    = $test_config. '/restarted';
 my @data_formats    = qw/ csv json /;
 my $number_of_tests = scalar @data_formats * 6;
 my $daemon_proc
-   = qr{\A /bin/sh \s /tmp/efl_test/efl_test_daemon \z}mxs;
+   = qr{\A /bin/sh \s+ /tmp/efl_test/efl_test_daemon \Z}mxs;
 
 
 # Prep copy source files
@@ -62,7 +61,6 @@ sub test_service_start {
 
    # Ensure service is not running
    killall( 'KILL', $daemon_proc );
-
    run_cfagent({ format => $data_format });
    test_end_state();
 
@@ -96,7 +94,7 @@ sub run_cfagent {
    # Run cf-agent test policy
    chdir 'test/masterfiles' or croak "Cannot cd to test/masterfiles $!";
    my $cf_agent = "cf-agent -D test_$data_format,efl_service_recurse "
-      ."-Kf ./promises.cf";
+      ."-Kf ./promises.cf > agent.log";
    ok( 
       WIFEXITED( ( system $cf_agent ) >> 8)
       , "Run efl_service_recurse with $data_format"
@@ -127,7 +125,7 @@ sub prep_source_files {
 
    # Copies files to src dir for testing
    for my $next_file ( @src_files ) {
-      copy( "test/masterfiles/lib/$version/EFL/$next_file" , "$dir/" )
+      copy( "test/masterfiles/lib/EFL/$next_file" , "$dir/" )
          or croak "Cannot copy source file $next_file $!";
    }
 
@@ -141,4 +139,4 @@ sub prep_source_files {
 
 Test efl_service_recurse bundle
 
-=cut
+

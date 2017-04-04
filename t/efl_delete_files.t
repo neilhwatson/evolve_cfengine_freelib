@@ -14,7 +14,10 @@ my $test_dir = '/tmp/efl_test/efl_delete_files';
 my $start_dir = getcwd();
 
 my @data_formats = qw/ csv json /;
-my $number_of_tests = scalar @data_formats * 2;
+my $number_of_tests = 6;
+
+# Start clean
+remove_tree( $test_dir );
 
 for my $next_format ( @data_formats ){
 
@@ -23,12 +26,20 @@ for my $next_format ( @data_formats ){
 
    # Run cf-agent test policy
    chdir 'test/masterfiles' or croak "Cannot cd to test/masterfiles $!";
+
    my $cf_agent
       = "cf-agent -D test_$next_format,efl_delete_files -Kf ./promises.cf";
+
+   # NOTE Needs two CFEngine runs to converge
    ok( 
       WIFEXITED(
          ( system $cf_agent ) >> 8)
-         , "Run efl_delete_files with $next_format"
+         , "Run 1 efl_delete_files with $next_format"
+   );
+   ok( 
+      WIFEXITED(
+         ( system $cf_agent ) >> 8)
+         , "Run 2 efl_delete_files with $next_format"
    );
 
    # Test the results of cf-agent test policy
@@ -118,3 +129,4 @@ Test efl_delete_files
 =back
 
 =cut
+

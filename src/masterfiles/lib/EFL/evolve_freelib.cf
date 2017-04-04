@@ -953,10 +953,10 @@ bundle agent efl_service_recurse ( ref )
       "${d[${i}][config_dir]}" -> { "${d[${i}][promisee]}" }
          comment      => "Perms for destination files",
          handle       => "efl_service_recurse_files_perms",
-         if   => "${d[${i}][class]}",
+         if           => "${d[${i}][class]}",
          classes      => efl_rkn( "${d[${i}][config_dir]}",
-            "efl_service_recurse_perms" ),
-         action       => efl_delta_reporting( "efl_service_recurse_perms",
+            "efl_service_recurse_files_perms" ),
+         action       => efl_delta_reporting( "efl_service_recurse_files_perms",
             "${d[${i}][config_dir]}", "${d[${i}][promisee]}", "1"
          ),
          depth_search => recurse( "inf" ),
@@ -966,7 +966,7 @@ bundle agent efl_service_recurse ( ref )
       "${d[${i}][process_regex]}" -> { "${d[${i}][promisee]}" }
          comment        => "Promise process is running",
          handle         => "efl_service_recurse_processes_proc",
-         classes        => efl_rkn( "${d[${i}][process]}", "efl_service_recurse_processes_proc" ),
+         classes        => efl_rkn( "${d[${i}][process_regex]}", "efl_service_recurse_processes_proc" ),
          action         => efl_delta_reporting( "efl_service_recurse_processes_proc", "${d[${i}][process]}", "${d[${i}][promisee]}", "1" ),
          process_select => by_command( "${d[${i}][process_regex]}" ),
          if             => "${d[${i}][class]}",
@@ -980,7 +980,7 @@ bundle agent efl_service_recurse ( ref )
          action  => efl_delta_reporting( "efl_service_recurse_commands_restart", "${d[${i}][restart_cmd]}", "${d[${i}][promisee]}", "1" ),
          contain => in_shell_and_silent,
          if      => or(
-            canonify( "efl_service_recurse_command_${d[${i}][restart_cmd]}" );
+            canonify( "efl_service_recurse_command_${d[${i}][restart_cmd]}" ),
             canonify( "${d[${i}][config_dir]}_handle_efl_service_recurse_copy_repaired" )
          );
 }
