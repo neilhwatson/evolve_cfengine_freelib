@@ -1,0 +1,86 @@
+# -*- mode: ruby -*-
+ 
+# vi: set ft=ruby :
+ 
+$provision_script = <<END_SCRIPT
+#
+# Install python if not found for ansible to work.
+#
+if ! type python > /dev/null 2>&1
+then
+   if type apt-get > /dev/null 2>&1
+   then
+      apt-get -y install python
+      exit
+   fi
+
+   if type yum > /dev/null 2>&1
+   then
+      yum -y install python
+      exit
+   fi
+
+   echo >&2 ERROR cannot install python on $(hostname -f)
+   exit 1
+fi
+END_SCRIPT
+
+boxes = [
+    {
+        :name => "server1",
+        :eth1 => "192.168.205.10",
+        :mem => "1024",
+        :cpu => "1",
+
+        # What type of box do you want?
+        :box_type => "centos/7",
+ 
+        # Bind host port to guest port
+        :hostport => "3001",
+        :guestport => "3000"
+    },
+    {
+        :name => "server2",
+        :eth1 => "192.168.205.11",
+        :mem => "1024",
+        :cpu => "1",
+
+# TODO add
+        #:box_type => "ubuntu/trusty64",
+        :box_type => "debian/jessie64",
+ 
+        :hostport => "3003",
+        :guestport => "3000"
+    },
+]
+ 
+
+Vagrant.configure(2) do |config|
+ 
+# Loop through boxes data and build each vm
+  boxes.each do |opts|
+
+    config.vm.define opts[:name] do |config|
+
+      config.vm.box = opts[:box_type]
+      config.vm.hostname = opts[:name]
+ 
+      config.vm.provider "virtualbox" do |v|
+        v.customize ["modifyvm", :id, "--memory", opts[:mem]]
+        v.customize ["modifyvm", :id, "--cpus", opts[:cpu]]
+      end
+ 
+      config.vm.network :private_network, ip: opts[:eth1]
+      config.vm.network :forwarded_port, guest: opts[:guestport], host: opts[:hostport]
+ 
+#
+# Provision guests here
+#
+      config.vm.provision "shell", inline: $provision_script 
+
+      config.vm.provision "ansible" do |ansible|
+         ansible.playbook = "playbook.yml"
+      end
+    end
+  end
+end

@@ -4,8 +4,7 @@ https://github.com/neilhwatson/evolve_cfengine_freelib
 
 ## Version notice
 
-The master branch is for CFEngine 3.7. See other branches of this repo for
-CFEngine 3.6.
+A Branch for each version. Master is the latest bleeding edge.
 
 ## License
 
@@ -68,7 +67,7 @@ in docs for more information.
 
 ## Requirements
 
-1. Cfengine Core 3.7.0 or higher. There are older 3.6, 3.5, and 3.4 branches too.
+1. Cfengine Core 3.10.0 or higher. There are older 3.10, 3.6, 3.5, and 3.4 branches too.
 1. The Cfengine standard library. 
 1. Perl of any version and no special modules (only when using with Delta Reporting).
 

@@ -1,0 +1,33 @@
+---
+
+src_dir: /usr/src
+work_dir: "{{ src_dir }}/evolve_cfengine_freelib"
+
+packages:
+  - subversion
+  - cpanminus
+  - git
+  - ruby
+  - rubygems
+  - gcc
+  - make
+
+cpans:
+  - App::cpanminus
+  - Data::Dumper
+  - JSON
+  - YAML
+  - Test::Harness
+  - Test::Simple
+  - Perl6::Slurp
+  - File::Touch
+  - Git::Repository
+  - Proc::Killall
+
+gems: 
+  - rspec
+  - serverspec
+
+cfengine_debian: https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community_3.10.1-1_amd64-debian7.deb
+
+cfengine_redhat: https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community-3.10.1-1.el6.x86_64.rpm

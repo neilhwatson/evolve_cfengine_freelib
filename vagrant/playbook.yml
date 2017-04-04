@@ -1,0 +1,64 @@
+---
+- hosts: all
+  remote_user: vagrant
+  become_user: root
+  become: true
+  tasks:
+
+    - name: sync a copy of EFL repo to virtual host
+      synchronize:
+        src: "../../"
+        dest: "{{ work_dir }}"
+        delete: yes
+
+    - name:
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        "{{ packages }}"
+
+    - name: Install perl packages
+      cpanm:
+        name: "{{ item }}"
+      with_items:
+        - "{{ cpans }}"
+
+    - name: Install ruby gems
+      gem:
+        name: "{{ item }}"
+        state: present
+        user_install: no
+      with_items:
+        - "{{ gems }}"
+
+    - name: Install CFEngine
+      apt:
+        deb: "{{ cfengine_debian }}"
+        state: present
+      when: ansible_os_family == 'Debian'
+
+    - name: Install CFEngine
+      yum:
+        name: "{{ cfengine_redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: make clean
+      command: make clean
+      args:
+        chdir: "{{ work_dir }}"
+
+    - name: make 
+      command: make 
+      args:
+        chdir: "{{ work_dir }}"
+
+    - name: make check
+      command: make check
+      args:
+        chdir: "{{ work_dir }}"
+      register: make_check
+
+    - debug:
+        msg: "{{ make_check.stdout_lines }}"

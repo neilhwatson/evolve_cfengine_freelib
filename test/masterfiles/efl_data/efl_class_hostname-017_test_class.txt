@@ -1,7 +1,2 @@
-ettin
-oort
-frodo
-altair01
-altair02
-vega
-polaris01
+server1
+server2

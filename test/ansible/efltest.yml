@@ -12,35 +12,45 @@
   strategy: free
   remote_user: root
   vars:
-     work_dir: /usr/src/efl
+     work_dir: "/usr/src/efl"
      ruby_install_version: "0.6.0"
      ruby_version: "2.1.0"
+     cfengine_url: "https://cfengine-package-repos.s3.amazonaws.com/community_binaries"
   vars_files:
      - "{{ ansible_distribution }}_vars.yml"
 
   tasks:
      
      ### Install packages
-     - copy: src=./cfengine.repo dest=/etc/yum.repos.d/cfengine.repo
-       when: ansible_distribution == 'CentOS'
-
-     - apt_key: url=https://cfengine-package-repos.s3.amazonaws.com/pub/gpg.key state=present
-       when: ansible_distribution == 'Debian'
-
-     - apt_repository: repo='deb https://cfengine-package-repos.s3.amazonaws.com/pub/apt/packages stable main' state=present update_cache=yes
-       when: ansible_distribution == 'Debian'
-
+ 
      - command: apt-get update
        when: ansible_distribution == 'Debian'
 
      - package: name={{ item }} state=present
        with_items:
-          - "{{ cfengine }}"
+          - ansible
           - bzip2
           - git
           - subversion
           - make
           - "{{ cpanm }}"
+    
+     - name: Get cfengine package
+       get_url:
+          url: "{{ cfengine_url }}/{{ cfengine_package }}"
+          dest: /usr/src/
+          checksum: "sha1:{{ cfengine_chksum }}"
+
+     - name: Install cfengine on centos
+       yum:
+          name: "/usr/src/{{ cfengine_package }}"
+          state: present
+       #command: "yum -y install /usr/src/{{ cfengine_package }}"
+       when: ansible_distribution == 'CentOS'
+
+     - name: Install cfengine on debian
+       command: "dpkg -i /usr/src/{{ cfengine_package }}"
+       when: ansible_distribution == 'Debian'
 
      - cpanm: name={{ item }}
        with_items:
@@ -95,7 +105,10 @@
      ### End Ruby
 
      ### Get efl, make, and test.
-     - git: repo=https://github.com/neilhwatson/evolve_cfengine_freelib.git force=yes dest={{ work_dir }}
+     - name: Copy this repo working copy to testing hosts
+       synchronize:
+          src: ../../../
+          dest: "{{ work_dir }}"
 
      - name: make clean
        command: make clean

@@ -12,7 +12,6 @@ use Carp;
 
 my $start_dir = getcwd();
 
-my $version         = '3.7';
 my $test_config     = '/tmp/efl_test/efl_service';
 my $config_src      = '/tmp/efl_test/templates/';
 my $restart_flag    = $test_config. '/restarted';

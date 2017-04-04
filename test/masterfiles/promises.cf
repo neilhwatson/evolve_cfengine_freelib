@@ -2,8 +2,8 @@ body common control
 {
 	bundlesequence => { "main", };
    inputs => { "@{cfengine_stdlib.inputs}",
-      "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/EFL/evolve_freelib.cf",
-      "lib/$(sys.cf_version_major).$(sys.cf_version_minor)/EFL/efl_common.cf"
+      "lib/EFL/evolve_freelib.cf",
+      "lib/EFL/efl_common.cf"
    };
 
    debian|redhat::

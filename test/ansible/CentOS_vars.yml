@@ -1,3 +1,4 @@
 ---
 cpanm: perl-App-cpanminus
-cfengine: cfengine-community-3.7.4
+cfengine_package: cfengine-community-3.10.0b1-1.el6.x86_64.rpm
+cfengine_chksum: 3f96722c47369891d96aa409cf8279a87b662cb6
