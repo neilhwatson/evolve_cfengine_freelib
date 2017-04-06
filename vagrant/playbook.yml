@@ -32,13 +32,13 @@
       with_items:
         - "{{ gems }}"
 
-    - name: Install CFEngine
+    - name: Install CFEngine on Debian hosts
       apt:
         deb: "{{ cfengine_debian }}"
         state: present
       when: ansible_os_family == 'Debian'
 
-    - name: Install CFEngine
+    - name: Install CFEngine on Red Hat hosts
       yum:
         name: "{{ cfengine_redhat }}"
         state: present
@@ -51,6 +51,11 @@
 
     - name: make 
       command: make 
+      args:
+        chdir: "{{ work_dir }}"
+
+    - name: make pre_check
+      command: make pre_check
       args:
         chdir: "{{ work_dir }}"
 

@@ -300,15 +300,18 @@ efl_kill_process: version syntax efl_start_service \
   test/masterfiles/efl_data/efl_main.json 
 	prove t/$@.t
 
-.PHONY: check
+.PHONY: pre_check
 # TODO how to make all json and yaml files here?
-check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) \
+pre_check: test/$(EFL_LIB) $(cfstdlib) $(EFL_FILES) \
   $(io_json_test_files) \
   $(efl_data_json_files) \
   $(efl_test_classes_json_files) \
   $(efl_test_vars_json_files) \
   test_daemon \
   templates
+
+.PHONY: check
+check: pre_check
 	prove t/*.t
 
 .PHONY: clean
