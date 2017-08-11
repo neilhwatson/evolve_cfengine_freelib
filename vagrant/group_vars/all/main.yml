@@ -28,6 +28,6 @@ gems:
   - rspec
   - serverspec
 
-cfengine_debian: https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community_3.10.1-1_amd64-debian7.deb
+cfengine_debian: https://cfengine-package-repos.s3.amazonaws.com/community_binaries/Community-3.10.2/agent_debian7_x86_64/cfengine-community_3.10.2-1_amd64-debian7.deb
 
-cfengine_redhat: https://cfengine-package-repos.s3.amazonaws.com/community_binaries/cfengine-community-3.10.1-1.el6.x86_64.rpm
+cfengine_redhat: https://cfengine-package-repos.s3.amazonaws.com/community_binaries/Community-3.10.2/agent_rhel6_x86_64/cfengine-community-3.10.2-1.el6.x86_64.rpm
